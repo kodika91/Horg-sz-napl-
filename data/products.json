@@ -1,1 +1,81 @@
-{"methods":["method feeder","bojlis","úszós","pergető","fenekező","harcsázó","legyező","Match botos horgászat"],"baits":[{"name":"Wafter","type":"csali","method":"method_feeder","brand":"általános","image":"🟡"},{"name":"Pop-up bojli","type":"csali","method":"bojlis","brand":"általános","image":"🟠"},{"name":"Kukorica","type":"csali","method":"úszós","brand":"általános","image":"🌽"},{"name":"Gumihal","type":"műcsali","method":"pergető","brand":"általános","image":"🐟"},{"name":"Pellet","type":"csali","method":"method_feeder","brand":"általános","image":"🟤"}],"hooks":[{"name":"Method feeder horog #10","type":"horog","method":"method_feeder","brand":"általános","image":"🪝"},{"name":"Wide gape bojlis horog #6","type":"horog","method":"bojlis","brand":"általános","image":"🪝"},{"name":"Keszegező horog #14","type":"horog","method":"úszós","brand":"általános","image":"🪝"},{"name":"Jig horog 3/0","type":"horog","method":"pergető","brand":"általános","image":"🪝"}]}
+{
+  "methods": [
+    "Bojlis horgászat",
+    "Feeder botos horgászat",
+    "Method horgászat",
+    "Match botos horgászat",
+    "Spiccbotos horgászat",
+    "Bolognai botos horgászat",
+    "Rakós botos horgászat",
+    "Pergető horgászmódszer",
+    "Ragadozó halas fenekezős horgászat",
+    "Úszós ragadozó halas horgászat"
+  ],
+  "baits": [
+    {
+      "name": "Wafter",
+      "type": "csali",
+      "method": "Method horgászat",
+      "brand": "általános",
+      "image": "🟡"
+    },
+    {
+      "name": "Pop-up bojli",
+      "type": "csali",
+      "method": "Bojlis horgászat",
+      "brand": "általános",
+      "image": "🟠"
+    },
+    {
+      "name": "Kukorica",
+      "type": "csali",
+      "method": "Spiccbotos horgászat",
+      "brand": "általános",
+      "image": "🌽"
+    },
+    {
+      "name": "Gumihal",
+      "type": "műcsali",
+      "method": "Pergető horgászmódszer",
+      "brand": "általános",
+      "image": "🐟"
+    },
+    {
+      "name": "Pellet",
+      "type": "csali",
+      "method": "Feeder botos horgászat",
+      "brand": "általános",
+      "image": "🟤"
+    }
+  ],
+  "hooks": [
+    {
+      "name": "Method feeder horog #10",
+      "type": "horog",
+      "method": "Method horgászat",
+      "brand": "általános",
+      "image": "🪝"
+    },
+    {
+      "name": "Wide gape bojlis horog #6",
+      "type": "horog",
+      "method": "Bojlis horgászat",
+      "brand": "általános",
+      "image": "🪝"
+    },
+    {
+      "name": "Keszegező horog #14",
+      "type": "horog",
+      "method": "Spiccbotos horgászat",
+      "brand": "általános",
+      "image": "🪝"
+    },
+    {
+      "name": "Jig horog 3/0",
+      "type": "horog",
+      "method": "Pergető horgászmódszer",
+      "brand": "általános",
+      "image": "🪝"
+    }
+  ]
+}
