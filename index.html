@@ -9,6 +9,21 @@
 
 /* --- 2026-04: nagyobb napló részletek + kézi helyszín rendszer --- */
 .pagepad{padding:18px}.detail-card{padding:20px;border-radius:16px}.detail-title{font-size:30px;line-height:1.2}.detail-sub{font-size:17px}.kv{font-size:18px;grid-template-columns:260px 1fr;padding:10px 0}.weather-detail{grid-template-columns:repeat(3,1fr);gap:14px}.weather-tile{padding:18px;border-radius:14px;font-size:16px}.weather-tile b{font-size:28px}.note-big{font-size:18px;line-height:1.65}.full-table{font-size:18px}.full-table th,.full-table td{padding:13px}.big-weather-card{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.big-weather-card .weather-tile{padding:12px}.big-weather-card .weather-tile b{font-size:22px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.location-list-card{border:1px solid #dde6ee;border-radius:10px;background:#fff;padding:12px;margin-bottom:10px}.location-list-card b{font-size:17px}@media(max-width:1150px){.weather-detail,.big-weather-card,.grid3{grid-template-columns:1fr}.kv{grid-template-columns:1fr}.detail-title{font-size:24px}}
+
+.water-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.water-card{border:1px solid #dfe4ea;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 4px 14px rgba(15,35,50,.08)}
+.water-card img{width:100%;height:150px;object-fit:cover;display:block;background:#e9f1f5}
+.water-card-body{padding:10px}
+.water-card h4{margin:0 0 4px;font-size:16px}
+.water-card .meta{font-size:12px;color:#5b6b7b;margin-bottom:8px}
+.water-actions{display:flex;gap:6px;flex-wrap:wrap}
+.method-group{border:1px solid #dfe4ea;border-radius:14px;background:#fff;margin:14px 0;overflow:hidden}
+.method-head{background:#f3f7f9;padding:12px 14px;font-size:18px;font-weight:900;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.method-body{padding:12px}
+.brand-block{margin:12px 0 18px}
+.brand-title{font-size:15px;font-weight:900;margin:0 0 8px;color:#142c42}
+@media(max-width:1150px){.water-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -293,6 +308,131 @@ async function locationsView(){
 function locFilter(){const q=($('locSearch')?.value||'').toLowerCase(); const fromLogs=loadLogs().map(l=>({name:l.place||l.water||l.stationName,type:'naplóból',county:l.county,lat:l.lat,lon:l.lon,stationName:l.stationName})); let rows=[...fromLogs,...(custom().waters||[])]; const seen=new Set(); rows=rows.filter(w=>{const key=(w.name||w.stationName||'')+'|'+(w.lat||'')+'|'+(w.lon||''); if(seen.has(key))return false; seen.add(key); return true;}).filter(w=>!q||(w.name+' '+w.type+' '+w.county+' '+w.stationName).toLowerCase().includes(q)); if($('locResults')) $('locResults').innerHTML=rows.map(w=>`<div class="location-list-card"><b>${esc(w.name||w.stationName||'-')}</b><div class="small"><span class="tag">${esc(w.type||'saját')}</span> ${esc(w.county||'')} ${w.lat?` • ${Number(w.lat).toFixed(6)}, ${Number(w.lon).toFixed(6)}`:''}</div></div>`).join('')||'<small>Még nincs saját helyszín.</small>'}
 function addWaterFromForm(){const name=$('newWaterName')?.value||''; if(!name)return toast('Adj meg nevet.'); const m=($('newWaterCoords')?.value||'').match(/(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)/); const o=custom(); o.waters.push({name,type:$('newWaterType')?.value||'saját hely',county:$('newWaterCounty')?.value||'',lat:m?+m[1]:null,lon:m?+m[2]:null,custom:true}); saveCustom(o); locFilter(); toast('Saját hely mentve.');}
 function addWater(){addWaterFromForm()}
+
+
+/* ===== 2026-04 user requested override: kézi település, képes vízlista, módszer alapú gyűjtőmenü ===== */
+function allWaters(){
+  const baseWaters=(DB.waters?.waters||[]);
+  const own=(custom().waters||[]);
+  const fromLogs=loadLogs().map(l=>({name:l.water||l.place||l.stationName,type:'naplóból',county:l.county||'',settlement:l.settlement||'',lat:l.lat,lon:l.lon,image:l.waterImage||'',custom:false}));
+  const rows=[...baseWaters,...own,...fromLogs].filter(w=>w && w.name);
+  const seen=new Set();
+  return rows.filter(w=>{const key=(w.name||'').toLowerCase()+'|'+(w.type||'')+'|'+(w.county||''); if(seen.has(key))return false; seen.add(key); return true;});
+}
+function waterImage(w){
+  const im=w?.image||'';
+  if(im && (im.startsWith('assets/')||im.startsWith('data:image')||im.startsWith('http'))) return im;
+  return '';
+}
+function savedWaterOptions(){
+  return allWaters().map(w=>w.name).filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).sort((a,b)=>a.localeCompare(b,'hu'));
+}
+function refreshLocationLists(){
+  if($('stationList')) $('stationList').innerHTML=savedLocationOptions().map(x=>`<option value="${esc(x)}">`).join('');
+  if($('waterList')) $('waterList').innerHTML=savedWaterOptions().map(x=>`<option value="${esc(x)}">`).join('');
+}
+function useWaterName(){
+  const name=($('waterName')?.value||'').trim();
+  const water=allWaters().find(w=>w.name===name);
+  if(water){
+    if(water.lat && water.lon){ state.lat=Number(water.lat); state.lon=Number(water.lon); updateCoords(); }
+    if(water.county && $('county')) $('county').value=water.county;
+    if(water.settlement && $('settlement')) $('settlement').value=water.settlement;
+  }
+}
+function collectForm(){
+ const station=$('stationName')?.value||'', water=$('waterName')?.value||'';
+ const selectedWater=allWaters().find(w=>w.name===water);
+ return {id:Date.now(),date:$('date')?.value||today(),time:$('time')?.value||'',stationName:station,county:$('county')?.value||'',settlement:$('settlement')?.value||'',water:water,waterImage:selectedWater?.image||'',place:[station,water,$('settlement')?.value].filter(Boolean).join(' – ') || 'Ismeretlen hely',method:$('method')?.value||'',lat:state.lat,lon:state.lon,accuracy:state.accuracy,weather:state.weather,waterState:$('waterState')?.value,clarity:$('clarity')?.value,activity:$('activity')?.value,note:$('note')?.value,bait:state.selectedBait,hook:state.selectedHook,equipment:{rod:$('rod')?.value||'',reel:$('reel')?.value||'',lineType:$('lineType')?.value||'',lineDiameter:$('lineDiameter')?.value||'',leaderType:$('leaderType')?.value||'',leaderDiameter:$('leaderDiameter')?.value||'',leaderLength:$('leaderLength')?.value||'',rigType:$('rigType')?.value||'',leadType:$('leadType')?.value||'',leadWeight:$('leadWeight')?.value||'',feedMix:$('feedMix')?.value||'',feedAmount:$('feedAmount')?.value||'',additive:$('additive')?.value||'',smallTackle:$('smallTackle')?.value||''},conditions:{waterTemp:$('waterTemp')?.value||'',waterDepth:$('waterDepth')?.value||'',bottomType:$('bottomType')?.value||'',flow:$('flow')?.value||'',waterColor:$('waterColor')?.value||'',waterLevelNote:$('waterLevelNote')?.value||'',windNote:$('windNote')?.value||'',pressureTrend:$('pressureTrend')?.value||'',moonPhase:$('moonPhase')?.value||'',spotType:$('spotType')?.value||'',fishingPressure:$('fishingPressure')?.value||'',bitePattern:$('bitePattern')?.value||'',spotDescription:$('spotDescription')?.value||''},catches:state.catches,pictures:state.pictures,createdAt:new Date().toISOString()}
+}
+function saveEntry(){
+ const e=collectForm(), logs=loadLogs(); logs.unshift(e); saveLogs(logs);
+ if(e.water||e.stationName){
+   const o=custom(); const exists=(o.waters||[]).some(w=>w.name===(e.water||e.stationName));
+   if(!exists)o.waters.push({name:e.water||e.stationName,stationName:e.stationName,type:'saját hely',county:e.county,settlement:e.settlement,lat:e.lat,lon:e.lon,image:e.waterImage||'',custom:true});
+   saveCustom(o);
+ }
+ toast('Bejegyzés mentve. A hely bekerült a saját listába.'); showView('logs');
+}
+function selectWaterForNew(name){
+  showView('new').then(()=>{ if($('waterName')){$('waterName').value=name; useWaterName(); toast('Víz kiválasztva.');} });
+}
+function deleteWater(name){
+  if(!confirm('Törlöd / elrejted ezt a vízterületet a saját listádból?')) return;
+  const o=custom(); o.waters=o.waters||[]; o.hiddenWaters=o.hiddenWaters||[];
+  const idx=o.waters.findIndex(w=>w.name===name);
+  if(idx>=0) o.waters.splice(idx,1); else if(!o.hiddenWaters.includes(name)) o.hiddenWaters.push(name);
+  saveCustom(o); if(state.view==='locations')locFilter(); refreshLocationLists(); toast('Vízterület törölve / elrejtve.');
+}
+function visibleWaters(){
+  const hidden=new Set((custom().hiddenWaters||[]));
+  return allWaters().filter(w=>!hidden.has(w.name));
+}
+async function locationsView(){
+  await loadJson('waters','data/waters.min.json');
+  const countyOpts=['','Bács-Kiskun','Baranya','Békés','Borsod-Abaúj-Zemplén','Csongrád-Csanád','Fejér','Győr-Moson-Sopron','Hajdú-Bihar','Heves','Jász-Nagykun-Szolnok','Komárom-Esztergom','Nógrád','Pest','Somogy','Szabolcs-Szatmár-Bereg','Tolna','Vas','Veszprém','Zala','Budapest'].map(c=>`<option value="${esc(c)}">${c?esc(c):'Minden megye'}</option>`).join('');
+  $('view').innerHTML=page('VÍZTERÜLETEK ÉS SAJÁT HELYEK',`<div class="pagepad">
+    <div class="grid"><div class="box"><h3>+ Saját víz / állás hozzáadása</h3>
+      <div class="row"><label>Név</label><input id="newWaterName" class="field" placeholder="pl. Kocka tó - 2-es állás"></div>
+      <div class="row"><label>Típus</label><select id="newWaterType"><option>tó</option><option>folyó</option><option>patak</option><option>csatorna</option><option>holtág</option><option>tározó</option><option>saját hely</option></select></div>
+      <div class="row"><label>Megye</label><select id="newWaterCounty">${countyOpts}</select></div>
+      <div class="row"><label>Település</label><input id="newWaterSettlement" class="field" placeholder="kézzel megadható"></div>
+      <div class="row"><label>Koordináta</label><input id="newWaterCoords" class="field" placeholder="47.95622, 21.35870"></div>
+      <div class="row"><label>Kép</label><input id="newWaterImage" class="field" type="file" accept="image/*" onchange="previewWaterImage(event)"></div>
+      <div class="row"><label>Előnézet</label><div id="newWaterPreview" class="imgPreview">nincs kép</div></div>
+      <button class="btn" onclick="addWaterFromForm()">Mentés saját helynek</button>
+    </div><div class="box"><h3>Keresés és szűrés</h3>
+      <div class="row"><label>Megye</label><select id="locCounty" onchange="locFilter()">${countyOpts}</select></div>
+      <div class="row"><label>Víztípus</label><select id="waterType" onchange="locFilter()"><option value="">Minden</option><option>folyó</option><option>tó</option><option>patak</option><option>csatorna</option><option>holtág</option><option>tározó</option><option>horgászvíz</option></select></div>
+      <div class="row"><label>Keresés</label><input id="locSearch" class="field" oninput="locFilter()" placeholder="Duna, Balaton, csatorna, saját tó..."></div>
+      <div class="small">A képen kapott vízterületek alapból választhatók; ha valami hiányzik, itt kézzel hozzáadható és később törölhető.</div>
+    </div></div>
+    <div id="locResults" style="margin-top:14px"></div>
+  </div>`); locFilter();
+}
+function previewWaterImage(e){ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{ $('newWaterPreview').innerHTML=`<img src="${r.result}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`; $('newWaterPreview').dataset.image=r.result; }; r.readAsDataURL(f); }
+function addWaterFromForm(){
+ const name=($('newWaterName')?.value||'').trim(); if(!name)return toast('Adj meg nevet.');
+ const m=($('newWaterCoords')?.value||'').match(/(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)/);
+ const o=custom(); o.waters=o.waters||[];
+ o.waters.push({name,type:$('newWaterType')?.value||'saját hely',county:$('newWaterCounty')?.value||'',settlement:$('newWaterSettlement')?.value||'',lat:m?+m[1]:null,lon:m?+m[2]:null,image:$('newWaterPreview')?.dataset.image||'',custom:true});
+ saveCustom(o); locFilter(); refreshLocationLists(); toast('Saját víz mentve.');
+}
+function locFilter(){
+ if(!$('locResults'))return;
+ const q=($('locSearch')?.value||'').toLowerCase(), c=$('locCounty')?.value||'', t=($('waterType')?.value||'').toLowerCase();
+ const rows=visibleWaters().filter(w=>(!q||(w.name+' '+(w.type||'')+' '+(w.county||'')+' '+(w.settlement||'')).toLowerCase().includes(q))&&(!c||w.county===c||!w.county)&&(!t||(w.type||'').toLowerCase().includes(t)));
+ $('locResults').innerHTML=`<div class="water-grid">${rows.map(w=>`<div class="water-card">${waterImage(w)?`<img src="${esc(waterImage(w))}" onerror="this.style.display='none'">`:`<div style="height:150px;background:linear-gradient(135deg,#bfdceb,#547b63);display:flex;align-items:center;justify-content:center;font-size:42px">🌊</div>`}<div class="water-card-body"><h4>${esc(w.name)}</h4><div class="meta"><span class="tag">${esc(w.type||'víz')}</span> ${esc(w.county||'')} ${esc(w.settlement||'')}</div><div class="water-actions"><button class="btn mini blue" onclick="selectWaterForNew('${esc(w.name)}')">Kiválasztás</button><button class="btn mini red" onclick="deleteWater('${esc(w.name)}')">Törlés</button></div></div></div>`).join('')}</div>` || '<small>Nincs találat.</small>';
+}
+function methodGroupedCards(items,kind){
+ const byMethod={};
+ items.forEach(x=>{const m=x.method||'Egyéb'; (byMethod[m]=byMethod[m]||[]).push(x);});
+ return Object.keys(byMethod).sort((a,b)=>a.localeCompare(b,'hu')).map(m=>{
+   const itemsM=byMethod[m], byBrand={};
+   itemsM.forEach(x=>{const b=x.brand||'általános'; (byBrand[b]=byBrand[b]||[]).push(x);});
+   const inner=Object.keys(byBrand).sort((a,b)=>a.localeCompare(b,'hu')).map(b=>`<div class="brand-block"><div class="brand-title">${esc(b)} <span class="tag">${byBrand[b].length} db</span></div><div class="cards">${byBrand[b].map(x=>productCard(x,kind,false)).join('')}</div></div>`).join('');
+   return `<details class="method-group" open><summary class="method-head"><span>${esc(m)}</span><span class="tag">${itemsM.length} db</span></summary><div class="method-body">${inner}</div></details>`;
+ }).join('')||'<small>Nincs találat.</small>';
+}
+async function gearView(){
+ await loadJson('products','data/products.json');
+ const methods=DB.products.methods||[], baitBrands=brandsFor('bait'), hookBrands=brandsFor('hook');
+ $('view').innerHTML=page('CSALI / HOROG ADATBÁZIS',`<div class="pagepad">
+   <div class="grid" style="margin-top:12px"><div class="box"><h3>🎣 Csali kezelés</h3><button class="btn" onclick="addCustom('bait')">+ Új csali</button><div class="row" style="margin-top:10px"><label>Módszer</label><select id="gearBaitMethod" onchange="filterGear()"><option value="">Minden</option>${methods.map(m=>`<option>${esc(m)}</option>`).join('')}</select></div><div class="row"><label>Márka</label><select id="gearBaitBrand" onchange="filterGear()"><option value="">Minden</option>${baitBrands.map(b=>`<option>${esc(b)}</option>`).join('')}</select></div><div class="row"><label>Keresés</label><input class="field" id="gearBaitSearch" oninput="filterGear()" placeholder="wafter, pellet, giliszta..."></div></div>
+   <div class="box"><h3>🪝 Horog kezelés</h3><button class="btn" onclick="addCustom('hook')">+ Új horog</button><div class="row" style="margin-top:10px"><label>Módszer</label><select id="gearHookMethod" onchange="filterGear()"><option value="">Minden</option>${methods.map(m=>`<option>${esc(m)}</option>`).join('')}</select></div><div class="row"><label>Márka</label><select id="gearHookBrand" onchange="filterGear()"><option value="">Minden</option>${hookBrands.map(b=>`<option>${esc(b)}</option>`).join('')}</select></div><div class="row"><label>Keresés</label><input class="field" id="gearHookSearch" oninput="filterGear()" placeholder="wide gape, jig, Owner..."></div></div></div>
+   <div class="grid" style="margin-top:12px"><div class="box"><h3>Csalik horgászmódszer szerint</h3><div id="gearBaits"></div></div><div class="box"><h3>Horgok horgászmódszer szerint</h3><div id="gearHooks"></div></div></div>
+ </div>`);
+ filterGear();
+}
+function filterGear(){
+ if(!$('gearBaits')) return;
+ const bm=$('gearBaitMethod').value, bb=$('gearBaitBrand').value, bq=($('gearBaitSearch').value||'').toLowerCase();
+ const hm=$('gearHookMethod').value, hb=$('gearHookBrand').value, hq=($('gearHookSearch').value||'').toLowerCase();
+ const b=productList('bait').filter(x=>(!bm||x.method===bm||x.method==='mind')&&(!bb||x.brand===bb)&&(!bq||(x.name+' '+x.brand+' '+x.category+' '+x.description).toLowerCase().includes(bq)));
+ const h=productList('hook').filter(x=>(!hm||x.method===hm||x.method==='mind')&&(!hb||x.brand===hb)&&(!hq||(x.name+' '+x.brand+' '+x.category+' '+x.description).toLowerCase().includes(hq)));
+ $('gearBaits').innerHTML=methodGroupedCards(b,'bait');
+ $('gearHooks').innerHTML=methodGroupedCards(h,'hook');
+}
 
 window.addEventListener('DOMContentLoaded',()=>{ renderMenu(); showView('new'); });
 </script>
