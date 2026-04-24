@@ -1,0 +1,400 @@
+{
+  "fish": [
+    {
+      "name": "Ponty",
+      "latin": "Cyprinus carpio",
+      "group": "békéshal / pontyféle",
+      "closed": "05-02..05-31",
+      "min": 30,
+      "limit": "3 db",
+      "photo": "assets/fish/ponty.jpg"
+    },
+    {
+      "name": "Amur",
+      "latin": "Ctenopharyngodon idella",
+      "group": "békéshal / amur",
+      "closed": "nincs országos",
+      "min": 40,
+      "limit": "3 db / helyi szabály",
+      "photo": "assets/fish/amur.jpg"
+    },
+    {
+      "name": "Busafélék",
+      "latin": "Hypophthalmichthys spp.",
+      "group": "békéshal / busa",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/busafelek.jpg"
+    },
+    {
+      "name": "Kárász",
+      "latin": "Carassius carassius",
+      "group": "békéshal / pontyféle",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/karasz.jpg"
+    },
+    {
+      "name": "Ezüstkárász",
+      "latin": "Carassius gibelio",
+      "group": "békéshal / inváziós",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/ezustkarasz.jpg"
+    },
+    {
+      "name": "Compó",
+      "latin": "Tinca tinca",
+      "group": "békéshal",
+      "closed": "05-02..06-15",
+      "min": 25,
+      "limit": "3 db",
+      "photo": "assets/fish/compo.jpg"
+    },
+    {
+      "name": "Dévérkeszeg",
+      "latin": "Abramis brama",
+      "group": "keszegféle",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/deverkeszeg.jpg"
+    },
+    {
+      "name": "Karikakeszeg",
+      "latin": "Blicca bjoerkna",
+      "group": "keszegféle",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/karikakeszeg.jpg"
+    },
+    {
+      "name": "Laposkeszeg",
+      "latin": "Ballerus ballerus",
+      "group": "keszegféle",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/laposkeszeg.jpg"
+    },
+    {
+      "name": "Bagolykeszeg",
+      "latin": "Ballerus sapa",
+      "group": "keszegféle",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/bagolykeszeg.jpg"
+    },
+    {
+      "name": "Bodorka",
+      "latin": "Rutilus rutilus",
+      "group": "keszegféle",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/bodorka.jpg"
+    },
+    {
+      "name": "Vörösszárnyú keszeg",
+      "latin": "Scardinius erythrophthalmus",
+      "group": "keszegféle",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/vorosszarnyu_keszeg.jpg"
+    },
+    {
+      "name": "Jászkeszeg",
+      "latin": "Leuciscus idus",
+      "group": "keszegféle",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/jaszkeszeg.jpg"
+    },
+    {
+      "name": "Szilvaorrú keszeg",
+      "latin": "Vimba vimba",
+      "group": "keszegféle",
+      "closed": "04-15..05-31",
+      "min": 20,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/szilvaorru_keszeg.jpg"
+    },
+    {
+      "name": "Garda",
+      "latin": "Pelecus cultratus",
+      "group": "keszegféle",
+      "closed": "04-15..05-31",
+      "min": 20,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/garda.jpg"
+    },
+    {
+      "name": "Küsz",
+      "latin": "Alburnus alburnus",
+      "group": "kishal / csalihal",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/kusz.jpg"
+    },
+    {
+      "name": "Domolykó",
+      "latin": "Squalius cephalus",
+      "group": "folyóvízi békéshal",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/domolyko.jpg"
+    },
+    {
+      "name": "Paduc",
+      "latin": "Chondrostoma nasus",
+      "group": "folyóvízi békéshal",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/paduc.jpg"
+    },
+    {
+      "name": "Márna",
+      "latin": "Barbus barbus",
+      "group": "folyóvízi békéshal",
+      "closed": "05-02..06-15",
+      "min": 40,
+      "limit": "3 db",
+      "photo": "assets/fish/marna.jpg"
+    },
+    {
+      "name": "Harcsa",
+      "latin": "Silurus glanis",
+      "group": "ragadozó",
+      "closed": "05-02..06-15",
+      "min": 60,
+      "limit": "3 db",
+      "photo": "assets/fish/harcsa.jpg"
+    },
+    {
+      "name": "Csuka",
+      "latin": "Esox lucius",
+      "group": "ragadozó",
+      "closed": "02-01..03-31",
+      "min": 40,
+      "limit": "3 db",
+      "photo": "assets/fish/csuka.jpg"
+    },
+    {
+      "name": "Fogassüllő",
+      "latin": "Sander lucioperca",
+      "group": "ragadozó",
+      "closed": "03-01..04-30",
+      "min": 30,
+      "limit": "3 db",
+      "photo": "assets/fish/fogassullo.jpg"
+    },
+    {
+      "name": "Kősüllő",
+      "latin": "Sander volgensis",
+      "group": "ragadozó",
+      "closed": "03-01..06-30",
+      "min": 25,
+      "limit": "3 db",
+      "photo": "assets/fish/kosullo.jpg"
+    },
+    {
+      "name": "Balin",
+      "latin": "Leuciscus aspius",
+      "group": "ragadozó",
+      "closed": "03-01..04-30",
+      "min": 40,
+      "limit": "3 db",
+      "photo": "assets/fish/balin.jpg"
+    },
+    {
+      "name": "Sügér",
+      "latin": "Perca fluviatilis",
+      "group": "ragadozó",
+      "closed": "03-01..04-30",
+      "min": 15,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/suger.jpg"
+    },
+    {
+      "name": "Menyhal",
+      "latin": "Lota lota",
+      "group": "ragadozó",
+      "closed": "nincs országos",
+      "min": 25,
+      "limit": "3 db / helyi szabály",
+      "photo": "assets/fish/menyhal.jpg"
+    },
+    {
+      "name": "Angolna",
+      "latin": "Anguilla anguilla",
+      "group": "különleges / helyi szabály",
+      "closed": "helyi szabály",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/angolna.jpg"
+    },
+    {
+      "name": "Sebes pisztráng",
+      "latin": "Salmo trutta fario",
+      "group": "pisztrángféle",
+      "closed": "10-01..03-31",
+      "min": 22,
+      "limit": "3 db / helyi szabály",
+      "photo": "assets/fish/sebes_pisztrang.jpg"
+    },
+    {
+      "name": "Szivárványos pisztráng",
+      "latin": "Oncorhynchus mykiss",
+      "group": "pisztrángféle",
+      "closed": "nincs országos",
+      "min": 22,
+      "limit": "3 db / helyi szabály",
+      "photo": "assets/fish/szivarvanyos_pisztrang.jpg"
+    },
+    {
+      "name": "Pataki szajbling",
+      "latin": "Salvelinus fontinalis",
+      "group": "pisztrángféle",
+      "closed": "helyi szabály",
+      "min": 22,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/pataki_szajbling.jpg"
+    },
+    {
+      "name": "Törpeharcsa",
+      "latin": "Ameiurus spp.",
+      "group": "inváziós / harcsaféle",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/torpeharcsa.jpg"
+    },
+    {
+      "name": "Naphal",
+      "latin": "Lepomis gibbosus",
+      "group": "inváziós / apróhal",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/naphal.jpg"
+    },
+    {
+      "name": "Razbóra",
+      "latin": "Pseudorasbora parva",
+      "group": "inváziós / kishal",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/razbora.jpg"
+    },
+    {
+      "name": "Gébfélék",
+      "latin": "Neogobius / Ponticola fajok",
+      "group": "inváziós / gébféle",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/gebfelek.jpg"
+    },
+    {
+      "name": "Vágódurbincs",
+      "latin": "Gymnocephalus cernua",
+      "group": "apró ragadozó / durbincs",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/vagodurbincs.jpg"
+    },
+    {
+      "name": "Fenékjáró küllő",
+      "latin": "Gobio gobio",
+      "group": "kishal / küllőféle",
+      "closed": "nincs országos",
+      "min": 0,
+      "limit": "helyi szabály",
+      "photo": "assets/fish/fenekjaro_kullo.jpg"
+    },
+    {
+      "name": "Selymes durbincs",
+      "latin": "Gymnocephalus schraetser",
+      "group": "védett / nem elvihető",
+      "closed": "védett",
+      "min": 0,
+      "limit": "nem tartható meg",
+      "photo": "assets/fish/selymes_durbincs.jpg"
+    },
+    {
+      "name": "Leánykoncér",
+      "latin": "Rutilus virgo",
+      "group": "védett / nem elvihető",
+      "closed": "védett",
+      "min": 0,
+      "limit": "nem tartható meg",
+      "photo": "assets/fish/leanykoncer.jpg"
+    },
+    {
+      "name": "Lápi póc",
+      "latin": "Umbra krameri",
+      "group": "védett / nem elvihető",
+      "closed": "védett",
+      "min": 0,
+      "limit": "nem tartható meg",
+      "photo": "assets/fish/lapi_poc.jpg"
+    },
+    {
+      "name": "Pénzes pér",
+      "latin": "Thymallus thymallus",
+      "group": "védett / nem elvihető",
+      "closed": "védett",
+      "min": 0,
+      "limit": "nem tartható meg",
+      "photo": "assets/fish/penzes_per.jpg"
+    },
+    {
+      "name": "Sujtásos küsz",
+      "latin": "Alburnoides bipunctatus",
+      "group": "védett / nem elvihető",
+      "closed": "védett",
+      "min": 0,
+      "limit": "nem tartható meg",
+      "photo": "assets/fish/sujtasos_kusz.jpg"
+    },
+    {
+      "name": "Halványfoltú küllő",
+      "latin": "Romanogobio albipinnatus",
+      "group": "védett / nem elvihető",
+      "closed": "védett",
+      "min": 0,
+      "limit": "nem tartható meg",
+      "photo": "assets/fish/halvanyfoltu_kullo.jpg"
+    },
+    {
+      "name": "Magyar bucó",
+      "latin": "Zingel zingel",
+      "group": "védett / nem elvihető",
+      "closed": "védett",
+      "min": 0,
+      "limit": "nem tartható meg",
+      "photo": "assets/fish/magyar_buco.jpg"
+    },
+    {
+      "name": "Német bucó",
+      "latin": "Zingel streber",
+      "group": "védett / nem elvihető",
+      "closed": "védett",
+      "min": 0,
+      "limit": "nem tartható meg",
+      "photo": "assets/fish/nemet_buco.jpg"
+    }
+  ]
+}
