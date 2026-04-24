@@ -1,0 +1,208 @@
+{
+  "methods": [
+    "Bojlis horgászat",
+    "Feeder botos horgászat",
+    "Method horgászat",
+    "Match botos horgászat",
+    "Spiccbotos horgászat",
+    "Bolognai botos horgászat",
+    "Rakós botos horgászat",
+    "Pergető horgászmódszer",
+    "Ragadozó halas fenekezős horgászat",
+    "Úszós ragadozó halas horgászat"
+  ],
+  "baits": [
+    {
+      "name": "Wafter",
+      "type": "csali",
+      "method": "Method horgászat",
+      "brand": "általános",
+      "category": "wafter",
+      "size": "6-12 mm",
+      "flavor": "változó",
+      "buoyancy": "wafter / balanszírozott",
+      "description": "Method kosárhoz, feeder módszerhez jól használható balanszírozott csali.",
+      "image": "🟡"
+    },
+    {
+      "name": "Pop-up bojli",
+      "type": "csali",
+      "method": "Bojlis horgászat",
+      "brand": "általános",
+      "category": "pop-up bojli",
+      "size": "10-20 mm",
+      "flavor": "változó",
+      "buoyancy": "pop-up / lebegő",
+      "description": "Lebegő csali bojlis szerelékekhez, iszapos vagy növényes aljzaton is hasznos lehet.",
+      "image": "🟠"
+    },
+    {
+      "name": "Süllyedő bojli",
+      "type": "csali",
+      "method": "Bojlis horgászat",
+      "brand": "általános",
+      "category": "bojli",
+      "size": "14-24 mm",
+      "flavor": "halas/édes/fűszeres",
+      "buoyancy": "süllyedő",
+      "description": "Pontyra és amurra használt alap bojlis csali.",
+      "image": "🟤"
+    },
+    {
+      "name": "Pellet",
+      "type": "csali",
+      "method": "Feeder botos horgászat",
+      "brand": "általános",
+      "category": "pellet",
+      "size": "2-12 mm",
+      "flavor": "változó",
+      "buoyancy": "süllyedő",
+      "description": "Etetéshez és horogcsaliként is használható pellet feeder és method horgászathoz.",
+      "image": "🟤"
+    },
+    {
+      "name": "Kukorica",
+      "type": "csali",
+      "method": "Spiccbotos horgászat",
+      "brand": "általános",
+      "category": "szemes csali",
+      "size": "szem",
+      "flavor": "natúr/ízesített",
+      "buoyancy": "süllyedő",
+      "description": "Klasszikus csali pontyra, kárászra, keszegfélékre.",
+      "image": "🌽"
+    },
+    {
+      "name": "Csontkukac",
+      "type": "élő csali",
+      "method": "Feeder botos horgászat",
+      "brand": "általános",
+      "category": "élő csali",
+      "size": "normál",
+      "flavor": "-",
+      "buoyancy": "süllyedő",
+      "description": "Fehérhalas és finomszerelékes horgászat egyik alap csalija.",
+      "image": "🪱"
+    },
+    {
+      "name": "Giliszta",
+      "type": "élő csali",
+      "method": "Úszós ragadozó halas horgászat",
+      "brand": "általános",
+      "category": "élő csali",
+      "size": "változó",
+      "flavor": "-",
+      "buoyancy": "süllyedő",
+      "description": "Sokoldalú természetes csali, békéshalra és ragadozóra is használható.",
+      "image": "🪱"
+    },
+    {
+      "name": "Gumihal",
+      "type": "műcsali",
+      "method": "Pergető horgászmódszer",
+      "brand": "általános",
+      "category": "lágy műcsali",
+      "size": "5-15 cm",
+      "flavor": "-",
+      "buoyancy": "változó",
+      "description": "Pergető módszerhez, süllőre, csukára, sügérre, balinra.",
+      "image": "🐟"
+    },
+    {
+      "name": "Wobbler",
+      "type": "műcsali",
+      "method": "Pergető horgászmódszer",
+      "brand": "általános",
+      "category": "wobbler",
+      "size": "3-15 cm",
+      "flavor": "-",
+      "buoyancy": "úszó/süllyedő",
+      "description": "Ragadozóhalas pergetéshez használt műcsali.",
+      "image": "🐠"
+    },
+    {
+      "name": "Halszelet / csalihal",
+      "type": "természetes csali",
+      "method": "Ragadozó halas fenekezős horgászat",
+      "brand": "általános",
+      "category": "ragadozó csali",
+      "size": "változó",
+      "flavor": "hal",
+      "buoyancy": "süllyedő",
+      "description": "Fenék közeli ragadozóhalas horgászathoz, helyi szabály szerint használható.",
+      "image": "🐟"
+    }
+  ],
+  "hooks": [
+    {
+      "name": "Method feeder horog #10",
+      "type": "horog",
+      "method": "Method horgászat",
+      "brand": "általános",
+      "category": "method horog",
+      "size": "#10",
+      "description": "Csali tüskés vagy hajszálelőkés method szerelékekhez.",
+      "image": "🪝"
+    },
+    {
+      "name": "Feeder horog #12",
+      "type": "horog",
+      "method": "Feeder botos horgászat",
+      "brand": "általános",
+      "category": "feeder horog",
+      "size": "#12",
+      "description": "Keszeges, kárászos, pontyos feeder horgászathoz.",
+      "image": "🪝"
+    },
+    {
+      "name": "Wide gape bojlis horog #6",
+      "type": "horog",
+      "method": "Bojlis horgászat",
+      "brand": "általános",
+      "category": "bojlis horog",
+      "size": "#6",
+      "description": "Bojlis hajszálelőkés szerelékekhez.",
+      "image": "🪝"
+    },
+    {
+      "name": "Keszegező horog #16",
+      "type": "horog",
+      "method": "Spiccbotos horgászat",
+      "brand": "általános",
+      "category": "finomszerelékes horog",
+      "size": "#16",
+      "description": "Spiccbotos apróhalas, keszeges horgászathoz.",
+      "image": "🪝"
+    },
+    {
+      "name": "Match horog #14",
+      "type": "horog",
+      "method": "Match botos horgászat",
+      "brand": "általános",
+      "category": "match horog",
+      "size": "#14",
+      "description": "Matchbotos úszós horgászathoz.",
+      "image": "🪝"
+    },
+    {
+      "name": "Jig horog 3/0",
+      "type": "horog",
+      "method": "Pergető horgászmódszer",
+      "brand": "általános",
+      "category": "jig horog",
+      "size": "3/0",
+      "description": "Gumihalas pergetéshez.",
+      "image": "🪝"
+    },
+    {
+      "name": "Hármashorog #4",
+      "type": "horog",
+      "method": "Úszós ragadozó halas horgászat",
+      "brand": "általános",
+      "category": "hármashorog",
+      "size": "#4",
+      "description": "Ragadozóhalas úszós módszerhez, helyi szabály szerint használható.",
+      "image": "🪝"
+    }
+  ]
+}
