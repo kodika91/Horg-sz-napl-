@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Horgász Napló</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+<header class="hero">
+  <div class="brand-card">
+    <div class="logo-fish">🐟</div>
+    <div>
+      <h1>HORGÁSZ NAPLÓ</h1>
+      <p>Modern, reszponzív felület – minden fontos adat egy helyen</p>
+    </div>
+  </div>
+</header>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="side-title">HORGÁSZ<br>NAPLÓ</div>
+    <button class="nav active" data-view="newLog">＋ Új bejegyzés</button>
+    <button class="nav" data-view="logs">📋 Naplóim</button>
+    <button class="nav" data-view="locations">📍 Helyszínek</button>
+    <button class="nav" data-view="fish">🐟 Halfajok</button>
+    <button class="nav" data-view="bans">⛔ Aktuális tilalmak</button>
+    <button class="nav" data-view="baits">🟠 Csalik</button>
+    <button class="nav" data-view="groundbaits">🧺 Etetőanyagok</button>
+    <button class="nav" data-view="hooks">🪝 Horgok</button>
+    <button class="nav" data-view="lines">〰 Zsinórok</button>
+    <button class="nav" data-view="methods">🎣 Módszerek</button>
+    <button class="nav" data-view="accessories">🧰 Egyéb felszerelés</button>
+    <button class="nav" data-view="stats">📊 Statisztikák</button>
+    <button class="nav" data-view="backup">☁ Export / Import</button>
+    <section class="live-weather mini" id="sideWeather">
+      <b>Jelenlegi időjárás</b>
+      <div>GPS lekérés után jelenik meg.</div>
+    </section>
+  </aside>
+
+  <main class="content">
+    <section id="newLog" class="view active"></section>
+    <section id="logs" class="view"></section>
+    <section id="locations" class="view"></section>
+    <section id="fish" class="view"></section>
+    <section id="bans" class="view"></section>
+    <section id="baits" class="view"></section>
+    <section id="groundbaits" class="view"></section>
+    <section id="hooks" class="view"></section>
+    <section id="lines" class="view"></section>
+    <section id="methods" class="view"></section>
+    <section id="accessories" class="view"></section>
+    <section id="stats" class="view"></section>
+    <section id="backup" class="view"></section>
+  </main>
+</div>
+
+<dialog id="modal"><div id="modalBody"></div><button onclick="modal.close()" class="secondary">Bezárás</button></dialog>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
