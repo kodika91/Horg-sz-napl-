@@ -1,8 +1,0 @@
-{
-  "name": "Horgász Napló",
-  "short_name": "HorgászNapló",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#f2f6f8",
-  "theme_color": "#082235"
-}
