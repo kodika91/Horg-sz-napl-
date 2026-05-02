@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071f33">
+  <title>Horgász Napló Pro</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Fő navigáció">
+      <div class="brand">
+        <div class="brand-icon">🎣</div>
+        <div><strong>Horgász</strong><span>Napló Pro</span></div>
+      </div>
+      <nav class="side-nav">
+        <button class="nav-btn active" data-view="newLog">➕ Új bejegyzés</button>
+        <button class="nav-btn" data-view="logs">📓 Naplóim</button>
+        <button class="nav-btn" data-view="catches">🐟 Fogásaim</button>
+        <button class="nav-btn" data-view="locations">📍 Helyszínek</button>
+        <button class="nav-btn" data-view="stats">📊 Statisztikák</button>
+        <button class="nav-btn" data-view="gear">🧰 Felszerelés</button>
+        <button class="nav-btn" data-view="database">🗄️ Adatbázis</button>
+        <button class="nav-btn" data-view="settings">⚙️ Beállítások</button>
+        <button class="nav-btn" data-view="backup">☁️ Export / Import</button>
+      </nav>
+      <div id="sideWeather" class="side-weather">
+        <small>Jelenlegi időjárás</small>
+        <strong>GPS után töltődik</strong>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1>Horgász Napló</h1>
+          <p>Mobil-first napló, fogás, időjárás és felszerelés adatbázis.</p>
+        </div>
+        <button id="quickSave" class="ghost desktop-only">Gyors mentés</button>
+      </header>
+
+      <div class="workspace">
+        <section id="content" class="content"></section>
+        <aside id="rightRail" class="right-rail"></aside>
+      </div>
+    </main>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Mobil navigáció">
+    <button class="nav-btn active" data-view="newLog"><span>➕</span>Új</button>
+    <button class="nav-btn" data-view="logs"><span>📓</span>Naplók</button>
+    <button class="nav-btn" data-view="catches"><span>🐟</span>Fogások</button>
+    <button class="nav-btn" data-view="database"><span>🗄️</span>Adatbázis</button>
+    <button class="nav-btn" data-view="settings"><span>⚙️</span>Menü</button>
+  </nav>
+
+  <dialog id="modal">
+    <div id="modalBody"></div>
+    <div class="modal-actions"><button class="secondary" onclick="modal.close()">Bezárás</button></div>
+  </dialog>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
