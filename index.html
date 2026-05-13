@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profi Horgász Napló — v26.22 Bővített halfaj lista</title>
+<style>
+:root{--bg:#f4f0e8;--card:#faf8f4;--card2:#f0ece3;--text:#2a2018;--muted:#6b5840;--muted2:#a08060;--water:#2c6e7a;--water2:#3a8a99;--moss:#4a7c59;--danger:#a03030;--gold:#b8870b;--border:rgba(120,100,70,.18);--shadow:rgba(60,40,10,.12)}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(135deg,#f4f0e8,#ede8de);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text)}
+.app{max-width:1280px;margin:0 auto;padding:22px} header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap} .brand{display:flex;gap:14px;align-items:center} .logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--water),var(--water2));display:grid;place-items:center;color:white;font-size:26px;box-shadow:0 8px 24px rgba(44,110,122,.28)}
+h1{margin:0;font-size:26px;line-height:1.05;font-family:Georgia,serif} .sub{color:var(--muted);font-size:13px;margin-top:5px} .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center} input,select{border:1px solid var(--border);background:rgba(255,255,255,.58);padding:11px 12px;border-radius:12px;color:var(--text);outline:none} input{min-width:260px} button{border:0;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer;background:var(--water);color:white} button.secondary{background:var(--card);color:var(--water);border:1px solid rgba(44,110,122,.22)}
+.stats{display:grid;grid-template-columns:repeat(5,minmax(140px,1fr));gap:10px;margin:14px 0 18px} .stat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 2px 12px var(--shadow)} .stat .n{font-size:25px;font-weight:900} .stat .l{font-size:12px;color:var(--muted2);margin-top:4px}
+.notice{background:#fff8e5;border:1px solid rgba(184,135,11,.3);border-radius:16px;padding:14px 16px;margin-bottom:14px;color:#6b4a00;font-size:13px;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:12px} .card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 2px 12px var(--shadow);display:flex;flex-direction:column;min-height:250px} .fishHead{height:82px;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.65),transparent 35%),linear-gradient(135deg,rgba(44,110,122,.12),rgba(74,124,89,.13));display:flex;align-items:center;justify-content:space-between;padding:14px} .fishIcon{font-size:34px;opacity:.72} .badge{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;border-radius:999px;padding:6px 9px;border:1px solid var(--border);background:white;color:var(--muted)} .badge.védett{background:#fdeaea;color:var(--danger);border-color:rgba(160,48,48,.25)} .badge.fajlagos{background:#fff5d6;color:#8b6400;border-color:rgba(184,135,11,.3)} .badge.nem{background:#edf5ee;color:var(--moss);border-color:rgba(74,124,89,.28)} .badge.ellenőrizendő{background:#edf4f7;color:var(--water);border-color:rgba(44,110,122,.25)} .body{padding:14px} .name{font-size:18px;font-weight:900;margin:0 0 3px} .latin{font-size:12px;color:var(--muted2);font-style:italic;margin-bottom:12px} .meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px} .pill{font-size:11px;color:var(--muted);background:var(--card2);border:1px solid var(--border);padding:5px 8px;border-radius:999px} .banCard{margin-top:auto;border-top:1px solid var(--border);padding:12px 14px;background:rgba(255,255,255,.35)} .banTitle{display:flex;align-items:center;gap:7px;font-weight:900;font-size:12px;margin-bottom:5px} .banText{font-size:12px;color:var(--muted);line-height:1.4} .hidden{display:none!important}
+@media(max-width:780px){.app{padding:14px} input{min-width:100%;width:100%} .toolbar{width:100%} select,button{flex:1} .stats{grid-template-columns:repeat(2,1fr)} h1{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand"><div class="logo">🐟</div><div><h1>Halfajok adatbázis</h1><div class="sub">v26.22 — bővített magyar halfaj-lista + fajlagos tilalom / védettség kártya</div></div></div>
+  <div class="toolbar">
+    <input id="q" placeholder="Keresés név, latin név, család szerint…">
+    <select id="status"><option value="">Minden státusz</option><option>védett</option><option>fajlagos tilalom</option><option>nem őshonos</option><option>ellenőrizendő</option><option>fogható</option></select>
+    <select id="family"><option value="">Minden család</option></select>
+    <button class="secondary" onclick="resetFilters()">Szűrők törlése</button>
+  </div>
+</header>
+<div class="notice"><b>Fontos:</b> a kártya jelzi, ha egy faj védett, fajlagos tilalommal érintett vagy külön ellenőrizendő. A pontos fogási tilalmi idő, méret- és darabkorlát vízterületenként változhat, ezért éles horgászat előtt az aktuális MOHOSZ / helyi horgászrend alapján ellenőrizd.</div>
+<div class="stats" id="stats"></div>
+<div class="grid" id="grid"></div>
+</div>
+<script>
+const FISH_SPECIES = [
+  {
+    "id": "tiszai-ingola",
+    "name": "tiszai ingola",
+    "latin": "Eudontomyzon danfordi",
+    "family": "ingolafélék",
+    "order": "ingolaalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "dunai-ingola",
+    "name": "dunai ingola",
+    "latin": "Eudontomyzon mariae",
+    "family": "ingolafélék",
+    "order": "ingolaalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "vago-tok",
+    "name": "vágó tok",
+    "latin": "Acipenser gueldenstaedtii",
+    "family": "valódi tokfélék",
+    "order": "tokalakúak",
+    "status": "ellenőrizendő"
+  },
+  {
+    "id": "sima-tok",
+    "name": "sima tok",
+    "latin": "Acipenser nudiventris",
+    "family": "valódi tokfélék",
+    "order": "tokalakúak",
+    "status": "ellenőrizendő"
+  },
+  {
+    "id": "kecsege",
+    "name": "kecsege",
+    "latin": "Acipenser ruthenus",
+    "family": "valódi tokfélék",
+    "order": "tokalakúak",
+    "status": "ellenőrizendő"
+  },
+  {
+    "id": "soregtok",
+    "name": "sőregtok",
+    "latin": "Acipenser stellatus",
+    "family": "valódi tokfélék",
+    "order": "tokalakúak",
+    "status": "ellenőrizendő"
+  },
+  {
+    "id": "viza",
+    "name": "viza",
+    "latin": "Huso huso",
+    "family": "valódi tokfélék",
+    "order": "tokalakúak",
+    "status": "ellenőrizendő"
+  },
+  {
+    "id": "sziberiai-tok",
+    "name": "szibériai tok",
+    "latin": "Acipenser baerii",
+    "family": "valódi tokfélék",
+    "order": "tokalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "angolna",
+    "name": "angolna",
+    "latin": "Anguilla anguilla",
+    "family": "angolnafélék",
+    "order": "angolnaalakúak",
+    "status": "ellenőrizendő"
+  },
+  {
+    "id": "dunai-hering",
+    "name": "dunai hering",
+    "latin": "Alosa immaculata",
+    "family": "heringfélék",
+    "order": "heringalakúak",
+    "status": "ellenőrizendő"
+  },
+  {
+    "id": "kovi-csik",
+    "name": "kövi csík",
+    "latin": "Barbatula barbatula",
+    "family": "csíkfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "vago-csik",
+    "name": "vágó csík",
+    "latin": "Cobitis elongatoides",
+    "family": "csíkfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "reti-csik",
+    "name": "réti csík",
+    "latin": "Misgurnus fossilis",
+    "family": "csíkfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "kofuro-csik",
+    "name": "kőfúró csík",
+    "latin": "Sabanejewia aurata",
+    "family": "csíkfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "lapos-keszeg",
+    "name": "lapos keszeg",
+    "latin": "Ballerus ballerus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fogható"
+  },
+  {
+    "id": "deverkeszeg",
+    "name": "dévérkeszeg",
+    "latin": "Abramis brama",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fogható"
+  },
+  {
+    "id": "bagolykeszeg",
+    "name": "bagolykeszeg",
+    "latin": "Ballerus sapa",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fogható"
+  },
+  {
+    "id": "karikakeszeg",
+    "name": "karikakeszeg",
+    "latin": "Blicca bjoerkna",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fogható"
+  },
+  {
+    "id": "sujtasos-kusz",
+    "name": "sujtásos küsz",
+    "latin": "Alburnoides bipunctatus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "szelhajto-kusz",
+    "name": "szélhajtó küsz",
+    "latin": "Alburnus alburnus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fogható"
+  },
+  {
+    "id": "allas-kusz",
+    "name": "állas küsz",
+    "latin": "Alburnus mento",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "ellenőrizendő"
+  },
+  {
+    "id": "balin",
+    "name": "balin",
+    "latin": "Aspius aspius",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "marna",
+    "name": "márna",
+    "latin": "Barbus barbus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "petenyi-marna",
+    "name": "petényi-márna",
+    "latin": "Barbus carpathicus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "ezustkarasz",
+    "name": "ezüstkárász",
+    "latin": "Carassius gibelio",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "aranykarasz",
+    "name": "aranykárász",
+    "latin": "Carassius carassius",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "paduc",
+    "name": "paduc",
+    "latin": "Chondrostoma nasus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "amur",
+    "name": "amur",
+    "latin": "Ctenopharyngodon idella",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "ponty",
+    "name": "ponty",
+    "latin": "Cyprinus carpio",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "fenekjaro-kullo",
+    "name": "fenékjáró küllő",
+    "latin": "Gobio gobio",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "homoki-kullo",
+    "name": "homoki küllő",
+    "latin": "Romanogobio kesslerii",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "felpillanto-kullo",
+    "name": "felpillantó küllő",
+    "latin": "Romanogobio uranoscopus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "halvanyfoltu-kullo",
+    "name": "halványfoltú küllő",
+    "latin": "Romanogobio vladykovi",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "feher-busa",
+    "name": "fehér busa",
+    "latin": "Hypophthalmichthys molitrix",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "pettyes-busa",
+    "name": "pettyes busa",
+    "latin": "Hypophthalmichthys nobilis",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "kurta-baing",
+    "name": "kurta baing",
+    "latin": "Leucaspius delineatus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "fejes-domolyko",
+    "name": "fejes domolykó",
+    "latin": "Squalius cephalus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fogható"
+  },
+  {
+    "id": "jaszkeszeg",
+    "name": "jászkeszeg",
+    "latin": "Leuciscus idus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "nyuldomolyko",
+    "name": "nyúldomolykó",
+    "latin": "Leuciscus leuciscus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fogható"
+  },
+  {
+    "id": "vaskos-csabak",
+    "name": "vaskos csabak",
+    "latin": "Telestes souffia",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "fekete-amur",
+    "name": "fekete amur",
+    "latin": "Mylopharyngodon piceus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "garda",
+    "name": "garda",
+    "latin": "Pelecus cultratus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "furge-cselle",
+    "name": "fürge cselle",
+    "latin": "Phoxinus phoxinus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "kinai-razbora",
+    "name": "kínai razbóra",
+    "latin": "Pseudorasbora parva",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "szivarvanyos-okle",
+    "name": "szivárványos ökle",
+    "latin": "Rhodeus amarus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "gyongyos-koncer",
+    "name": "gyöngyös koncér",
+    "latin": "Rutilus meidingerii",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "leanykoncer",
+    "name": "leánykoncér",
+    "latin": "Rutilus virgo",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "bodorka",
+    "name": "bodorka",
+    "latin": "Rutilus rutilus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fogható"
+  },
+  {
+    "id": "vorosszarnyu-keszeg",
+    "name": "vörösszárnyú keszeg",
+    "latin": "Scardinius erythrophthalmus",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fogható"
+  },
+  {
+    "id": "compo",
+    "name": "compó",
+    "latin": "Tinca tinca",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "szilvaorru-keszeg",
+    "name": "szilvaorrú keszeg",
+    "latin": "Vimba vimba",
+    "family": "pontyfélék",
+    "order": "pontyalakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "europai-harcsa",
+    "name": "európai harcsa",
+    "latin": "Silurus glanis",
+    "family": "harcsafélék",
+    "order": "harcsaalakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "afrikai-harcsa",
+    "name": "afrikai harcsa",
+    "latin": "Clarias gariepinus",
+    "family": "zacskósharcsafélék",
+    "order": "harcsaalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "fekete-torpeharcsa",
+    "name": "fekete törpeharcsa",
+    "latin": "Ameiurus melas",
+    "family": "törpeharcsafélék",
+    "order": "harcsaalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "torpeharcsa",
+    "name": "törpeharcsa",
+    "latin": "Ameiurus nebulosus",
+    "family": "törpeharcsafélék",
+    "order": "harcsaalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "pettyes-harcsa",
+    "name": "pettyes harcsa",
+    "latin": "Ictalurus punctatus",
+    "family": "törpeharcsafélék",
+    "order": "harcsaalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "torpemarena",
+    "name": "törpemaréna",
+    "latin": "Coregonus albula",
+    "family": "lazacfélék",
+    "order": "lazacalakúak",
+    "status": "ellenőrizendő"
+  },
+  {
+    "id": "nagy-marena",
+    "name": "nagy maréna",
+    "latin": "Coregonus lavaretus",
+    "family": "lazacfélék",
+    "order": "lazacalakúak",
+    "status": "ellenőrizendő"
+  },
+  {
+    "id": "dunai-galoca",
+    "name": "dunai galóca",
+    "latin": "Hucho hucho",
+    "family": "lazacfélék",
+    "order": "lazacalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "szivarvanyos-pisztrang",
+    "name": "szivárványos pisztráng",
+    "latin": "Oncorhynchus mykiss",
+    "family": "lazacfélék",
+    "order": "lazacalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "sebes-pisztrang",
+    "name": "sebes pisztráng",
+    "latin": "Salmo trutta fario",
+    "family": "lazacfélék",
+    "order": "lazacalakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "pataki-szajbling",
+    "name": "pataki szajbling",
+    "latin": "Salvelinus fontinalis",
+    "family": "lazacfélék",
+    "order": "lazacalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "penzes-per",
+    "name": "pénzes pér",
+    "latin": "Thymallus thymallus",
+    "family": "lazacfélék",
+    "order": "lazacalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "csuka",
+    "name": "csuka",
+    "latin": "Esox lucius",
+    "family": "csukafélék",
+    "order": "csukaalakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "lapi-poc",
+    "name": "lápi póc",
+    "latin": "Umbra krameri",
+    "family": "pócfélék",
+    "order": "csukaalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "menyhal",
+    "name": "menyhal",
+    "latin": "Lota lota",
+    "family": "menyhalfélék",
+    "order": "tőkehalalakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "szunyogirto-fogasponty",
+    "name": "szúnyogirtó fogasponty",
+    "latin": "Gambusia holbrooki",
+    "family": "elevenszülő fogaspontyfélék",
+    "order": "fogaspontyalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "szivarvanyos-guppi",
+    "name": "szivárványos guppi",
+    "latin": "Poecilia reticulata",
+    "family": "elevenszülő fogaspontyfélék",
+    "order": "fogaspontyalakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "tuskes-piko",
+    "name": "tüskés pikó",
+    "latin": "Gasterosteus aculeatus",
+    "family": "pikófélék",
+    "order": "pikóalakúak",
+    "status": "védett"
+  },
+  {
+    "id": "szivarvanysuger",
+    "name": "szivárványsügér",
+    "latin": "Archocentrus multispinosus",
+    "family": "bölcsőszájúhal-félék",
+    "order": "sügéralakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "folyami-geb",
+    "name": "folyami géb",
+    "latin": "Neogobius fluviatilis",
+    "family": "gébfélék",
+    "order": "gébalkatúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "csupasztorku-geb",
+    "name": "csupasztorkú géb",
+    "latin": "Babka gymnotrachelus",
+    "family": "gébfélék",
+    "order": "gébalkatúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "kessler-geb",
+    "name": "Kessler-géb",
+    "latin": "Ponticola kessleri",
+    "family": "gébfélék",
+    "order": "gébalkatúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "feketeszaju-geb",
+    "name": "feketeszájú géb",
+    "latin": "Neogobius melanostomus",
+    "family": "gébfélék",
+    "order": "gébalkatúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "szirman-geb",
+    "name": "szirman géb",
+    "latin": "Ponticola syrman",
+    "family": "gébfélék",
+    "order": "gébalkatúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "tarka-geb",
+    "name": "tarka géb",
+    "latin": "Proterorhinus semilunaris",
+    "family": "gébfélék",
+    "order": "gébalkatúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "amurgeb",
+    "name": "amurgéb",
+    "latin": "Perccottus glenii",
+    "family": "alvógébfélék",
+    "order": "gébalkatúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "szeles-durbincs",
+    "name": "széles durbincs",
+    "latin": "Gymnocephalus baloni",
+    "family": "sügérfélék",
+    "order": "sügéralakúak",
+    "status": "védett"
+  },
+  {
+    "id": "vago-durbincs",
+    "name": "vágó durbincs",
+    "latin": "Gymnocephalus cernua",
+    "family": "sügérfélék",
+    "order": "sügéralakúak",
+    "status": "fogható"
+  },
+  {
+    "id": "selymes-durbincs",
+    "name": "selymes durbincs",
+    "latin": "Gymnocephalus schraetser",
+    "family": "sügérfélék",
+    "order": "sügéralakúak",
+    "status": "védett"
+  },
+  {
+    "id": "csaposuger",
+    "name": "csapósügér",
+    "latin": "Perca fluviatilis",
+    "family": "sügérfélék",
+    "order": "sügéralakúak",
+    "status": "fogható"
+  },
+  {
+    "id": "sullo",
+    "name": "süllő",
+    "latin": "Sander lucioperca",
+    "family": "sügérfélék",
+    "order": "sügéralakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "kosullo",
+    "name": "kősüllő",
+    "latin": "Sander volgensis",
+    "family": "sügérfélék",
+    "order": "sügéralakúak",
+    "status": "fajlagos tilalom"
+  },
+  {
+    "id": "nemet-buco",
+    "name": "német bucó",
+    "latin": "Zingel streber",
+    "family": "sügérfélék",
+    "order": "sügéralakúak",
+    "status": "védett"
+  },
+  {
+    "id": "magyar-buco",
+    "name": "magyar bucó",
+    "latin": "Zingel zingel",
+    "family": "sügérfélék",
+    "order": "sügéralakúak",
+    "status": "védett"
+  },
+  {
+    "id": "naphal",
+    "name": "naphal",
+    "latin": "Lepomis gibbosus",
+    "family": "naphalfélék",
+    "order": "sügéralakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "pisztrangsuger",
+    "name": "pisztrángsügér",
+    "latin": "Micropterus salmoides",
+    "family": "naphalfélék",
+    "order": "sügéralakúak",
+    "status": "nem őshonos"
+  },
+  {
+    "id": "botos-kolonte",
+    "name": "botos kölönte",
+    "latin": "Cottus gobio",
+    "family": "kölöntefélék",
+    "order": "skorpióhal-alakúak",
+    "status": "védett"
+  },
+  {
+    "id": "cifra-kolonte",
+    "name": "cifra kölönte",
+    "latin": "Cottus poecilopus",
+    "family": "kölöntefélék",
+    "order": "skorpióhal-alakúak",
+    "status": "védett"
+  }
+];
+const statusTexts = {
+  'védett': ['🛡️ Védett halfaj', 'Nem kezelhető fogható zsákmányként. A kártya célja, hogy a faj azonosításánál azonnal lásd a fokozott figyelmeztetést.'],
+  'fajlagos tilalom': ['⏳ Fajlagos tilalommal érintett', 'Időszakos fogási tilalom / méret- vagy darabkorlát kapcsolódhat hozzá. A pontos időszakot az aktuális horgászrendből ellenőrizd.'],
+  'nem őshonos': ['⚠️ Nem őshonos / idegenhonos faj', 'Kezelése fajonként eltérhet. Egyes vizeken visszaengedési korlátozás vagy külön szabály is lehet.'],
+  'ellenőrizendő': ['🔎 Külön ellenőrizendő faj', 'Ritka, érzékeny vagy speciális szabályozású faj lehet. Fogás előtt az aktuális szabályzat ellenőrzése szükséges.'],
+  'fogható': ['✅ Általánosan horgászati faj', 'Nincs külön védettségi jelzés ebben az adatbázisban, de méret-, darab- és helyi korlátozás ettől még lehet.']
+};
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function statusClass(s){ if(s==='fajlagos tilalom')return 'fajlagos'; if(s==='nem őshonos')return 'nem'; return s; }
+function renderFamilies(){ const fam=[...new Set(FISH_SPECIES.map(f=>f.family))].sort((a,b)=>a.localeCompare(b,'hu')); const sel=document.getElementById('family'); fam.forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;sel.appendChild(o);})}
+function renderStats(list){ const counts={all:list.length, vedett:list.filter(f=>f.status==='védett').length, til:list.filter(f=>f.status==='fajlagos tilalom').length, alien:list.filter(f=>f.status==='nem őshonos').length, chk:list.filter(f=>f.status==='ellenőrizendő').length}; document.getElementById('stats').innerHTML = `<div class="stat"><div class="n">${counts.all}</div><div class="l">megjelenített halfaj</div></div><div class="stat"><div class="n">${counts.vedett}</div><div class="l">védett jelzés</div></div><div class="stat"><div class="n">${counts.til}</div><div class="l">fajlagos tilalom jelzés</div></div><div class="stat"><div class="n">${counts.alien}</div><div class="l">nem őshonos jelzés</div></div><div class="stat"><div class="n">${counts.chk}</div><div class="l">külön ellenőrizendő</div></div>`; }
+function card(f){ const st=statusTexts[f.status]||statusTexts.fogható; return `<article class="card"><div class="fishHead"><div class="fishIcon">🐟</div><span class="badge ${statusClass(f.status)}">${esc(f.status)}</span></div><div class="body"><h2 class="name">${esc(f.name)}</h2><div class="latin">${esc(f.latin)}</div><div class="meta"><span class="pill">${esc(f.family)}</span><span class="pill">${esc(f.order)}</span></div></div><div class="banCard"><div class="banTitle">${esc(st[0])}</div><div class="banText">${esc(st[1])}</div></div></article>` }
+function render(){ const q=document.getElementById('q').value.trim().toLowerCase(); const st=document.getElementById('status').value; const fam=document.getElementById('family').value; let list=FISH_SPECIES.filter(f=>{ const hay=(f.name+' '+f.latin+' '+f.family+' '+f.order+' '+f.status).toLowerCase(); return (!q||hay.includes(q)) && (!st||f.status===st) && (!fam||f.family===fam); }).sort((a,b)=>a.name.localeCompare(b.name,'hu')); document.getElementById('grid').innerHTML=list.map(card).join('') || '<div class="notice">Nincs találat a megadott szűrésre.</div>'; renderStats(list); }
+function resetFilters(){document.getElementById('q').value='';document.getElementById('status').value='';document.getElementById('family').value='';render();}
+document.getElementById('q').addEventListener('input',render); document.getElementById('status').addEventListener('change',render); document.getElementById('family').addEventListener('change',render); renderFamilies(); render();
+</script>
+</body>
+</html>
