@@ -1,0 +1,42 @@
+amur.jpg <- amur.jpg
+amurgeb.jpg <- amurgeb.jpg
+angolna.jpg <- angolna.jpg
+aranykarasz.jpg <- aranykarasz.jpg
+bagolykeszeg.jpg <- bagolykeszeg.jpg
+balin.jpg <- balin.jpg
+bodorka.jpg <- bodorka.jpg
+busa.jpg <- busa.jpg
+compo.jpg <- compó.jpg
+csuka.jpg <- csuka.jpg
+deverkeszeg.jpg <- deverkeszeg.jpg
+domolyko.jpg <- domolyko.jpg
+ezustkarasz.jpg <- ezustkarasz.jpg
+feherbusa.jpg <- feherbusa.jpg
+feketesuger.jpg <- feketesuger.jpg
+feketeszajugeb.jpg <- feketeszajugeb.jpg
+fenekjaro_kullo.jpg <- fenekjaro_kullo.jpg
+fogassullo.jpg <- fogassullo.jpg
+folyamigeb.jpg <- folyamigeb.jpg
+garda.jpg <- garda.jpg
+harcsa.jpg <- harcsa.jpg
+homoki_kullo.jpg <- homoki_kullo.jpg
+jaszkeszeg.jpg <- jászkeszeg.jpg
+karikakeszeg.jpg <- karikakeszeg.jpg
+kecsege.jpg <- kecsege.jpg
+kosullo.jpg <- kosullo.jpg
+kusz.jpg <- kusz.jpg
+lapipoc.jpg <- lapipoc.jpg
+laposkeszeg.jpg <- laposkeszeg.jpg
+marna.jpg <- marna.jpg
+menyhal.jpg <- menyhal.jpg
+naphal.jpg <- naphal.jpg
+paduc.jpg <- paduc.jpg
+pettyesbusa.jpg <- pettyesbusa.jpg
+ponty.jpg <- ponty.jpg
+sebes_pisztrang.jpg <- sebes pisztráng.jpg
+sebespisztrang.jpg <- sebespisztrang.jpg
+suger.jpg <- suger.jpg
+szilvaorru_keszeg.jpg <- szilvaorrú keszeg.jpg
+szivarvanyos_pisztrang.jpg <- szivárványos pisztráng.jpg
+torpeharcsa.jpg <- torpeharcsa.jpg
+vorosszarnyu.jpg <- vorosszarnyu.jpg
