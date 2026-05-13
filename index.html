@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Profi Horgász Napló — GitHub TDZ hotfix loader</title>
+<title>Profi Horgász Napló — GitHub Halfaj hotfix loader</title>
 <style>
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center} .box{max-width:520px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:24px;box-shadow:0 10px 35px rgba(60,40,10,.12)} .t{font-weight:800;font-size:18px;margin-bottom:8px}.s{color:#6b5840;line-height:1.5;font-size:14px}
 </style>
@@ -19,17 +19,41 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background
     if(!res.ok) throw new Error('GitHub blob fetch failed: '+res.status);
     const blob=await res.json();
     let html=decodeURIComponent(escape(atob(String(blob.content||'').replace(/\s/g,''))));
-    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v26.19.1.6 GitHub TDZ hotfix');
+
+    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v26.19.1.7 Halfaj megjelenítés hotfix');
+
+    // TDZ javítás: a HU v2 merge csak a védett/naplózható helper konstansok után fusson.
     html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2() moved after fish helper constants to avoid TDZ initialization errors.\n\n\n// CSALI ADATBÁZIS');
     const anchor="function isHuCatchLogFish(f){return f && !isHuProtectedOrNotKeepableFish(f) && !isHuPondOnlyFish(f);}\n";
-    if(html.includes(anchor) && !html.includes('GitHub TDZ hotfix: HU helper constants')){
-      html=html.replace(anchor, anchor+"\n// v26.19.1.6 — GitHub TDZ hotfix: HU helper constants must exist before HU v2 data is merged.\nif (typeof applyHuV2 === 'function') { applyHuV2(); }\n");
+    if(html.includes(anchor) && !html.includes('GitHub halfaj megjelenítés hotfix')){
+      const injected = `\n// v26.19.1.7 — GitHub halfaj megjelenítés hotfix\n(function(){\n  const romanToArabic = s => String(s||'')\n    .replace(/\\bXII\\.\\s*/g,'12. ')\n    .replace(/\\bXI\\.\\s*/g,'11. ')\n    .replace(/\\bX\\.\\s*/g,'10. ')\n    .replace(/\\bIX\\.\\s*/g,'09. ')\n    .replace(/\\bVIII\\.\\s*/g,'08. ')\n    .replace(/\\bVII\\.\\s*/g,'07. ')\n    .replace(/\\bVI\\.\\s*/g,'06. ')\n    .replace(/\\bV\\.\\s*/g,'05. ')\n    .replace(/\\bIV\\.\\s*/g,'04. ')\n    .replace(/\\bIII\\.\\s*/g,'03. ')\n    .replace(/\\bII\\.\\s*/g,'02. ')\n    .replace(/\\bI\\.\\s*/g,'01. ');\n\n  if (typeof applyHuV2 === 'function') { applyHuV2(); }\n\n  if (Array.isArray(window.FISH_DB) || typeof FISH_DB !== 'undefined') {\n    const list = (typeof FISH_DB !== 'undefined') ? FISH_DB : window.FISH_DB;\n    const norm = v => String(v||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]+/g,'').trim();\n    const prefer = (a,b) => {\n      const score = f => (f.img?10:0) + (f.huV2?5:0) + (f.desc?2:0) + (f.minSize?1:0) + (f.quota?1:0);\n      return score(a) >= score(b) ? a : b;\n    };\n    const map = new Map();\n    list.forEach(f=>{\n      if(!f) return;\n      f.name = f.name ? String(f.name).replace(/^./,c=>c.toLocaleUpperCase('hu-HU')) : '';\n      if(f.ban) f.ban = romanToArabic(f.ban);\n      if(f.huV2 && f.huV2.tilalmi_ido_2026) f.huV2.tilalmi_ido_2026 = romanToArabic(f.huV2.tilalmi_ido_2026);\n      const k = norm(f.latin) || norm(f.name) || norm(f.id);\n      if(!map.has(k)) map.set(k,f);\n      else {\n        const keep = prefer(map.get(k), f);\n        const other = keep===f ? map.get(k) : f;\n        Object.assign(keep, Object.fromEntries(Object.entries(other).filter(([_,v])=>v!==undefined && v!==null && v!=='')));\n        map.set(k, keep);\n      }\n    });\n    list.length = 0;\n    map.forEach(v=>list.push(v));\n  }\n\n  // A kicsi képtár/kezelő lista most zavaró volt: elrejtjük, a nagy halfajkártyák maradnak.\n  window.renderFishImageManager = function(){\n    const el=document.getElementById('fish-image-manager')||document.querySelector('.fish-gallery-panel');\n    if(el) el.style.display='none';\n  };\n  window.setFishImageFilter = function(){ window.renderFishImageManager(); };\n})();\n`;
+      html=html.replace(anchor, anchor+injected);
     }
+
     html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
     html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
     html=html.replace("let fishFilter='all',fishSearch='';","var fishFilter='all',fishSearch='';");
     html=html.replace('const HU_PROTECTED_OR_NOT_KEEPABLE_IDS=new Set(','var HU_PROTECTED_OR_NOT_KEEPABLE_IDS=new Set(');
     html=html.replace('const HU_POND_OR_DECORATIVE_IDS=new Set','var HU_POND_OR_DECORATIVE_IDS=new Set');
+
+    // Megnyitott halfaj ablakban ne a saját képfeltöltő blokk foglalja az első helyet.
+    html=html.replace('<div class="fish-image-tools">','<div class="fish-image-tools" style="display:none">');
+
+    // Arab számos tilalmi idők minden statikus szövegben.
+    html=html
+      .replace(/\bXII\.\s*/g,'12. ')
+      .replace(/\bXI\.\s*/g,'11. ')
+      .replace(/\bX\.\s*/g,'10. ')
+      .replace(/\bIX\.\s*/g,'09. ')
+      .replace(/\bVIII\.\s*/g,'08. ')
+      .replace(/\bVII\.\s*/g,'07. ')
+      .replace(/\bVI\.\s*/g,'06. ')
+      .replace(/\bV\.\s*/g,'05. ')
+      .replace(/\bIV\.\s*/g,'04. ')
+      .replace(/\bIII\.\s*/g,'03. ')
+      .replace(/\bII\.\s*/g,'02. ')
+      .replace(/\bI\.\s*/g,'01. ');
+
     document.open();
     document.write(html);
     document.close();
