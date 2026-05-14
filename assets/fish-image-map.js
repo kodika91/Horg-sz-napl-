@@ -1,0 +1,1 @@
+window.MISSING_FISH_FILES={lenai_tok:'assets/fish/lenai_tok.webp.b64',kurta_baing:'assets/fish/kurta_baing.webp.b64',koi_ponty:'assets/fish/koi_ponty.webp.b64',kovi_csik:'assets/fish/kovi_csik.webp.b64',karasz_hibrid:'assets/fish/karasz_hibrid.webp.b64',tarka_geb:'assets/fish/tarka_geb.txt',razbora:'assets/fish/razbora.webp.b64'};
