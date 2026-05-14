@@ -1,10 +1,30 @@
 (function(){
-var files={lenai_tok:'assets/fish/lenai_tok.webp.b64',kurta_baing:'assets/fish/kurta_baing.webp.b64',koi_ponty:'assets/fish/koi_ponty.webp.b64',kovi_csik:'assets/fish/kovi_csik.webp.b64',karasz_hibrid:'assets/fish/karasz_hibrid.webp.b64',tarka_geb:'assets/fish/tarka_geb.txt',razbora:'assets/fish/razbora.webp.b64'};
-var aliases={lenai_tok:['lenai tok','lénai tok','acipenser baerii'],kurta_baing:['kurta baing','kurta baing','leucaspius delineatus'],koi_ponty:['koi ponty','koi','nishikigoi','diszponty','díszponty'],kovi_csik:['kovi csik','kövi csík','kovicsik','kövicsík','barbatula barbatula'],karasz_hibrid:['karasz hibrid','kárász hibrid'],tarka_geb:['tarka geb','tarka géb','proterorhinus semilunaris','proterorhinus marmoratus'],razbora:['razbora','razbóra','kinai razbora','kínai razbóra','pseudorasbora parva']};
+var files={
+  lenai_tok:['assets/fish/lenai_tok.webp.b64'],
+  kurta_baing:['assets/fish/kurta_baing.webp.b64'],
+  koi_ponty:['assets/fish/koi_ponty.webp.b64'],
+  kovi_csik:['assets/fish/kovi_csik.webp.b64'],
+  karasz_hibrid:['assets/fish/karasz_hibrid.webp.b64'],
+  tarka_geb:['assets/fish/tarka_geb.webp.b64','assets/fish/tarka_geb.txt'],
+  razbora:['assets/fish/razbora.webp.b64'],
+  magyar_buco:['assets/fish/magyar_buco.webp.b64','assets/fish/magyar_buco.txt','assets/fish/magyar_bucó.webp.b64','assets/fish/magyar_bucó.txt']
+};
+var aliases={
+  lenai_tok:['lenai tok','lénai tok','acipenser baerii'],
+  kurta_baing:['kurta baing','leucaspius delineatus'],
+  koi_ponty:['koi ponty','koi','nishikigoi','diszponty','díszponty'],
+  kovi_csik:['kovi csik','kövi csík','kovicsik','kövicsík','barbatula barbatula'],
+  karasz_hibrid:['karasz hibrid','kárász hibrid'],
+  tarka_geb:['tarka geb','tarka géb','proterorhinus semilunaris','proterorhinus marmoratus'],
+  razbora:['razbora','razbóra','kinai razbora','kínai razbóra','pseudorasbora parva'],
+  magyar_buco:['magyar buco','magyar bucó','zingel zingel']
+};
 function n(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim()}
 function getDb(){try{if(typeof FISH_DB!=='undefined'&&Array.isArray(FISH_DB))return FISH_DB;}catch(e){} if(Array.isArray(window.FISH_DB))return window.FISH_DB; return null;}
 function rerender(){try{if(typeof renderFishGrid==='function')renderFishGrid()}catch(e){}try{if(typeof renderFishCards==='function')renderFishCards()}catch(e){}try{if(typeof renderFishList==='function')renderFishList()}catch(e){}}
+function asImg(t){t=String(t||'').trim();if(!t)return '';if(/^data:image\//i.test(t))return t;return 'data:image/webp;base64,'+t;}
+function fetchFirst(paths){var chain=Promise.resolve('');paths.forEach(function(p){chain=chain.then(function(prev){if(prev)return prev;return fetch(p,{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).catch(function(){return ''})})});return chain;}
 function patch(imgs){var db=getDb();if(!db)return false;var m={};Object.keys(aliases).forEach(function(id){aliases[id].forEach(function(a){m[n(a)]=id})});var changed=0;db.forEach(function(f){if(!f)return;var arr=[f.name,f.latin,f.id,f.title,f.huName];for(var i=0;i<arr.length;i++){var id=m[n(arr[i])];if(id&&imgs[id]){f.img=imgs[id];f.image=imgs[id];f.kep=imgs[id];f.photo=imgs[id];if(f.huV2){f.huV2.kep_statusz='Kép elérhető';f.huV2.kepkartya='Egységesített halfajkép elérhető'}changed++;break}}});rerender();console.log('Hiányzó halfajképek bekötve:',changed);return changed>0;}
-function go(){var imgs={};Promise.all(Object.keys(files).map(function(id){return fetch(files[id],{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){if(t)imgs[id]='data:image/webp;base64,'+t.trim()}).catch(function(e){console.warn('Halfajkép nem tölthető:',id,e)})})).then(function(){if(!patch(imgs))setTimeout(function(){patch(imgs)},800);});}
+function go(){var imgs={};Promise.all(Object.keys(files).map(function(id){return fetchFirst(files[id]).then(function(t){if(t)imgs[id]=asImg(t);else console.warn('Halfajkép fájl nem található:',id,files[id])})})).then(function(){if(!patch(imgs))setTimeout(function(){patch(imgs)},800);});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go,{once:true});else go();
 })();
