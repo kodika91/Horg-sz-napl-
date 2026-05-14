@@ -1,0 +1,1 @@
+window.addEventListener('load',function(){console.log('fish patch ready')});
