@@ -13,22 +13,16 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background
 <script>
 (function(){
   var stableIndex='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/e752aae6dfab83d7c6242337a90a25ea4598bc6a/index.html';
-  function loadInsights(){
-    if(document.getElementById('hn-insights-loader')) return;
-    var s=document.createElement('script');
-    s.id='hn-insights-loader';
-    s.src='assets/insights.js?v=20260515a';
-    s.defer=true;
-    document.body.appendChild(s);
-  }
   fetch(stableIndex,{cache:'no-store'})
     .then(function(r){ if(!r.ok) throw new Error('Stable index fetch failed: '+r.status); return r.text(); })
     .then(function(html){
+      var loader='<scr'+'ipt src="assets/insights.js?v=20260515b"></scr'+'ipt>';
+      if(html.indexOf('assets/insights.js')===-1){
+        html=html.replace('</body>',loader+'</body>');
+      }
       document.open();
       document.write(html);
       document.close();
-      setTimeout(loadInsights,1800);
-      setTimeout(loadInsights,3600);
     })
     .catch(function(err){
       console.error(err);
