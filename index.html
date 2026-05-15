@@ -9,15 +9,13 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background
 </style>
 </head>
 <body>
-<div class="box"><div class="t">Horgász Napló betöltése…</div><div class="s">Stabil app + Elemzések modul betöltése.</div></div>
+<div class="box"><div class="t">Horgász Napló betöltése…</div><div class="s">Stabil működő app betöltése.</div></div>
 <script>
 (function(){
   var stableIndex='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/e752aae6dfab83d7c6242337a90a25ea4598bc6a/index.html';
   fetch(stableIndex,{cache:'no-store'})
     .then(function(r){ if(!r.ok) throw new Error('Stable index fetch failed: '+r.status); return r.text(); })
     .then(function(html){
-      var finalLoader="var insightsLoader='<scr'+'ipt src=\"assets/insights.js?v=20260515d\"></scr'+'ipt>';\n    html=html.replace('</body>',insightsLoader+'</body>');\n    ";
-      html=html.replace('document.open();document.write(html);document.close();',finalLoader+'document.open();document.write(html);document.close();');
       document.open();
       document.write(html);
       document.close();
