@@ -16,10 +16,8 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background
   fetch(stableIndex,{cache:'no-store'})
     .then(function(r){ if(!r.ok) throw new Error('Stable index fetch failed: '+r.status); return r.text(); })
     .then(function(html){
-      var loader='<scr'+'ipt src="assets/insights.js?v=20260515c"></scr'+'ipt>';
-      if(html.indexOf('assets/insights.js')===-1){
-        html=html.replace('</body>',loader+'</body>');
-      }
+      var finalLoader="var insightsLoader='<scr'+'ipt src=\"assets/insights.js?v=20260515d\"></scr'+'ipt>';\n    html=html.replace('</body>',insightsLoader+'</body>');\n    ";
+      html=html.replace('document.open();document.write(html);document.close();',finalLoader+'document.open();document.write(html);document.close();');
       document.open();
       document.write(html);
       document.close();
