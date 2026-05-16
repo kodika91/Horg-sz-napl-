@@ -1,5 +1,19 @@
 (function(){
 var BASE='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/main/assets/fish/';
+
+/* ── CSS: fotók kitöltsék a kártyát (cover), ne legyenek levélboxolva (contain) ── */
+(function injectPhotoCardCss(){
+  if(document.getElementById('fish-photo-card-css'))return;
+  var s=document.createElement('style');
+  s.id='fish-photo-card-css';
+  s.textContent=
+    '.fish-img-wrap img[src^="https://raw.githubusercontent.com"]{'
+    +'object-fit:cover!important;border-radius:0!important}'
+    +'.fish-img-wrap:has(>img[src^="https://raw.githubusercontent.com"]){'
+    +'padding:0!important}';
+  (document.head||document.documentElement).appendChild(s);
+})();
+
 var files={
   lenai_tok:[BASE+'l%C3%A9nai%20tok.jpg'],
   kurta_baing:[BASE+'kurta%20baing.jpg'],
@@ -29,7 +43,6 @@ function fetchFirst(paths){
   paths.forEach(function(p){
     chain=chain.then(function(prev){
       if(prev)return prev;
-      // jpg/png/webp URL-ek esetén közvetlenül adjuk vissza az URL-t, ne olvassuk be szövegként
       if(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(p)){return Promise.resolve(p);}
       return fetch(p,{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).catch(function(){return '';});
     });
