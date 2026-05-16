@@ -1,13 +1,14 @@
 (function(){
+var BASE='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/main/assets/fish/';
 var files={
-  lenai_tok:['assets/fish/lenai_tok.webp.b64'],
-  kurta_baing:['assets/fish/kurta_baing.webp.b64'],
-  koi_ponty:['assets/fish/koi_ponty.webp.b64'],
-  kovi_csik:['assets/fish/kovi_csik.webp.b64'],
-  karasz_hibrid:['assets/fish/karasz_hibrid.webp.b64'],
-  tarka_geb:['assets/fish/tarka_geb.webp.b64','assets/fish/tarka_geb.txt'],
-  razbora:['assets/fish/razbora.webp.b64'],
-  magyar_buco:['assets/fish/magyar_buco.webp.b64','assets/fish/magyar_buco.txt','assets/fish/magyar_bucó.webp.b64','assets/fish/magyar_bucó.txt']
+  lenai_tok:[BASE+'l%C3%A9nai%20tok.jpg'],
+  kurta_baing:[BASE+'kurta%20baing.jpg'],
+  koi_ponty:[BASE+'koi%20ponty.jpg'],
+  kovi_csik:[BASE+'k%C3%B6vi%20cs%C3%ADk.jpg'],
+  karasz_hibrid:[BASE+'k%C3%A1r%C3%A1sz%20hibrid.jpg'],
+  tarka_geb:[BASE+'tarka%20g%C3%A9b.jpg'],
+  razbora:[BASE+'razb%C3%B3ra.jpg'],
+  magyar_buco:[BASE+'magyar%20buc%C3%B3.jpg']
 };
 var aliases={
   lenai_tok:['lenai tok','lénai tok','acipenser baerii'],
@@ -22,16 +23,29 @@ var aliases={
 function n(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
 function getDb(){try{if(typeof FISH_DB!=='undefined'&&Array.isArray(FISH_DB))return FISH_DB;}catch(e){} if(Array.isArray(window.FISH_DB))return window.FISH_DB; return null;}
 function rerender(){try{if(typeof renderFishGrid==='function')renderFishGrid();}catch(e){}try{if(typeof renderFishCards==='function')renderFishCards();}catch(e){}try{if(typeof renderFishList==='function')renderFishList();}catch(e){}}
-function asImg(t){t=String(t||'').trim();if(!t)return '';if(/^data:image\//i.test(t))return t;return 'data:image/webp;base64,'+t;}
-function fetchFirst(paths){var chain=Promise.resolve('');paths.forEach(function(p){chain=chain.then(function(prev){if(prev)return prev;return fetch(p,{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).catch(function(){return '';});});});return chain;}
+function asImg(t){t=String(t||'').trim();if(!t)return '';if(/^data:image\//i.test(t))return t;if(/^https?:\/\//i.test(t))return t;return 'data:image/webp;base64,'+t;}
+function fetchFirst(paths){
+  var chain=Promise.resolve('');
+  paths.forEach(function(p){
+    chain=chain.then(function(prev){
+      if(prev)return prev;
+      if(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(p)){
+        return new Promise(function(resolve){
+          var img=new Image();
+          img.onload=function(){resolve(p);};
+          img.onerror=function(){resolve('');};
+          img.src=p;
+        });
+      }
+      return fetch(p,{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).catch(function(){return '';});
+    });
+  });
+  return chain;
+}
 function patch(imgs){var db=getDb();if(!db)return false;var m={};Object.keys(aliases).forEach(function(id){aliases[id].forEach(function(a){m[n(a)]=id;});});var changed=0;db.forEach(function(f){if(!f)return;var arr=[f.name,f.latin,f.id,f.title,f.huName];for(var i=0;i<arr.length;i++){var id=m[n(arr[i])];if(id&&imgs[id]){f.img=imgs[id];f.image=imgs[id];f.kep=imgs[id];f.photo=imgs[id];if(f.huV2){f.huV2.kep_statusz='Kép elérhető';f.huV2.kepkartya='Egységesített halfajkép elérhető';}changed++;break;}}});rerender();console.log('Hiányzó halfajképek bekötve:',changed);return changed>0;}
-function go(){var imgs={};Promise.all(Object.keys(files).map(function(id){return fetchFirst(files[id]).then(function(t){if(t)imgs[id]=asImg(t);else console.warn('Halfajkép fájl nem található:',id,files[id]);});})).then(function(){if(!patch(imgs))setTimeout(function(){patch(imgs);},800);});}
+function go(){var imgs={};Promise.all(Object.keys(files).map(function(id){return fetchFirst(files[id]).then(function(t){if(t)imgs[id]=asImg(t);else console.warn('Halfajkép nem található:',id,files[id]);});})).then(function(){if(!patch(imgs))setTimeout(function(){patch(imgs);},800);});}
 
-/* ── Automatikus kép-felismerés manuálisan feltöltött .jpg fájlokhoz ──────
-   Ha új halfajképet töltesz fel az assets/fish/ mappába GitHub-on,
-   a normalizált fájlnév (pl. "Compó" → "compo.jpg") automatikusan
-   betöltődik az app következő megnyitásakor. ─────────────────────────── */
-var FISH_IMG_BASE='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/main/assets/fish/';
+var FISH_IMG_BASE=BASE;
 
 function normFilename(s){
   return String(s||'').toLowerCase()
@@ -47,7 +61,6 @@ function autoLoadCustomImages(){
   var tried={};
   db.forEach(function(entry){
     if(!entry)return;
-    // Skip if already has a real image (not empty, not a placeholder)
     if(entry.img&&String(entry.img).length>10)return;
     var nameVariants=[entry.huName,entry.name,entry.id,entry.title,entry.nev].filter(Boolean);
     nameVariants.forEach(function(nm){
@@ -72,6 +85,5 @@ function autoLoadCustomImages(){
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go,{once:true});else go();
-// Auto-discover custom uploaded images after the main patch runs
 setTimeout(autoLoadCustomImages,2500);
 })();
