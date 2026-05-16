@@ -11,10 +11,9 @@
 <script>
 (async function(){
   try{
-    const res=await fetch('https://api.github.com/repos/kodika91/Horg-sz-napl-/git/blobs/'+BLOB_SHA,{cache:'no-store'});
-    if(!res.ok) throw new Error('GitHub blob fetch failed: '+res.status);
-    const blob=await res.json();
-    let html=decodeURIComponent(escape(atob(String(blob.content||'').replace(/\s/g,''))));
+    const res2=await fetch('https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/main/assets/app.html',{cache:'no-store'});
+    if(!res2.ok) throw new Error('app.html fetch failed: '+res2.status);
+    let html=await res2.text();
 
     html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v26.19.1.23 Apple-szerű időjárás visszaállítva');
     html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants.\n\n\n// CSALI ADATBÁZIS');
