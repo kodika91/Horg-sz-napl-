@@ -1,16 +1,21 @@
 (function(){
 var BASE='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/main/assets/fish/';
 
-/* ── CSS: fotók kitöltsék a kártyát (cover), ne legyenek levélboxolva (contain) ── */
-(function injectPhotoCardCss(){
-  if(document.getElementById('fish-photo-card-css'))return;
+/* ── Egységes képmegjelenítés: minden hal cover-rel, padding nélkül ──────────
+   A blob CSS object-fit:contain + padding:6px-et használ (illusztrációkhoz).
+   Ez felülírja globálisan, hogy fotók és illusztrációk egyformán nézzenek ki.
+   A kártya border-radius + overflow:hidden gondoskodik a lekerekítésről. ── */
+(function injectUniformImageCss(){
+  if(document.getElementById('fish-uniform-img-css'))return;
   var s=document.createElement('style');
-  s.id='fish-photo-card-css';
+  s.id='fish-uniform-img-css';
   s.textContent=
-    '.fish-img-wrap img[src^="https://raw.githubusercontent.com"]{'
-    +'object-fit:cover!important;border-radius:0!important}'
-    +'.fish-img-wrap:has(>img[src^="https://raw.githubusercontent.com"]){'
-    +'padding:0!important}';
+    /* kártyakép */
+    '.fish-img-wrap{padding:0!important}'
+   +'.fish-img-wrap img{object-fit:cover!important;border-radius:0!important}'
+    /* részletnézet */
+   +'.fish-detail-img{padding:0!important}'
+   +'.fish-detail-img img{object-fit:cover!important;border-radius:0!important}';
   (document.head||document.documentElement).appendChild(s);
 })();
 
