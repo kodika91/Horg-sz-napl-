@@ -27,7 +27,11 @@ var files={
   karasz_hibrid:[BASE+'k%C3%A1r%C3%A1sz%20hibrid.jpg'],
   tarka_geb:[BASE+'tarka%20g%C3%A9b.jpg'],
   razbora:[BASE+'razb%C3%B3ra.jpg'],
-  magyar_buco:[BASE+'magyar%20buc%C3%B3.jpg']
+  magyar_buco:[BASE+'magyar%20buc%C3%B3.jpg'],
+  vago_csik:[BASE+'v%C3%A1g%C3%B3%20cs%C3%ADk.jpg'],
+  szivarvanyos_okle:[BASE+'sziv%C3%A1rv%C3%A1nyos%20%C3%B6kle.jpg'],
+  szeles_durbincs:[BASE+'sz%C3%A9les%20durbincs.jpg'],
+  soregtok:[BASE+'s%C5%91regtok.jpg']
 };
 var aliases={
   lenai_tok:['lenai tok','lénai tok','acipenser baerii'],
@@ -37,7 +41,11 @@ var aliases={
   karasz_hibrid:['karasz hibrid','kárász hibrid'],
   tarka_geb:['tarka geb','tarka géb','proterorhinus semilunaris','proterorhinus marmoratus'],
   razbora:['razbora','razbóra','kinai razbora','kínai razbóra','pseudorasbora parva'],
-  magyar_buco:['magyar buco','magyar bucó','zingel zingel']
+  magyar_buco:['magyar buco','magyar bucó','zingel zingel'],
+  vago_csik:['vago csik','vágó csík','misgurnus fossilis'],
+  szivarvanyos_okle:['szivarvanyos okle','szivárványos ökle','rhodeus sericeus','rhodeus amarus'],
+  szeles_durbincs:['szeles durbincs','széles durbincs','gymnocephalus baloni'],
+  soregtok:['soregtok','sőregtok','acipenser nudiventris']
 };
 function n(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
 function getDb(){try{if(typeof FISH_DB!=='undefined'&&Array.isArray(FISH_DB))return FISH_DB;}catch(e){} if(Array.isArray(window.FISH_DB))return window.FISH_DB; return null;}

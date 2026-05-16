@@ -9,7 +9,7 @@ busa.jpg <- busa.jpg
 compo.jpg <- compó.jpg
 csuka.jpg <- csuka.jpg
 deverkeszeg.jpg <- deverkeszeg.jpg
-domolyko.jpg <- domolyko.jpg
+dolotyko.jpg <- domolyko.jpg
 ezustkarasz.jpg <- ezustkarasz.jpg
 feherbusa.jpg <- feherbusa.jpg
 feketesuger.jpg <- feketesuger.jpg
@@ -40,3 +40,18 @@ szilvaorru_keszeg.jpg <- szilvaorrú keszeg.jpg
 szivarvanyos_pisztrang.jpg <- szivárványos pisztráng.jpg
 torpeharcsa.jpg <- torpeharcsa.jpg
 vorosszarnyu.jpg <- vorosszarnyu.jpg
+koi ponty.jpg <- koi ponty.jpg
+kurta baing.jpg <- kurta baing.jpg
+kárász hibrid.jpg <- kárász hibrid.jpg
+kövi csík.jpg <- kövi csík.jpg
+lénai tok.jpg <- lénai tok.jpg
+magyar bucó.jpg <- magyar bucó.jpg
+nemet buco.jpg <- nemet buco.jpg
+razbóra.jpg <- razbóra.jpg
+reti csik.jpg <- reti csik.jpg
+selymes durbincs.jpg <- selymes durbincs.jpg
+tarka géb.jpg <- tarka géb.jpg
+vágó csík.jpg <- vágó csík.jpg
+szivárványos ökle.jpg <- szivárványos ökle.jpg
+széles durbincs.jpg <- széles durbincs.jpg
+sőregtok.jpg <- sőregtok.jpg
