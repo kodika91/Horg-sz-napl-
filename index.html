@@ -9,18 +9,18 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background
 </style>
 </head>
 <body>
-<div class="box"><div class="t">Horgász Napló betöltése…</div><div class="s">Az alkalmazás betöltése folyamatban…</div></div>
+<div class="box"><div class="t">Horgász Napló betöltése…</div><div class="s">Stabil működő app betöltése.</div></div>
 <script>
 (function(){
-  var appUrl='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/main/assets/app.html';
-  fetch(appUrl,{cache:'no-store'})
-    .then(function(r){ if(!r.ok) throw new Error('App fetch failed: '+r.status); return r.text(); })
+  var stableIndex='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/e752aae6dfab83d7c6242337a90a25ea4598bc6a/index.html';
+  fetch(stableIndex,{cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('Stable index fetch failed: '+r.status); return r.text(); })
     .then(function(html){
       var inject='';
       if(html.indexOf('fish-patch.js')===-1)
-        inject+='<script src="https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/main/assets/fish-patch.js"><\/script>';
+        inject+='<script src="assets/fish-patch.js"><\/script>';
       if(html.indexOf('insights.js')===-1)
-        inject+='<script src="https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/main/assets/insights.js"><\/script>';
+        inject+='<script src="assets/insights.js"><\/script>';
       if(inject){
         html=html.indexOf('<\/body>')>-1
           ? html.replace('<\/body>',inject+'<\/body>')
@@ -32,7 +32,7 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background
     })
     .catch(function(err){
       console.error(err);
-      document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">Nem sikerült betölteni az alkalmazást.</div></div>';
+      document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">Nem sikerült betölteni a stabil alkalmazást.</div></div>';
     });
 })();
 </script>
