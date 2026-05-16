@@ -8,11 +8,11 @@ function addStyle(){
   s.id='ins2-style';
   s.textContent=
     '.insights-btn{display:none!important}'
-   +'.insights-entry{display:flex!important;align-items:center;gap:14px;width:100%;box-sizing:border-box;margin:12px 0;border:1px solid rgba(40,90,70,.16);background:rgba(255,255,255,.78);color:#24301f;border-radius:18px;padding:14px 16px;box-shadow:0 8px 24px rgba(0,0,0,.08);font-family:inherit;text-align:left;cursor:pointer}'
-   +'.insights-entry .ico{width:48px;height:48px;min-width:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#e8f0e8;border:1px solid #cad8ca;color:#2f756c;font-size:25px}'
-   +'.insights-entry strong{display:block;font-size:18px;margin-bottom:4px}'
-   +'.insights-entry span{display:block;font-size:13px;color:#746858;line-height:1.35}'
-   +'.insights-entry .arr{margin-left:auto;color:#a78f73;font-size:28px}'
+   +'.insights-entry{display:flex!important;align-items:center;gap:12px;width:100%;box-sizing:border-box;margin:12px 0;border:1px solid rgba(40,90,70,.16);background:rgba(255,255,255,.78);color:#24301f;border-radius:18px;padding:12px 16px;box-shadow:0 8px 24px rgba(0,0,0,.08);font-family:inherit;text-align:left;cursor:pointer;overflow:hidden}'
+   +'.insights-entry .ico{width:42px;height:42px;min-width:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#e8f0e8;border:1px solid #cad8ca;color:#2f756c;font-size:22px;flex-shrink:0}'
+   +'.insights-entry strong{display:block;font-size:16px;margin-bottom:2px;line-height:1.2}'
+   +'.insights-entry span{display:block;font-size:12px;color:#746858;line-height:1.3}'
+   +'.insights-entry .arr{margin-left:auto;color:#a78f73;font-size:26px;flex-shrink:0}'
    +'.ins-panel{position:fixed;inset:0;display:none;z-index:100000;background:rgba(0,0,0,.48);overflow:auto}'
    +'.ins-panel.show{display:flex;align-items:flex-start;justify-content:center;padding:16px 12px}'
    +'.ins-wrap{width:min(860px,100%);background:#fbfaf4;border-radius:24px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.3);font-family:system-ui,-apple-system,sans-serif;color:#24301f;margin-bottom:24px}'
@@ -256,7 +256,7 @@ function openPanel(){
     panel.id='ins2-panel';
     panel.className='ins-panel';
     panel.innerHTML='<div class="ins-wrap">'
-      +'<div class="ins-head"><div><h2>Elemzések / Tanulságok</h2>'
+      +'<div class="ins-head"><div><h2>Elemzések</h2>'
       +'<p>A naplóadatokból készülő horgászati tudástár</p></div>'
       +'<button class="ins-close" type="button">Bezár ✕</button></div>'
       +'<div id="ins2-body"></div></div>';
@@ -284,18 +284,35 @@ function findMapCard(){
   }
   return null;
 }
+
+function syncSize(entry,ref){
+  try{
+    var cs=window.getComputedStyle(ref);
+    var h=ref.getBoundingClientRect().height;
+    if(h>20){
+      entry.style.height=h+'px';
+      entry.style.paddingTop=cs.paddingTop;
+      entry.style.paddingBottom=cs.paddingBottom;
+      entry.style.paddingLeft=cs.paddingLeft;
+      entry.style.paddingRight=cs.paddingRight;
+      entry.style.borderRadius=cs.borderRadius;
+    }
+  }catch(e){}
+}
+
 function createEntry(){
   var b=document.createElement('button');
   b.id='insights-entry';
   b.className='insights-entry';
   b.type='button';
   b.innerHTML='<div class="ico">⌁</div>'
-    +'<div><strong>Elemzések / Tanulságok</strong>'
-    +'<span>Horgászati minták és tanulságok a naplóadatokból</span></div>'
+    +'<div><strong>Elemzések</strong>'
+    +'<span>Minták és tanulságok a naplóadatokból</span></div>'
     +'<div class="arr">›</div>';
   b.onclick=openPanel;
   return b;
 }
+
 function mount(){
   addStyle();
   var old=document.getElementById('insights-btn');if(old)old.remove();
@@ -303,9 +320,11 @@ function mount(){
   var ex=document.getElementById('insights-entry');
   if(ex){
     if(ex.previousElementSibling!==card&&ex.parentNode!==card.parentNode)ex.remove();
-    else return;
+    else{requestAnimationFrame(function(){syncSize(ex,card);});return;}
   }
-  card.parentNode.insertBefore(createEntry(),card.nextSibling);
+  var entry=createEntry();
+  card.parentNode.insertBefore(entry,card.nextSibling);
+  requestAnimationFrame(function(){syncSize(entry,card);});
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
