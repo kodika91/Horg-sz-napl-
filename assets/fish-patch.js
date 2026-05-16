@@ -1,19 +1,13 @@
 (function(){
 var BASE='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/main/assets/fish/';
 
-/* ── Egységes képmegjelenítés: minden hal cover-rel, padding nélkül ──────────
-   A blob CSS object-fit:contain + padding:6px-et használ (illusztrációkhoz).
-   Ez felülírja globálisan, hogy fotók és illusztrációk egyformán nézzenek ki.
-   A kártya border-radius + overflow:hidden gondoskodik a lekerekítésről. ── */
 (function injectUniformImageCss(){
   if(document.getElementById('fish-uniform-img-css'))return;
   var s=document.createElement('style');
   s.id='fish-uniform-img-css';
   s.textContent=
-    /* kártyakép */
     '.fish-img-wrap{padding:0!important}'
    +'.fish-img-wrap img{object-fit:cover!important;border-radius:0!important}'
-    /* részletnézet */
    +'.fish-detail-img{padding:0!important}'
    +'.fish-detail-img img{object-fit:cover!important;border-radius:0!important}';
   (document.head||document.documentElement).appendChild(s);
@@ -47,6 +41,9 @@ var aliases={
   szeles_durbincs:['szeles durbincs','széles durbincs','gymnocephalus baloni'],
   soregtok:['soregtok','sőregtok','acipenser nudiventris']
 };
+
+var REMOVE_IDS=['vak_ingola'];
+
 function n(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
 function getDb(){try{if(typeof FISH_DB!=='undefined'&&Array.isArray(FISH_DB))return FISH_DB;}catch(e){} if(Array.isArray(window.FISH_DB))return window.FISH_DB; return null;}
 function rerender(){try{if(typeof renderFishGrid==='function')renderFishGrid();}catch(e){}try{if(typeof renderFishCards==='function')renderFishCards();}catch(e){}try{if(typeof renderFishList==='function')renderFishList();}catch(e){}}
@@ -131,6 +128,22 @@ function autoLoadCustomImages(){
   });
 }
 
+function removeFromDb(ids){
+  var db=getDb();
+  if(!db){setTimeout(function(){removeFromDb(ids);},400);return;}
+  var removed=0;
+  for(var i=db.length-1;i>=0;i--){
+    var f=db[i];
+    if(!f)continue;
+    var match=ids.indexOf(f.id)!==-1||
+              ids.indexOf(n(f.nev||''))!==-1||
+              ids.indexOf(n(f.huName||''))!==-1;
+    if(match){db.splice(i,1);removed++;}
+  }
+  if(removed){rerender();console.log('Eltávolítva a listaból:',removed,'halfaj');}
+}
+
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go,{once:true});else go();
 setTimeout(autoLoadCustomImages,600);
+setTimeout(function(){removeFromDb(REMOVE_IDS);},800);
 })();
