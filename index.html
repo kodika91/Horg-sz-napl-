@@ -16,6 +16,16 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background
   fetch(stableIndex,{cache:'no-store'})
     .then(function(r){ if(!r.ok) throw new Error('Stable index fetch failed: '+r.status); return r.text(); })
     .then(function(html){
+      var inject='';
+      if(html.indexOf('fish-patch.js')===-1)
+        inject+='<script src="assets/fish-patch.js"><\/script>';
+      if(html.indexOf('insights.js')===-1)
+        inject+='<script src="assets/insights.js"><\/script>';
+      if(inject){
+        html=html.indexOf('<\/body>')>-1
+          ? html.replace('<\/body>',inject+'<\/body>')
+          : html+inject;
+      }
       document.open();
       document.write(html);
       document.close();
