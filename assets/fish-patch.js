@@ -29,24 +29,46 @@ function fetchFirst(paths){
   paths.forEach(function(p){
     chain=chain.then(function(prev){
       if(prev)return prev;
-      if(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(p)){
-        return new Promise(function(resolve){
-          var img=new Image();
-          img.onload=function(){resolve(p);};
-          img.onerror=function(){resolve('');};
-          img.src=p;
-        });
-      }
+      // jpg/png/webp URL-ek esetén közvetlenül adjuk vissza az URL-t, ne olvassuk be szövegként
+      if(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(p)){return Promise.resolve(p);}
       return fetch(p,{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).catch(function(){return '';});
     });
   });
   return chain;
 }
-function patch(imgs){var db=getDb();if(!db)return false;var m={};Object.keys(aliases).forEach(function(id){aliases[id].forEach(function(a){m[n(a)]=id;});});var changed=0;db.forEach(function(f){if(!f)return;var arr=[f.name,f.latin,f.id,f.title,f.huName];for(var i=0;i<arr.length;i++){var id=m[n(arr[i])];if(id&&imgs[id]){f.img=imgs[id];f.image=imgs[id];f.kep=imgs[id];f.photo=imgs[id];if(f.huV2){f.huV2.kep_statusz='Kép elérhető';f.huV2.kepkartya='Egységesített halfajkép elérhető';}changed++;break;}}});rerender();console.log('Hiányzó halfajképek bekötve:',changed);return changed>0;}
-function go(){var imgs={};Promise.all(Object.keys(files).map(function(id){return fetchFirst(files[id]).then(function(t){if(t)imgs[id]=asImg(t);else console.warn('Halfajkép nem található:',id,files[id]);});})).then(function(){if(!patch(imgs))setTimeout(function(){patch(imgs);},800);});}
+function patch(imgs){
+  var db=getDb();if(!db)return false;
+  var m={};Object.keys(aliases).forEach(function(id){aliases[id].forEach(function(a){m[n(a)]=id;});});
+  var changed=0;
+  db.forEach(function(f){
+    if(!f)return;
+    var arr=[f.name,f.latin,f.id,f.title,f.huName];
+    for(var i=0;i<arr.length;i++){
+      var id=m[n(arr[i])];
+      if(id&&imgs[id]){
+        f.img=imgs[id];f.image=imgs[id];f.kep=imgs[id];f.photo=imgs[id];
+        if(f.huV2){f.huV2.img=imgs[id];f.huV2.kep_statusz='Kép elérhető';f.huV2.kepkartya='Egységesített halfajkép elérhető';}
+        changed++;break;
+      }
+    }
+  });
+  rerender();
+  console.log('Hiányzó halfajképek bekötve:',changed);
+  return changed>0;
+}
+function go(){
+  var imgs={};
+  Promise.all(Object.keys(files).map(function(id){
+    return fetchFirst(files[id]).then(function(t){
+      if(t)imgs[id]=asImg(t);
+      else console.warn('Halfajkép nem található:',id,files[id]);
+    });
+  })).then(function(){
+    if(!patch(imgs))setTimeout(function(){patch(imgs);},600);
+  });
+}
 
 var FISH_IMG_BASE=BASE;
-
 function normFilename(s){
   return String(s||'').toLowerCase()
     .normalize('NFD').replace(/[̀-ͯ]/g,'')
@@ -55,7 +77,6 @@ function normFilename(s){
     .replace(/_+/g,'_')
     .replace(/^_|_$/g,'');
 }
-
 function autoLoadCustomImages(){
   var db=getDb();if(!db)return;
   var tried={};
@@ -73,7 +94,7 @@ function autoLoadCustomImages(){
           if(!e.img||String(e.img).length<10){
             var url=FISH_IMG_BASE+fn2;
             e.img=url;e.image=url;e.kep=url;e.photo=url;
-            if(e.huV2)e.huV2.kep_statusz='Kép elérhető';
+            if(e.huV2){e.huV2.img=url;e.huV2.kep_statusz='Kép elérhető';}
             rerender();
             console.log('[fish-custom] Kép betöltve:',nm,'→',fn2);
           }
@@ -85,5 +106,5 @@ function autoLoadCustomImages(){
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go,{once:true});else go();
-setTimeout(autoLoadCustomImages,2500);
+setTimeout(autoLoadCustomImages,600);
 })();
