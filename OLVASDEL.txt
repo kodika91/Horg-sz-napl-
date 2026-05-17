@@ -1,6 +1,0 @@
-Magyar halfaj-azonosító v2
-Fajok/fajcsoportok: 80
-
-Képek: nincsenek benne új képek. Ez szándékos, mert félrevezető generált képet nem használunk.
-
-Az index a v2 részletes fajmeghatározási adatait kapja meg.
