@@ -1,10 +1,11 @@
 {
   "version": 1,
   "fish": {
-    "razbora": "assets/fish/razbora.jpg"
+    "razbora": "assets/fish/razbora.jpg",
+    "tarka_geb": "assets/fish/tarka_geb.jpg"
   },
   "gear": {},
   "bait": {},
   "places": {},
-  "updatedAt": "2026-05-17T13:05:31.119Z"
+  "updatedAt": "2026-05-17T13:07:32.283Z"
 }
