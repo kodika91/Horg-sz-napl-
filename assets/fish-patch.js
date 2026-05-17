@@ -30,7 +30,7 @@ var files={
 var aliases={
   lenai_tok:['lenai tok','lénai tok','acipenser baerii'],
   kurta_baing:['kurta baing','leucaspius delineatus'],
-  koi_ponty:['koi ponty','koi','nishikigoi','diszponty','díszponty'],
+  koi_ponty:['koi ponty','koi','nishikigoi','diszponty','dísz ponty'],
   kovi_csik:['kovi csik','kövi csík','kovicsik','kövicsík','barbatula barbatula'],
   karasz_hibrid:['karasz hibrid','kárász hibrid'],
   tarka_geb:['tarka geb','tarka géb','proterorhinus semilunaris','proterorhinus marmoratus'],
@@ -79,6 +79,18 @@ function patch(imgs){
   console.log('Hiányzó halfajképek bekötve:',changed);
   return changed>0;
 }
+function patchDomImgs(imgs){
+  var m={};
+  Object.keys(aliases).forEach(function(id){aliases[id].forEach(function(a){m[n(a)]=id;});});
+  var changed=0;
+  document.querySelectorAll('img').forEach(function(img){
+    if(img.src&&img.src.indexOf('raw.githubusercontent.com')>-1)return;
+    var texts=[img.alt,img.getAttribute('data-fish'),img.getAttribute('data-name'),img.getAttribute('title')].filter(Boolean);
+    for(var i=0;i<texts.length;i++){var id=m[n(texts[i])];if(id&&imgs[id]){img.src=imgs[id];changed++;break;}}
+  });
+  if(changed)console.log('[fish-dom] Képek frissítve:',changed);
+}
+
 function go(){
   var imgs={};
   Promise.all(Object.keys(files).map(function(id){
@@ -88,6 +100,8 @@ function go(){
     });
   })).then(function(){
     if(!patch(imgs))setTimeout(function(){patch(imgs);},600);
+    removeFromDb(REMOVE_IDS);
+    setTimeout(function(){patchDomImgs(imgs);},500);
   });
 }
 
@@ -140,10 +154,9 @@ function removeFromDb(ids){
               ids.indexOf(n(f.huName||''))!==-1;
     if(match){db.splice(i,1);removed++;}
   }
-  if(removed){rerender();console.log('Eltávolítva a listaból:',removed,'halfaj');}
+  if(removed){rerender();console.log('Eltávolítva a listából:',removed,'halfaj');}
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go,{once:true});else go();
 setTimeout(autoLoadCustomImages,600);
-setTimeout(function(){removeFromDb(REMOVE_IDS);},800);
 })();
