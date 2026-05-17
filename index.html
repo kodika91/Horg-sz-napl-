@@ -4,23 +4,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Horgász Napló</title>
-<style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center}.box{max-width:520px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:24px;box-shadow:0 10px 35px rgba(60,40,10,.12)}.t{font-weight:800;font-size:18px;margin-bottom:8px}.s{color:#6b5840;line-height:1.5;font-size:14px}</style>
+<style>
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .box{max-width:560px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:24px;box-shadow:0 10px 35px rgba(60,40,10,.12)}
+  .t{font-weight:800;font-size:18px;margin-bottom:8px}.s{color:#6b5840;line-height:1.5;font-size:14px}.e{color:#9a2f2f;font-size:13px;margin-top:10px;white-space:pre-wrap}
+</style>
 </head>
 <body>
 <div class="box"><div class="t">Horgász Napló betöltése…</div><div class="s">Alkalmazás előkészítése…</div></div>
 <script>
 (async function(){
-  try{
-    const [res2,fpSrc,insSrc]=await Promise.all([
-      fetch('https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/22233b8c04acdd3ad868a9b78ed71514c0d58365/assets/app.html',{cache:'no-store'}),
-      fetch('https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/main/assets/fish-patch.js',{cache:'no-store'}).then(r=>r.ok?r.text():'').catch(()=>''),
-      fetch('https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/main/assets/insights.js',{cache:'no-store'}).then(r=>r.ok?r.text():'').catch(()=>'')
-    ]);
-    if(!res2.ok) throw new Error('app.html fetch failed: '+res2.status);
-    let html=await res2.text();
+  const APP_SOURCES=[
+    'https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/main/assets/app.html',
+    'https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/22233b8c04acdd3ad868a9b78ed71514c0d58365/assets/app.html'
+  ];
 
-    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v26.19.1.25 Leaflet async, Tapasztalat, képek');
-    html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants.\n\n\n// CSALI ADATBÁZIS');
+  async function fetchFirstAvailable(urls){
+    let lastErr=null;
+    for(const url of urls){
+      try{
+        const res=await fetch(url,{cache:'no-store'});
+        if(!res.ok) throw new Error(url+' → HTTP '+res.status);
+        return await res.text();
+      }catch(err){
+        lastErr=err;
+        console.warn('[loader] sikertelen forrás:',err);
+      }
+    }
+    throw lastErr||new Error('Nem található betölthető app.html forrás.');
+  }
+
+  function addSafePatches(html){
+    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v26.19.1.26 stabil betöltő + debug hotfix');
+
+    // A korábbi loaderben ez a csere túl korán futott, és ütközhetett a később deklarált helper konstansokkal.
+    html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants by stable loader.\n\n\n// CSALI ADATBÁZIS');
+
+    // A document.write által betöltött appban ezek globális szinten újradeklarálódhatnak; var biztonságosabb patch környezetben.
     html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
     html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
     html=html.replace("let fishFilter='all',fishSearch='';","var fishFilter='all',fishSearch='';");
@@ -28,45 +48,38 @@
     html=html.replace('const HU_POND_OR_DECORATIVE_IDS=new Set','var HU_POND_OR_DECORATIVE_IDS=new Set');
     html=html.replace('Jelenleg nincs egységesített képkártya','Kép elérhető');
     html=html.replace('<div class="fish-image-tools">','<div class="fish-image-tools" style="display:none">');
-    html=html.replace('src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"','src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" async');
 
-    // Gyors elérés: Tapasztalat kártya (insights panel triggerrel)
-    html=html.replace(
-      '<div class="item-name">Térkép</div><div class="item-sub">GPS pontok</div></div>\n            <i class="ti ti-chevron-right item-arrow"></i>\n          </div>\n\n        </div>',
-      '<div class="item-name">Térkép</div><div class="item-sub">GPS pontok</div></div>\n            <i class="ti ti-chevron-right item-arrow"></i>\n          </div>\n          <div class="item-list-card" id="insights-entry" onclick="if(window.openInsightsPanel)window.openInsightsPanel()">\n            <div class="item-icon" style="background:var(--moss-bg);border:1px solid var(--moss-b)"><i class="ti ti-bulb" style="color:var(--moss);font-size:20px"></i></div>\n            <div class="item-info"><div class="item-name">Tapasztalat</div><div class="item-sub">Elemzések, tanulságok</div></div>\n            <i class="ti ti-chevron-right item-arrow"></i>\n          </div>\n\n        </div>'
-    );
-
-    // Fej léc: ikonos + alcímes struktúra
-    html=html.replace(
-      '<div class="top-bar-title" id="page-title">Főoldal</div>',
-      '<div class="top-bar-title" id="page-title"><span class="ptitle-icon"><i class="ti ti-fish" id="page-title-icon-el"></i></span><span class="ptitle-wrap"><span class="ptitle-main" id="page-title-text">Főoldal</span><span class="ptitle-sub" id="page-title-sub">Horgász Napló</span></span></div>'
-    );
-
-    // showPage patch: ikon és alcím váltás menüváltáskor
-    html=html.replace(
-      "document.getElementById('page-title').textContent=PAGE_TITLES[id]||id;",
-      "document.getElementById('page-title-text').textContent=PAGE_TITLES[id]||id;(function(){var ic={home:'ti-home',sessions:'ti-list','new-session':'ti-fish',locations:'ti-map-pin',map:'ti-map',spotfinder:'ti-search',fish:'ti-fish',baits:'ti-droplet',gear:'ti-tool',stats:'ti-chart-bar',export:'ti-download',settings:'ti-settings','github-sync':'ti-cloud','session-detail':'ti-fish'};var sb={home:'Horgász Napló',sessions:'Előzmények','new-session':'Naplozás',locations:'Helyszínek',map:'Térkép',spotfinder:'Helykereső',fish:'Halfajok',baits:'Csali & Etetőanyag',gear:'Felszerelés',stats:'Statisztika',export:'Adatmentés',settings:'Beállítások','github-sync':'Szinkronizáció','session-detail':'Részletek'};var ei=document.getElementById('page-title-icon-el');if(ei)ei.className='ti '+(ic[id]||'ti-fish');var es=document.getElementById('page-title-sub');if(es)es.textContent=sb[id]||'Horgász Napló';})()"
-    );
-
-    const anchor="function isHuCatchLogFish(f){return f && !isHuProtectedOrNotKeepableFish(f) && !isHuPondOnlyFish(f);\n";
-    if(html.includes(anchor) && !html.includes('active-ban-parser-v11')){
-      const banPatch=`\n// active-ban-parser-v11\n(function(){\n  const rta=s=>String(s||'').replace(/\\bXII\.\\s*/g,'12. ').replace(/\\bXI\.\\s*/g,'11. ').replace(/\\bX\.\\s*/g,'10. ').replace(/\\bIX\.\\s*/g,'09. ').replace(/\\bVIII\.\\s*/g,'08. ').replace(/\\bVII\.\\s*/g,'07. ').replace(/\\bVI\.\\s*/g,'06. ').replace(/\\bV\.\\s*/g,'05. ').replace(/\\bIV\.\\s*/g,'04. ').replace(/\\bIII\.\\s*/g,'03. ').replace(/\\bII\.\\s*/g,'02. ').replace(/\\bI\.\\s*/g,'01. ');\n  const parse=t=>{const s=String(t||'');const a=[...s.matchAll(/(\\d{1,2})\\.\\s*(\\d{1,2})\\./g)].map(x=>[+x[1],+x[2]]);return a.length>=2?[a[0],a[1]]:null};\n  currentBanState=function(f){const p=parse((f&&f.ban)||'');const st=(f&&f.banStart)||(p&&p[0]);const en=(f&&f.banEnd)||(p&&p[1]);if(!st||!en)return false;const n=new Date(),m=n.getMonth()+1,d=n.getDate(),sm=+st[0],sd=+st[1],em=+en[0],ed=+en[1];return sm<=em?((m>sm||(m===sm&&d>=sd))&&(m<em||(m===em&&d<=ed))):((m>sm||(m===sm&&d>=sd))||(m<em||(m===em&&d<=ed)))};\n  if(typeof applyHuV2==='function')applyHuV2();\n  if(typeof FISH_DB!=='undefined'){const seen=new Map();const key=f=>String(f.latin||f.name||f.id||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]/g,'');FISH_DB.forEach(f=>{if(!f)return;if(f.ban)f.ban=rta(f.ban);if(f.huV2&&f.huV2.tilalmi_ido_2026)f.huV2.tilalmi_ido_2026=rta(f.huV2.tilalmi_ido_2026);if(f.huV2&&f.img)f.huV2.kep_statusz='Kép elérhető';const k=key(f);if(!seen.has(k))seen.set(k,f)});FISH_DB.length=0;seen.forEach(v=>FISH_DB.push(v));}\n  window.renderFishImageManager=function(){const e=document.getElementById('fish-image-manager')||document.querySelector('.fish-gallery-panel');if(e)e.style.display='none'};\n  window.setFishImageFilter=function(){window.renderFishImageManager()};\n})();\n`;
+    const anchor='function isHuCatchLogFish(f){return f && !isHuProtectedOrNotKeepableFish(f) && !isHuPondOnlyFish(f);}\n';
+    if(html.includes(anchor) && !html.includes('stable-active-ban-parser-v26')){
+      const banPatch=`\n// stable-active-ban-parser-v26\n(function(){\n  function rta(s){return String(s||'').replace(/\\bXII\\.\\s*/g,'12. ').replace(/\\bXI\\.\\s*/g,'11. ').replace(/\\bX\\.\\s*/g,'10. ').replace(/\\bIX\\.\\s*/g,'09. ').replace(/\\bVIII\\.\\s*/g,'08. ').replace(/\\bVII\\.\\s*/g,'07. ').replace(/\\bVI\\.\\s*/g,'06. ').replace(/\\bV\\.\\s*/g,'05. ').replace(/\\bIV\\.\\s*/g,'04. ').replace(/\\bIII\\.\\s*/g,'03. ').replace(/\\bII\\.\\s*/g,'02. ').replace(/\\bI\\.\\s*/g,'01. ');}\n  function parse(t){var a=[...String(t||'').matchAll(/(\\d{1,2})\\.\\s*(\\d{1,2})\\./g)].map(function(x){return[+x[1],+x[2]]});return a.length>=2?[a[0],a[1]]:null;}\n  window.currentBanState=function(f){var p=parse((f&&f.ban)||'');var st=(f&&f.banStart)||(p&&p[0]);var en=(f&&f.banEnd)||(p&&p[1]);if(!st||!en)return false;var n=new Date(),m=n.getMonth()+1,d=n.getDate(),sm=+st[0],sd=+st[1],em=+en[0],ed=+en[1];return sm<=em?((m>sm||(m===sm&&d>=sd))&&(m<em||(m===em&&d<=ed))):((m>sm||(m===sm&&d>=sd))||(m<em||(m===em&&d<=ed)));};\n  try{if(typeof applyHuV2==='function')applyHuV2();}catch(e){console.warn('[fish] applyHuV2 hiba:',e);}\n  try{if(typeof FISH_DB!=='undefined'&&Array.isArray(FISH_DB)){var seen=new Map();var key=function(f){return String(f.latin||f.name||f.id||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]/g,'')};FISH_DB.forEach(function(f){if(!f)return;if(f.ban)f.ban=rta(f.ban);if(f.huV2&&f.huV2.tilalmi_ido_2026)f.huV2.tilalmi_ido_2026=rta(f.huV2.tilalmi_ido_2026);if(f.huV2&&f.img)f.huV2.kep_statusz='Kép elérhető';var k=key(f);if(!seen.has(k))seen.set(k,f);});FISH_DB.length=0;seen.forEach(function(v){FISH_DB.push(v)});}}catch(e){console.warn('[fish] adatjavítás hiba:',e);}\n  window.renderFishImageManager=function(){var e=document.getElementById('fish-image-manager')||document.querySelector('.fish-gallery-panel');if(e)e.style.display='none';};\n  window.setFishImageFilter=function(){window.renderFishImageManager();};\n})();\n`;
       html=html.replace(anchor,anchor+banPatch);
     }
 
     const quickAnchor='  </div>\n  <div class="fish-image-tools" style="display:none">';
-    const quickBlock='  </div>\n  ${currentBanState(f)?\'<div class="fish-detail-warning"><b>Jelenleg fajlagos tilalom van érvényben.</b><br>Az érintett halfaj ilyenkor nem tartható meg, fogás után kíméletesen vissza kell engedni.</div>\':\'\'}\n  <div class="fish-detail-section fish-quick-data"><h4>Hal adatai</h4><div class="fish-detail-grid"><div class="fish-detail-box"><div class="lbl">Méretkorlát</div><div class="val">${escText(r.size)}</div></div><div class="fish-detail-box"><div class="lbl">Darabszám</div><div class="val">${escText(r.quota)}</div></div><div class="fish-detail-box"><div class="lbl">Tilalmi idő</div><div class="val">${escText(r.ban)}${currentBanState(f)?\'&nbsp;· jelenleg aktív\':\'\'}\</div></div><div class="fish-detail-box"><div class="lbl">Élőhely</div><div class="val">${escText(f.habitat||\'–\')}</div></div><div class="fish-detail-box"><div class="lbl">Táplálék</div><div class="val">${escText(f.food||\'–\')}</div></div><div class="fish-detail-box"><div class="lbl">Ajánlott csali</div><div class="val">${escText(f.bait||\'–\')}</div></div></div></div>\n  <div class="fish-image-tools" style="display:none">';
-    html=html.replace(quickAnchor,quickBlock);
+    if(html.includes(quickAnchor) && !html.includes('fish-quick-data')){
+      const quickBlock='  </div>\n  ${currentBanState(f)?\'<div class="fish-detail-warning"><b>Jelenleg fajlagos tilalom van érvényben.</b><br>Az érintett halfaj ilyenkor nem tartható meg, fogás után kíméletesen vissza kell engedni.</div>\':\'\'}\n  <div class="fish-detail-section fish-quick-data"><h4>Hal adatai</h4><div class="fish-detail-grid"><div class="fish-detail-box"><div class="lbl">Méretkorlát</div><div class="val">${escText(r.size)}</div></div><div class="fish-detail-box"><div class="lbl">Darabszám</div><div class="val">${escText(r.quota)}</div></div><div class="fish-detail-box"><div class="lbl">Tilalmi idő</div><div class="val">${escText(r.ban)}${currentBanState(f)?\' · jelenleg aktív\':\'\'}</div></div><div class="fish-detail-box"><div class="lbl">Élőhely</div><div class="val">${escText(f.habitat||\'–\')}</div></div><div class="fish-detail-box"><div class="lbl">Táplálék</div><div class="val">${escText(f.food||\'–\')}</div></div><div class="fish-detail-box"><div class="lbl">Ajánlott csali</div><div class="val">${escText(f.bait||\'–\')}</div></div></div></div>\n  <div class="fish-image-tools" style="display:none">';
+      html=html.replace(quickAnchor,quickBlock);
+    }
 
-    const modalCss=`<style id="fish-modal-fix-v11">#data-modal.show{align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:72px 16px 28px}#data-modal .modal-card{max-height:calc(100dvh - 92px);overflow-y:auto;-webkit-overflow-scrolling:touch}#data-modal .modal-body{padding-bottom:34px}#data-modal .fish-detail-hero{grid-template-columns:1fr!important;gap:18px!important}#data-modal .fish-detail-img{width:100%!important;height:230px!important;border-radius:22px!important}#data-modal .fish-detail-img img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}#data-modal .fish-detail-grid{grid-template-columns:1fr 1fr!important}#data-modal .fish-id-pill-card:nth-child(2){display:none!important}@media(max-width:640px){#data-modal{padding:54px 10px 22px!important}#data-modal .modal-card{max-height:calc(100dvh - 70px)!important}#data-modal .fish-detail-grid{grid-template-columns:1fr!important}}</style>`;
-    const weatherCss=`<style id="weather-apple-dark-v23">.weather-card{position:relative!important;overflow:hidden!important;border:0!important;border-radius:34px!important;padding:28px 24px 24px!important;background:radial-gradient(circle at 7% 10%,rgba(255,255,255,.95) 0,rgba(255,255,255,.38) 9%,rgba(255,255,255,0) 24%),radial-gradient(circle at 52% 22%,rgba(120,180,255,.22),rgba(120,180,255,0) 28%),radial-gradient(circle at 72% 54%,rgba(255,219,112,.15),rgba(255,219,112,0) 23%),linear-gradient(180deg,#164a91 0%,#2468b2 33%,#3778bd 61%,#6fa4d2 100%)!important;box-shadow:0 20px 52px rgba(25,55,92,.24),inset 0 1px 0 rgba(255,255,255,.22)!important;color:#fff!important}.weather-card::before{content:''!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,0) 28%)!important;pointer-events:none!important}.weather-card::after{content:''!important;position:absolute!important;left:-66px!important;top:-66px!important;width:250px!important;height:250px!important;border-radius:50%!important;background:radial-gradient(circle,rgba(255,255,255,.98) 0%,rgba(255,246,184,.38) 25%,rgba(255,255,255,0) 64%)!important;filter:blur(2px)!important;pointer-events:none!important}#weather-data{position:relative!important;z-index:1!important}.weather-inner{display:block!important;position:relative!important;text-align:center!important;padding-top:18px!important}.weather-icon-big{position:absolute!important;left:2px!important;top:4px!important;width:112px!important;height:112px!important;min-width:112px!important;min-height:112px!important;border-radius:999px!important;background:transparent!important;border:0!important;box-shadow:none!important;display:flex!important;align-items:center!important;justify-content:center!important}.weather-main-info{padding:0 10px!important}.weather-temp{font-size:78px!important;line-height:.95!important;color:#fff!important;font-weight:780!important;text-shadow:0 4px 18px rgba(15,35,65,.34)!important}.weather-desc{font-size:25px!important;color:#fff!important;font-weight:760!important;margin-top:8px!important;text-shadow:0 3px 14px rgba(15,35,65,.28)!important}.weather-loc{justify-content:center!important;font-size:16px!important;color:rgba(255,255,255,.94)!important;font-weight:780!important;gap:6px;text-transform:uppercase;letter-spacing:.04em}.weather-details{margin-top:24px!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}.wd-item{background:rgba(15,55,105,.34)!important;border:1px solid rgba(255,255,255,.20)!important;border-radius:18px!important;padding:12px 10px!important;backdrop-filter:blur(10px)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16)!important}.wd-val{color:#fff!important;font-size:20px!important;font-weight:820!important;text-shadow:0 1px 8px rgba(0,0,0,.20)!important}.wd-lbl{color:rgba(255,255,255,.82)!important;font-size:12px!important;font-weight:700!important}.weather-actions{margin-top:18px!important;display:flex!important;gap:12px!important;flex-wrap:wrap!important}.w-btn{background:rgba(12,57,108,.34)!important;border:1px solid rgba(255,255,255,.24)!important;color:#fff!important;font-weight:760!important;border-radius:18px!important;backdrop-filter:blur(10px)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.15)!important}.forecast-wrap{position:relative!important;z-index:1!important;margin-top:24px!important;border-radius:28px!important;background:rgba(17,65,120,.42)!important;border:1px solid rgba(255,255,255,.18)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.13)!important;backdrop-filter:blur(12px)!important;padding:18px 16px!important}.forecast-head{border-bottom:1px solid rgba(255,255,255,.18)!important;padding-bottom:12px!important;margin-bottom:14px!important}.forecast-title{color:rgba(255,255,255,.96)!important;font-size:15px!important;letter-spacing:.10em!important;font-weight:850!important;text-transform:uppercase!important}.forecast-sub{color:rgba(255,255,255,.82)!important;font-size:13px!important}.forecast-grid{display:grid!important;grid-auto-flow:column!important;grid-auto-columns:minmax(62px,1fr)!important;gap:18px!important;overflow-x:auto!important;overflow-y:hidden!important;padding-bottom:2px!important;scrollbar-width:none}.forecast-grid::-webkit-scrollbar{display:none}.forecast-item{background:transparent!important;border:0!important;box-shadow:none!important;min-height:auto!important;padding:0!important;text-align:center!important}.forecast-hour{font-size:13px!important;font-weight:820!important;color:#fff!important;opacity:.96}.forecast-icon{margin:8px auto 8px!important;display:flex!important;align-items:center!important;justify-content:center!important;background:none!important;border:0!important;width:auto!important;height:auto!important;box-shadow:none!important}.forecast-temp{font-size:20px!important;font-weight:840!important;color:#fff!important;margin-top:2px!important}.forecast-meta{font-size:11px!important;color:rgba(255,255,255,.74)!important;line-height:1.2!important;font-weight:700!important;margin-top:4px!important}.weather-art{filter:drop-shadow(0 6px 14px rgba(20,40,70,.20))!important}.weather-art .sun-core{background:radial-gradient(circle at 35% 35%,#fff7b8 0%,#ffd84d 45%,#f5aa18 100%)!important;box-shadow:0 0 30px rgba(255,188,38,.62)!important}.weather-art .sun-glow{background:radial-gradient(circle,rgba(255,218,92,.72),rgba(255,218,92,.14) 56%,rgba(255,218,92,0) 74%)!important}.weather-art .cloud::before,.weather-art .cloud::after,.weather-art .cloud span{background:linear-gradient(180deg,#fff 0%,#e8f1fa 100%)!important;border:1px solid rgba(106,132,160,.22)!important;box-shadow:0 5px 12px rgba(42,64,92,.18)!important}@media(max-width:640px){.weather-card{padding:22px 18px 20px!important;border-radius:30px!important}.weather-icon-big{left:-2px!important;top:4px!important;width:104px!important;height:104px!important;min-width:104px!important;min-height:104px!important}.weather-main-info{padding:0 6px!important}.weather-temp{font-size:72px!important}.weather-desc{font-size:22px!important}.weather-details{grid-template-columns:repeat(2,minmax(0,1fr))!important}}</style>`;
-    const topbarCss=`<style id="topbar-enhanced-v1">.top-bar-title{display:flex!important;align-items:center!important;gap:12px!important}.ptitle-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#1e6b5a 0%,#2a9e7a 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px rgba(30,107,90,.30),inset 0 1px 0 rgba(255,255,255,.25)}.ptitle-icon i{font-size:20px;color:#fff}.ptitle-wrap{display:flex;flex-direction:column;gap:2px}.ptitle-main{font-family:'Playfair Display',Georgia,serif;font-size:19px;font-weight:700;color:var(--text);line-height:1.2}.ptitle-sub{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#1e7a5a;opacity:.75}@media(max-width:768px){.ptitle-icon{width:34px;height:34px;border-radius:10px}.ptitle-icon i{font-size:17px}.ptitle-main{font-size:16px}}</style>`;
-    html=html.replace('</head>', modalCss + weatherCss + topbarCss + '</head>');
-    html=html.replace(/\bXII\.\s*/g,'12. ').replace(/\bXI\.\s*/g,'11. ').replace(/\bX\.\s*/g,'10. ').replace(/\bIX\.\s*/g,'09. ').replace(/\bVIII\.\s*/g,'08. ').replace(/\bVII\.\s*/g,'07. ').replace(/\bVI\.\s*/g,'06. ').replace(/\bV\.\s*/g,'05. ').replace(/\bIV\.\s*/g,'04. ').replace(/\bIII\.\s*/g,'03. ').replace(/\bII\.\s*/g,'02. ').replace(/\bI\.\s*/g,'01. ');
-    if(fpSrc){const _fp=fpSrc;html=html.replace('</body>',function(){return '<scr'+'ipt>'+_fp+'<'+'/script></body>';});}
-    if(insSrc){const _in=insSrc;html=html.replace('</body>',function(){return '<scr'+'ipt>'+_in+'<'+'/script></body>';});}
-    document.open();document.write(html);document.close();
-  }catch(err){console.error(err);document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';}
+    const modalCss=`<style id="stable-fixes-v26">#data-modal.show{align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:72px 16px 28px}#data-modal .modal-card{max-height:calc(100dvh - 92px);overflow-y:auto;-webkit-overflow-scrolling:touch}#data-modal .modal-body{padding-bottom:34px}#data-modal .fish-detail-hero{grid-template-columns:1fr!important;gap:18px!important}#data-modal .fish-detail-img{width:100%!important;height:230px!important;border-radius:22px!important}#data-modal .fish-detail-img img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}#data-modal .fish-detail-grid{grid-template-columns:1fr 1fr!important}#data-modal .fish-id-pill-card:nth-child(2){display:none!important}.fish-image-tools,.fish-gallery-panel{display:none!important}.top-bar-title{display:flex!important;align-items:center!important;gap:12px!important}@media(max-width:640px){#data-modal{padding:54px 10px 22px!important}#data-modal .modal-card{max-height:calc(100dvh - 70px)!important}#data-modal .fish-detail-grid{grid-template-columns:1fr!important}}</style>`;
+    html=html.replace('</head>',modalCss+'</head>');
+
+    // Külső kiegészítők külön scriptként, nem törékeny beágyazott string-cserével.
+    const extras='\n<script src="assets/fish-patch.js?v=26" defer><\\/script>\n<script src="assets/insights.js?v=26" defer><\\/script>\n';
+    html=html.replace('</body>',extras+'</body>');
+    return html;
+  }
+
+  try{
+    let html=await fetchFirstAvailable(APP_SOURCES);
+    html=addSafePatches(html);
+    document.open();
+    document.write(html);
+    document.close();
+  }catch(err){
+    console.error('[loader] végzetes betöltési hiba:',err);
+    document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">Nem sikerült betölteni az alkalmazást.</div><div class="e">'+String(err&&err.message||err).replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];})+'</div></div>';
+  }
 })();
 </script>
 </body>
