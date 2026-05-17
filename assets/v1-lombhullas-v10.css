@@ -1,0 +1,284 @@
+/*
+  V10 · Statisztika dashboard redesign
+  Cél: nagyobb, áttekinthetőbb statisztikai dashboard, KPI-sáv, grafikonblokkok és top-listák.
+  Csak CSS, működési logika/adatkezelés módosítása nélkül.
+*/
+
+:root{
+  --v10-panel: rgba(255,250,241,.78);
+  --v10-panel-strong: rgba(255,250,241,.96);
+  --v10-line: rgba(120,90,50,.145);
+  --v10-shadow: 0 20px 54px rgba(74,48,24,.115);
+  --v10-shadow-hover: 0 30px 78px rgba(74,48,24,.17);
+  --v10-chart-bg: linear-gradient(180deg,rgba(255,249,239,.99),rgba(250,241,225,.95));
+}
+
+/* Statisztika oldal fő dashboard */
+@media(min-width:1180px){
+  #page-stats.active{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:24px!important;
+    align-items:start!important;
+  }
+
+  #page-stats .section-header{
+    margin-bottom:2px!important;
+    padding:2px 2px 4px!important;
+  }
+
+  #page-stats .section-title,
+  #page-stats h2,
+  #page-stats h3{
+    letter-spacing:-.025em!important;
+  }
+
+  #page-stats .stat-grid{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:20px!important;
+    align-items:stretch!important;
+  }
+
+  #page-stats .stat-card{
+    min-height:172px!important;
+    padding:26px!important;
+    border-radius:34px!important;
+    background:
+      radial-gradient(circle at 96% 0%,rgba(168,90,43,.10),transparent 34%),
+      radial-gradient(circle at 10% 100%,rgba(47,111,115,.07),transparent 34%),
+      linear-gradient(180deg,rgba(255,249,239,.99),rgba(250,241,225,.95))!important;
+    border:1px solid var(--v10-line)!important;
+    box-shadow:var(--v10-shadow)!important;
+  }
+
+  #page-stats .stat-card:hover{
+    transform:translateY(-4px)!important;
+    box-shadow:var(--v10-shadow-hover)!important;
+  }
+
+  #page-stats .stat-icon{
+    width:56px!important;
+    height:56px!important;
+    border-radius:22px!important;
+    background:linear-gradient(135deg,rgba(90,112,66,.16),rgba(168,90,43,.13))!important;
+    border:1px solid rgba(120,90,50,.13)!important;
+  }
+
+  #page-stats .stat-value{
+    font-size:42px!important;
+    line-height:.95!important;
+    letter-spacing:-.055em!important;
+    color:var(--v1-leaf-text)!important;
+  }
+
+  #page-stats .stat-label{
+    font-size:12.5px!important;
+    text-transform:uppercase!important;
+    letter-spacing:.105em!important;
+    font-weight:850!important;
+    color:rgba(117,99,77,.70)!important;
+  }
+}
+
+/* Grafikon és elemző panelek */
+#page-stats .card,
+.chart-card,
+.ins-card,
+.stats-card,
+.stats-panel,
+.analysis-card{
+  border-radius:34px!important;
+  background:var(--v10-chart-bg)!important;
+  border:1px solid var(--v10-line)!important;
+  box-shadow:var(--v10-shadow)!important;
+  overflow:hidden!important;
+}
+
+@media(min-width:1180px){
+  #page-stats .card,
+  .chart-card,
+  .ins-card,
+  .stats-card,
+  .stats-panel,
+  .analysis-card{
+    padding:26px 28px!important;
+  }
+
+  #page-stats .two-col{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:22px!important;
+  }
+
+  #page-stats .three-col{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:22px!important;
+  }
+}
+
+/* Diagram sorok, bar chart elemek */
+.bar-row,
+.chart-row,
+.stat-row,
+.rank-row,
+.method-row,
+.species-row{
+  border-radius:20px!important;
+  padding:13px 15px!important;
+  background:rgba(255,250,241,.62)!important;
+  border:1px solid rgba(120,90,50,.105)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.42)!important;
+}
+
+.bar-fill,
+.chart-fill,
+.progress-fill{
+  border-radius:999px!important;
+  background:linear-gradient(90deg,var(--v1-leaf-water),var(--v1-leaf-moss),var(--v1-leaf-rust2))!important;
+  box-shadow:0 5px 14px rgba(47,111,115,.18)!important;
+}
+
+.bar-track,
+.chart-track,
+.progress-track{
+  border-radius:999px!important;
+  background:rgba(120,90,50,.10)!important;
+  overflow:hidden!important;
+}
+
+/* Top listák és rangsorok */
+.top-list,
+.rank-list,
+.stats-list,
+.insight-list{
+  display:grid!important;
+  gap:12px!important;
+}
+
+.top-item,
+.rank-item,
+.insight-item,
+.stat-list-item{
+  border-radius:22px!important;
+  padding:15px 17px!important;
+  background:rgba(255,250,241,.68)!important;
+  border:1px solid rgba(120,90,50,.12)!important;
+  box-shadow:0 10px 24px rgba(74,48,24,.055)!important;
+}
+
+.top-item:hover,
+.rank-item:hover,
+.insight-item:hover,
+.stat-list-item:hover{
+  transform:translateY(-2px)!important;
+  box-shadow:0 18px 42px rgba(74,48,24,.11)!important;
+}
+
+.rank-num,
+.top-rank,
+.place-num{
+  width:34px!important;
+  height:34px!important;
+  border-radius:13px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:linear-gradient(135deg,rgba(168,90,43,.14),rgba(90,112,66,.12))!important;
+  color:var(--v1-leaf-rust)!important;
+  font-weight:900!important;
+}
+
+/* Szűrők, időszak választók */
+#page-stats .filter-row,
+#page-stats .toolbar,
+#page-stats .controls,
+.stats-filters{
+  border-radius:28px!important;
+  padding:16px 18px!important;
+  background:rgba(255,250,241,.68)!important;
+  border:1px solid rgba(120,90,50,.13)!important;
+  box-shadow:0 14px 34px rgba(74,48,24,.07)!important;
+  gap:12px!important;
+}
+
+#page-stats select,
+#page-stats input,
+#page-stats .form-input{
+  min-height:46px!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.52)!important;
+}
+
+/* Üres állapotok */
+#page-stats .empty-state,
+.empty-stats,
+.no-data{
+  border-radius:30px!important;
+  padding:34px 28px!important;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(168,90,43,.08),transparent 38%),
+    rgba(255,250,241,.72)!important;
+  border:1px dashed rgba(120,90,50,.24)!important;
+  color:rgba(117,99,77,.80)!important;
+}
+
+/* Mobil statisztika */
+@media(max-width:980px){
+  #page-stats.active{
+    display:grid!important;
+    gap:16px!important;
+  }
+
+  #page-stats .stat-grid{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:13px!important;
+  }
+
+  #page-stats .stat-card{
+    min-height:128px!important;
+    padding:18px!important;
+    border-radius:26px!important;
+  }
+
+  #page-stats .stat-value{
+    font-size:32px!important;
+  }
+
+  #page-stats .stat-label{
+    font-size:11px!important;
+  }
+
+  #page-stats .two-col,
+  #page-stats .three-col{
+    grid-template-columns:1fr!important;
+    gap:14px!important;
+  }
+
+  #page-stats .card,
+  .chart-card,
+  .ins-card,
+  .stats-card,
+  .stats-panel{
+    border-radius:26px!important;
+    padding:18px!important;
+  }
+
+  #page-stats .filter-row,
+  #page-stats .toolbar,
+  #page-stats .controls,
+  .stats-filters{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    padding:14px!important;
+    border-radius:24px!important;
+  }
+}
+
+@media(max-width:430px){
+  #page-stats .stat-grid{
+    grid-template-columns:1fr!important;
+  }
+}
