@@ -1,0 +1,75 @@
+/* V6 — főoldal pozícionálás javítás: időjárás teljes szélesség + CTA alatta */
+@media (min-width: 1180px){
+  #page-home.active,
+  .page#page-home.active{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:22px !important;
+    align-items:stretch !important;
+  }
+
+  #page-home.active > *,
+  .page#page-home.active > *{
+    width:100% !important;
+    max-width:100% !important;
+    grid-column:1 / -1 !important;
+  }
+
+  #page-home.active > .gps-bar:first-child,
+  .page#page-home.active > .gps-bar:first-child{
+    order:1 !important;
+  }
+
+  #page-home.active > .weather-card,
+  .page#page-home.active > .weather-card{
+    order:2 !important;
+    min-height:320px !important;
+    flex:none !important;
+    margin-bottom:0 !important;
+  }
+
+  #page-home.active > .main-cta,
+  .page#page-home.active > .main-cta{
+    order:3 !important;
+    min-height:154px !important;
+    width:100% !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    padding:24px 28px !important;
+    margin:0 !important;
+    flex:none !important;
+    grid-row:auto !important;
+  }
+
+  #page-home.active > .stat-grid,
+  .page#page-home.active > .stat-grid{ order:4 !important; }
+
+  #page-home.active > .two-col,
+  .page#page-home.active > .two-col,
+  #page-home.active > .three-col,
+  .page#page-home.active > .three-col,
+  #page-home.active > .card,
+  .page#page-home.active > .card{ order:5 !important; }
+
+  #page-home.active > .main-cta .cta-icon-wrap,
+  .page#page-home.active > .main-cta .cta-icon-wrap{
+    width:60px !important;
+    height:60px !important;
+    border-radius:20px !important;
+    flex:0 0 60px !important;
+  }
+
+  #page-home.active > .main-cta .cta-title,
+  .page#page-home.active > .main-cta .cta-title{ font-size:24px !important; }
+
+  #page-home.active > .main-cta .cta-sub,
+  .page#page-home.active > .main-cta .cta-sub{ font-size:14px !important; }
+}
+
+@media (min-width: 1500px){
+  #page-home.active > .weather-card,
+  .page#page-home.active > .weather-card{ min-height:340px !important; }
+  #page-home.active > .main-cta,
+  .page#page-home.active > .main-cta{ min-height:160px !important; }
+}
