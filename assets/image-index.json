@@ -1,8 +1,10 @@
 {
   "version": 1,
-  "updatedAt": null,
-  "fish": {},
+  "fish": {
+    "razbora": "assets/fish/razbora.jpg"
+  },
   "gear": {},
   "bait": {},
-  "places": {}
+  "places": {},
+  "updatedAt": "2026-05-17T13:05:31.119Z"
 }
