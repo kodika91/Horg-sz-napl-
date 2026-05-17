@@ -15,7 +15,7 @@
     if(!res2.ok) throw new Error('app.html fetch failed: '+res2.status);
     let html=await res2.text();
 
-    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v26.19.1.36 V17 desktop polish');
+    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v26.19.1.38 V18 kepkezelo biztonsagos betoltes');
 
     // A tegnapi működő verzió kritikus indulási javításai megmaradnak.
     html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants.\n\n\n// CSALI ADATBÁZIS');
@@ -52,6 +52,20 @@
     html=html.replace('</head>', v1Css + modalCss + topbarCss + seasonScript + '</head>');
 
     document.open();document.write(html);document.close();
+    setTimeout(function(){
+      try{
+        var l=document.createElement('link');
+        l.id='v18-image-manager-css';
+        l.rel='stylesheet';
+        l.href='assets/v1-image-manager-v18.css?v=20260517-18b';
+        document.head.appendChild(l);
+        var s=document.createElement('script');
+        s.id='v18-image-manager-script';
+        s.src='assets/v1-image-manager-v18.js?v=20260517-18b';
+        s.defer=true;
+        document.body.appendChild(s);
+      }catch(e){console.warn('[V18] képkezelő betöltés kihagyva:',e);}
+    },300);
   }catch(err){console.error(err);document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';}
 })();
 </script>
