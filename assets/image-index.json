@@ -2,10 +2,11 @@
   "version": 1,
   "fish": {
     "razbora": "assets/fish/razbora.jpg",
-    "tarka_geb": "assets/fish/tarka_geb.jpg"
+    "tarka_geb": "assets/fish/tarka_geb.jpg",
+    "karasz_hibrid": "assets/fish/karasz_hibrid.jpg"
   },
   "gear": {},
   "bait": {},
   "places": {},
-  "updatedAt": "2026-05-17T13:07:32.283Z"
+  "updatedAt": "2026-05-17T13:10:46.501Z"
 }
