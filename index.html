@@ -4,44 +4,75 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Horgász Napló</title>
-<meta http-equiv="refresh" content="0; url=assets/app.html">
 <style>
-  body{
-    margin:0;
-    font-family:system-ui,-apple-system,Segoe UI,sans-serif;
-    background:#f4f0e8;
-    color:#2a2018;
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-  .box{
-    max-width:560px;
-    background:#faf8f4;
-    border:1px solid rgba(120,100,70,.18);
-    border-radius:18px;
-    padding:24px;
-    box-shadow:0 10px 35px rgba(60,40,10,.12);
-  }
-  .t{font-weight:800;font-size:18px;margin-bottom:8px}
-  .s{color:#6b5840;line-height:1.5;font-size:14px}
-  a{color:#2c6e7a;font-weight:700;text-decoration:none}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .box{max-width:620px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:24px;box-shadow:0 10px 35px rgba(60,40,10,.12)}
+  .t{font-weight:800;font-size:18px;margin-bottom:8px}.s{color:#6b5840;line-height:1.5;font-size:14px}.e{color:#9a2f2f;font-size:13px;margin-top:12px;white-space:pre-wrap;background:#fff3ef;border:1px solid #edd1c8;border-radius:12px;padding:10px}
 </style>
-<script>
-(function(){
-  try{
-    window.location.replace('assets/app.html?v=direct-stable-' + Date.now());
-  }catch(e){
-    window.location.href='assets/app.html';
-  }
-})();
-</script>
 </head>
 <body>
-<div class="box">
-  <div class="t">Horgász Napló indítása…</div>
-  <div class="s">A program közvetlenül indul, a hibás köztes betöltő kikapcsolva. Ha nem indulna el automatikusan, <a href="assets/app.html">kattints ide</a>.</div>
-</div>
+<div class="box"><div class="t">Horgász Napló indítása…</div><div class="s">Debug hotfix betöltése. A program indulás előtt javítja a túraösszesítő export hibás HTML-generálását.</div></div>
+<script>
+(function(){
+  function showFatal(err){
+    var msg=String(err && (err.stack||err.message) || err || 'Ismeretlen hiba');
+    document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">A program nem tudott elindulni.</div><div class="e">'+msg.replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];})+'</div></div>';
+  }
+
+  function safeSessionExportHTML(s){
+    function esc(v){return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+    function val(v,fallback){v=(v == null ? '' : String(v)); return v.trim() ? v : (fallback||'–');}
+    function num(v){var n=Number(v); return Number.isFinite(n) ? n : 0;}
+    var catches=Array.isArray(s && s.catches) ? s.catches : [];
+    var events=Array.isArray(s && s.events) ? s.events : [];
+    var feeding=Array.isArray(s && s.feedingLog) ? s.feedingLog : [];
+    var points=Array.isArray(s && s.mapPoints) ? s.mapPoints : [];
+    var photos=[];
+    catches.forEach(function(c,i){if(c && c.photo)photos.push({src:c.photo,title:(c.fish||'Fogás')+' #'+(i+1),meta:[c.time,c.bait,c.weight?c.weight+' kg':''].filter(Boolean).join(' · ')});});
+    events.forEach(function(e,i){if(e && e.photo)photos.push({src:e.photo,title:e.title||e.type||'Esemény',meta:[e.time,e.note].filter(Boolean).join(' · ')});});
+    var species={}, baits={};
+    catches.forEach(function(c){var n=num(c && c.count)||1; if(c && c.fish)species[c.fish]=(species[c.fish]||0)+n; if(c && c.bait)baits[c.bait]=(baits[c.bait]||0)+n;});
+    function top(map){var arr=Object.keys(map).map(function(k){return [k,map[k]];}).sort(function(a,b){return b[1]-a[1];}); return arr[0] ? arr[0][0] : '–';}
+    function rows(list){return list.map(function(r){return '<tr><th>'+esc(r[0])+'</th><td>'+esc(val(r[1]))+'</td></tr>';}).join('') || '<tr><td colspan="2">Nincs adat.</td></tr>';}
+    var totalWeight=num(s && s.totalWeight);
+    if(!totalWeight){catches.forEach(function(c){totalWeight += num(c && c.weight) * (num(c && c.count)||1);});}
+    var catchRows=catches.length ? catches.map(function(c){return '<tr><td>'+esc(val(c.time))+'</td><td>'+esc(val(c.fish))+'</td><td>'+esc(num(c.count)||1)+'</td><td>'+esc(c.weight?c.weight+' kg':'–')+'</td><td>'+esc(c.length?c.length+' cm':'–')+'</td><td>'+esc(val(c.bait))+'</td><td>'+esc(val(c.method || (s && s.method)))+'</td><td>'+esc(c.returned===false?'Megtartva':'Visszaengedve')+'</td></tr>';}).join('') : '<tr><td colspan="8">Nincs fogás rögzítve.</td></tr>';
+    var eventRows=events.length ? events.map(function(e){return '<div class="item"><div class="time">'+esc(val(e.time))+'</div><div><b>'+esc(val(e.title||e.type,'Esemény'))+'</b><div class="note">'+esc(val(e.note,''))+'</div></div></div>';}).join('') : '<div class="muted">Nincs esemény.</div>';
+    var feedingRows=feeding.length ? feeding.map(function(f){return '<div class="item"><div class="time">'+esc(val(f.time))+'</div><div><b>'+esc(val(f.mix,'Etetés'))+'</b><div class="note">'+esc([f.amount,f.zone,f.note].filter(Boolean).join(' · '))+'</div></div></div>';}).join('') : '<div class="muted">Nincs külön etetési esemény rögzítve.</div>';
+    var pointRows=points.length ? points.map(function(p){return '<div class="point"><b>'+esc(val(p.type,'Pont'))+' · '+esc(val(p.name,'Névtelen pont'))+'</b><div class="note">'+esc([p.gps,p.distance? p.distance+' m':'',p.direction,p.note].filter(Boolean).join(' · '))+'</div></div>';}).join('') : '<div class="muted">Nincs térképes pont rögzítve.</div>';
+    var photoRows=photos.length ? '<div class="photo-grid">'+photos.map(function(p){return '<div class="photo-card"><img src="'+p.src+'" alt=""><div class="photo-cap"><b>'+esc(p.title)+'</b><div class="photo-meta">'+esc(p.meta)+'</div></div></div>';}).join('')+'</div>' : '<div class="muted">Nincs kép csatolva ehhez a túrához.</div>';
+    var css='*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;background:#f3efe7;color:#2a2018;margin:0;padding:28px;line-height:1.35}.sheet{max-width:1040px;margin:auto;background:#fff;border-radius:22px;box-shadow:0 12px 36px rgba(54,38,18,.14);overflow:hidden}.hero{background:linear-gradient(135deg,#2c6e7a,#3a8a99);color:#fff;padding:28px 32px}.hero h1{margin:0 0 10px;font-size:30px}.hero-sub{display:flex;flex-wrap:wrap;gap:9px}.tag{display:inline-flex;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);font-size:13px;font-weight:700}.content{padding:26px 30px}.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.kpi{border:1px solid #e6dccd;border-radius:16px;padding:14px;background:#faf8f4}.lbl{font-size:11px;color:#8c735a;text-transform:uppercase;letter-spacing:.09em;font-weight:700}.val{font-size:22px;font-weight:800;color:#2c6e7a;margin-top:4px}.section{border:1px solid #e3d8c8;border-radius:18px;background:#fff;margin:14px 0;padding:18px;break-inside:avoid;page-break-inside:avoid}.section.alt{background:#faf8f4}.section h2{font-size:14px;margin:0 0 14px;color:#7a5230;text-transform:uppercase;letter-spacing:.12em}.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}table{width:100%;border-collapse:collapse}th,td{padding:8px 7px;border-bottom:1px solid #eee6dc;text-align:left;vertical-align:top}th{color:#6b5840;font-size:12px;text-transform:uppercase;letter-spacing:.04em}td{font-size:13px}.muted{color:#8c735a;font-size:13px}.timeline{display:grid;gap:10px}.item{display:grid;grid-template-columns:72px 1fr;gap:12px;border:1px solid #eadfce;border-radius:14px;padding:12px;background:#fff}.time{font-weight:800;color:#2c6e7a}.note{color:#6b5840;margin-top:4px;font-size:13px}.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}.photo-card{border:1px solid #e0d6c7;border-radius:14px;overflow:hidden;background:#fff}.photo-card img{display:block;width:100%;height:130px;object-fit:cover}.photo-cap{padding:9px 10px}.photo-meta{font-size:11px;color:#8c735a;margin-top:3px}.point{border:1px solid #e6dccd;border-radius:14px;padding:12px;background:#fff;margin-bottom:10px}.footer{font-size:11px;color:#9a8064;text-align:center;margin-top:18px}.no-print{float:right;margin:18px 22px 0 0;padding:10px 14px;border-radius:12px;border:1px solid #d8ccb9;background:#fff;cursor:pointer;font-weight:700;color:#2c6e7a}@media print{body{background:#fff;padding:0}.sheet{box-shadow:none;border-radius:0}.no-print{display:none}.hero{print-color-adjust:exact;-webkit-print-color-adjust:exact}.section{break-inside:avoid;page-break-inside:avoid}}@media(max-width:760px){body{padding:0}.sheet{border-radius:0}.content{padding:18px}.kpi-grid,.two{grid-template-columns:1fr}.item{grid-template-columns:1fr}.hero{padding:24px 20px}}';
+    return '<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KapásPont túraösszesítő</title><style>'+css+'</style></head><body><div class="sheet"><button class="no-print" onclick="window.print()">Nyomtatás / PDF</button><div class="hero"><h1>'+esc(val(s && s.location,'Horgászat'))+'</h1><div class="hero-sub"><span class="tag">'+esc(val(s && s.date))+'</span><span class="tag">'+esc(val(s && s.method,'Módszer nélkül'))+'</span><span class="tag">'+esc((s && s.status)==='active'?'Aktív':'Lezárt')+'</span><span class="tag">'+esc(catches.length)+' fogás</span><span class="tag">'+esc(totalWeight.toFixed(1))+' kg</span></div></div><div class="content"><div class="kpi-grid"><div class="kpi"><div class="lbl">Fogások</div><div class="val">'+esc(catches.length)+'</div></div><div class="kpi"><div class="lbl">Összsúly</div><div class="val">'+esc(totalWeight.toFixed(1))+' kg</div></div><div class="kpi"><div class="lbl">Legjobb halfaj</div><div class="val" style="font-size:18px">'+esc(top(species))+'</div></div><div class="kpi"><div class="lbl">Legjobb csali</div><div class="val" style="font-size:18px">'+esc(top(baits))+'</div></div></div><div class="two"><section class="section"><h2>Alapadatok</h2><table>'+rows([['Kezdés',s&&s.startTime],['Befejezés',s&&s.endTime],['GPS',s&&s.gps],['Víz / víztípus',s&&s.watertype],['Célhal',s&&s.target],['Társaság',s&&s.company]])+'</table></section><section class="section"><h2>Időjárás</h2><table>'+rows([['Időjárás',s&&s.weather],['Hőmérséklet',(s&&s.temp)?s.temp+' °C':''],['Szél',s&&s.wind],['Szélirány',s&&s.windDirection],['Légnyomás',(s&&s.pressure)?s.pressure+' hPa':''],['Páratartalom',(s&&s.humidity)?s.humidity+'%':''],['Vízállás',s&&s.waterlevel],['Vízminőség',s&&s.waterquality]])+'</table></section></div><section class="section alt"><h2>Fogások</h2><table><thead><tr><th>Idő</th><th>Halfaj</th><th>Db</th><th>Súly</th><th>Hossz</th><th>Csali</th><th>Módszer</th><th>Státusz</th></tr></thead><tbody>'+catchRows+'</tbody></table></section><div class="two"><section class="section"><h2>Etetési események</h2><div class="timeline">'+feedingRows+'</div></section><section class="section"><h2>Térképes pontok</h2>'+pointRows+'</section></div><section class="section alt"><h2>Idővonal</h2><div class="timeline">'+eventRows+'</div></section><section class="section"><h2>Képek</h2>'+photoRows+'</section>'+((s&&s.note)?'<section class="section"><h2>Megjegyzés</h2><div class="note">'+esc(s.note)+'</div></section>':'')+'<div class="footer">KapásPont · debug hotfix export · '+new Date().toLocaleString('hu-HU')+'</div></div></div></body></html>';
+  }
+
+  function patchAppHtml(html){
+    var start=html.indexOf('function sessionExportHTML(s){');
+    var end=start>=0 ? html.indexOf('\nfunction exportSessionSummaryHTML', start) : -1;
+    if(start>=0 && end>start){
+      var replacement=String(safeSessionExportHTML).replace('function safeSessionExportHTML','function sessionExportHTML');
+      html=html.slice(0,start)+replacement+html.slice(end);
+      console.info('[KapásPont debug hotfix] sessionExportHTML javítva.');
+    }else{
+      console.warn('[KapásPont debug hotfix] sessionExportHTML blokk nem található, app változatlanul indul.');
+    }
+    html=html.replace(/v26\.19\.1\.2/g,'v26.19.2 debug hotfix');
+    html=html.replace(/v26\.19\.1/g,'v26.19.2 debug hotfix');
+    return html;
+  }
+
+  async function start(){
+    try{
+      var res=await fetch('assets/app.html?v=debug-hotfix-'+Date.now(),{cache:'no-store'});
+      if(!res.ok)throw new Error('assets/app.html HTTP '+res.status);
+      var html=await res.text();
+      html=patchAppHtml(html);
+      document.open();
+      document.write(html);
+      document.close();
+    }catch(err){showFatal(err);}
+  }
+  start();
+})();
+</script>
 </body>
 </html>
