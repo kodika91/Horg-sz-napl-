@@ -15,7 +15,7 @@
     if(!res2.ok) throw new Error('app.html fetch failed: '+res2.status);
     let html=await res2.text();
 
-    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v26.19.1.23 Apple-szerű időjárás visszaállítva');
+    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v26.19.1.23 Apple-szerű időjárás visszastatisztika');
     html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants.\n\n\n// CSALI ADATBÁZIS');
     html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
     html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
@@ -25,13 +25,13 @@
     html=html.replace('Jelenleg nincs egységesített képkártya','Kép elérhető');
     html=html.replace('<div class="fish-image-tools">','<div class="fish-image-tools" style="display:none">');
 
-    // Gyors elérés: Statisztikák kártya visszaállítása
+    // Gyors elérés: Tapasztalat kártya (insights panel triggerrel)
     html=html.replace(
       '<div class="item-name">Térkép</div><div class="item-sub">GPS pontok</div></div>\n            <i class="ti ti-chevron-right item-arrow"></i>\n          </div>\n\n        </div>',
-      '<div class="item-name">Térkép</div><div class="item-sub">GPS pontok</div></div>\n            <i class="ti ti-chevron-right item-arrow"></i>\n          </div>\n          <div class="item-list-card" onclick="showPage(\'stats\')">\n            <div class="item-icon" style="background:var(--moss-bg);border:1px solid var(--moss-b)"><i class="ti ti-chart-bar" style="color:var(--moss);font-size:20px"></i></div>\n            <div class="item-info"><div class="item-name">Statisztikák</div><div class="item-sub">Elemzések, fogások</div></div>\n            <i class="ti ti-chevron-right item-arrow"></i>\n          </div>\n\n        </div>'
+      '<div class="item-name">Térkép</div><div class="item-sub">GPS pontok</div></div>\n            <i class="ti ti-chevron-right item-arrow"></i>\n          </div>\n          <div class="item-list-card" id="insights-entry" onclick="if(window.openInsightsPanel)window.openInsightsPanel()">\n            <div class="item-icon" style="background:var(--moss-bg);border:1px solid var(--moss-b)"><i class="ti ti-bulb" style="color:var(--moss);font-size:20px"></i></div>\n            <div class="item-info"><div class="item-name">Tapasztalat</div><div class="item-sub">Elemzések, tanulságok</div></div>\n            <i class="ti ti-chevron-right item-arrow"></i>\n          </div>\n\n        </div>'
     );
 
-    // Fejléc: ikonos + alcímes struktúra
+    // Fej léc: ikonos + alcímes struktúra
     html=html.replace(
       '<div class="top-bar-title" id="page-title">Főoldal</div>',
       '<div class="top-bar-title" id="page-title"><span class="ptitle-icon"><i class="ti ti-fish" id="page-title-icon-el"></i></span><span class="ptitle-wrap"><span class="ptitle-main" id="page-title-text">Főoldal</span><span class="ptitle-sub" id="page-title-sub">Horgász Napló</span></span></div>'
@@ -40,7 +40,7 @@
     // showPage patch: ikon és alcím váltás menüváltáskor
     html=html.replace(
       "document.getElementById('page-title').textContent=PAGE_TITLES[id]||id;",
-      "document.getElementById('page-title-text').textContent=PAGE_TITLES[id]||id;(function(){var ic={home:'ti-home',sessions:'ti-list','new-session':'ti-fish',locations:'ti-map-pin',map:'ti-map',spotfinder:'ti-search',fish:'ti-fish',baits:'ti-droplet',gear:'ti-tool',stats:'ti-chart-bar',export:'ti-download',settings:'ti-settings','github-sync':'ti-cloud','session-detail':'ti-fish'};var sb={home:'Horgász Napló',sessions:'Előzmények','new-session':'Naplózás',locations:'Helyszínek',map:'Térkép',spotfinder:'Helykereső',fish:'Halfajok',baits:'Csali & Etetőanyag',gear:'Felszerelés',stats:'Statisztika',export:'Adatmentés',settings:'Beállítások','github-sync':'Szinkronizáció','session-detail':'Részletek'};var ei=document.getElementById('page-title-icon-el');if(ei)ei.className='ti '+(ic[id]||'ti-fish');var es=document.getElementById('page-title-sub');if(es)es.textContent=sb[id]||'Horgász Napló';})()"
+      "document.getElementById('page-title-text').textContent=PAGE_TITLES[id]||id;(function(){var ic={home:'ti-home',sessions:'ti-list','new-session':'ti-fish',locations:'ti-map-pin',map:'ti-map',spotfinder:'ti-search',fish:'ti-fish',baits:'ti-droplet',gear:'ti-tool',stats:'ti-chart-bar',export:'ti-download',settings:'ti-settings','github-sync':'ti-cloud','session-detail':'ti-fish'};var sb={home:'Horgász Napló',sessions:'Előzmények','new-session':'Naplozás',locations:'Helyszínek',map:'Térkép',spotfinder:'Helykereső',fish:'Halfajok',baits:'Csali & Etetőanyag',gear:'Felszerelés',stats:'Statisztika',export:'Adatmentés',settings:'Beállítások','github-sync':'Szinkronizáció','session-detail':'Részletek'};var ei=document.getElementById('page-title-icon-el');if(ei)ei.className='ti '+(ic[id]||'ti-fish');var es=document.getElementById('page-title-sub');if(es)es.textContent=sb[id]||'Horgász Napló';})()"
     );
 
     const anchor="function isHuCatchLogFish(f){return f && !isHuProtectedOrNotKeepableFish(f) && !isHuPondOnlyFish(f);}\n";
@@ -55,7 +55,7 @@
     }
 
     const quickAnchor='  </div>\n  <div class="fish-image-tools" style="display:none">';
-    const quickBlock='  </div>\n  ${currentBanState(f)?\'<div class="fish-detail-warning"><b>Jelenleg fajlagos tilalom van érvényben.</b><br>Az érintett halfaj ilyenkor nem tartható meg, fogás után kíméletesen vissza kell engedni.</div>\':\'\'}\n  <div class="fish-detail-section fish-quick-data"><h4>Hal adatai</h4><div class="fish-detail-grid"><div class="fish-detail-box"><div class="lbl">Méretkorlát</div><div class="val">${escText(r.size)}</div></div><div class="fish-detail-box"><div class="lbl">Darabszám</div><div class="val">${escText(r.quota)}</div></div><div class="fish-detail-box"><div class="lbl">Tilalmi idő</div><div class="val">${escText(r.ban)}${currentBanState(f)?\' · jelenleg aktív\':\'\'}</div></div><div class="fish-detail-box"><div class="lbl">Élőhely</div><div class="val">${escText(f.habitat||\'–\')}</div></div><div class="fish-detail-box"><div class="lbl">Táplálék</div><div class="val">${escText(f.food||\'–\')}</div></div><div class="fish-detail-box"><div class="lbl">Ajánlott csali</div><div class="val">${escText(f.bait||\'–\')}</div></div></div></div>\n  <div class="fish-image-tools" style="display:none">';
+    const quickBlock='  </div>\n  ${currentBanState(f)?\'<div class="fish-detail-warning"><b>Jelenleg fajlagos tilalom van érvényben.</b><br>Az érintett halfaj ilyenkor nem tartható meg, fogás után kíméletesen vissza kell engedni.</div>\':\'\'}\n  <div class="fish-detail-section fish-quick-data"><h4>Hal adatai</h4><div class="fish-detail-grid"><div class="fish-detail-box"><div class="lbl">Méretkorlát</div><div class="val">${escText(r.size)}</div></div><div class="fish-detail-box"><div class="lbl">Darabszám</div><div class="val">${escText(r.quota)}</div></div><div class="fish-detail-box"><div class="lbl">Tilalmi idő</div><div class="val">${escText(r.ban)}${currentBanState(f)?\'· jelenleg aktív\':\'\'}</div></div><div class="fish-detail-box"><div class="lbl">Élőhely</div><div class="val">${escText(f.habitat||\'–\')}</div></div><div class="fish-detail-box"><div class="lbl">Táplálék</div><div class="val">${escText(f.food||\'–\')}</div></div><div class="fish-detail-box"><div class="lbl">Ajánlott csali</div><div class="val">${escText(f.bait||\'–\')}</div></div></div></div>\n  <div class="fish-image-tools" style="display:none">';
     html=html.replace(quickAnchor,quickBlock);
 
     const modalCss=`<style id="fish-modal-fix-v11">#data-modal.show{align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:72px 16px 28px}#data-modal .modal-card{max-height:calc(100dvh - 92px);overflow-y:auto;-webkit-overflow-scrolling:touch}#data-modal .modal-body{padding-bottom:34px}#data-modal .fish-detail-hero{grid-template-columns:1fr!important;gap:18px!important}#data-modal .fish-detail-img{width:100%!important;height:230px!important;border-radius:22px!important}#data-modal .fish-detail-img img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}#data-modal .fish-detail-grid{grid-template-columns:1fr 1fr!important}#data-modal .fish-id-pill-card:nth-child(2){display:none!important}@media(max-width:640px){#data-modal{padding:54px 10px 22px!important}#data-modal .modal-card{max-height:calc(100dvh - 70px)!important}#data-modal .fish-detail-grid{grid-template-columns:1fr!important}}</style>`;
