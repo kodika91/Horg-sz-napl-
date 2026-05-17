@@ -1,0 +1,305 @@
+/* V12 · Helykereso / Terkep / GPS redesign
+   Csak vizualis reteg: terkep, helyszinek, GPS kartya, pontlista, mobil hasznalhatosag. */
+:root{
+  --v12-panel:rgba(255,250,241,.78);
+  --v12-strong:rgba(255,250,241,.96);
+  --v12-line:rgba(120,90,50,.15);
+  --v12-shadow:0 22px 58px rgba(74,48,24,.12);
+  --v12-shadow-big:0 32px 82px rgba(74,48,24,.17);
+  --v12-map-blue:#2f6f73;
+  --v12-map-green:#5a7042;
+}
+
+/* Helyszinek oldal */
+@media(min-width:1180px){
+  #page-locations.active,
+  #page-map.active,
+  #page-spotfinder.active{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:24px!important;
+    align-items:start!important;
+  }
+
+  #locations-list,
+  .locations-list{
+    display:grid!important;
+    grid-template-columns:repeat(auto-fit,minmax(380px,1fr))!important;
+    gap:20px!important;
+  }
+
+  .loc-card,
+  .spot-card,
+  .location-card{
+    min-height:136px!important;
+    border-radius:34px!important;
+    padding:22px 24px!important;
+    background:radial-gradient(circle at 96% 0%,rgba(47,111,115,.10),transparent 34%),radial-gradient(circle at 0% 100%,rgba(168,90,43,.065),transparent 38%),linear-gradient(180deg,rgba(255,249,239,.99),rgba(250,241,225,.95))!important;
+    border:1px solid var(--v12-line)!important;
+    box-shadow:var(--v12-shadow)!important;
+  }
+
+  .loc-card:hover,
+  .spot-card:hover,
+  .location-card:hover{
+    transform:translateY(-4px)!important;
+    box-shadow:var(--v12-shadow-big)!important;
+    border-color:rgba(47,111,115,.24)!important;
+  }
+
+  .loc-icon,
+  .spot-icon{
+    width:58px!important;
+    height:58px!important;
+    border-radius:22px!important;
+    background:linear-gradient(135deg,rgba(47,111,115,.18),rgba(90,112,66,.15))!important;
+    border:1px solid rgba(120,90,50,.13)!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.52)!important;
+  }
+
+  .loc-name,
+  .spot-name{
+    font-size:19px!important;
+    font-weight:900!important;
+    letter-spacing:-.02em!important;
+    color:var(--v1-leaf-text)!important;
+  }
+
+  .loc-meta,
+  .spot-meta,
+  .coord-text{
+    font-size:13px!important;
+    line-height:1.45!important;
+    color:rgba(117,99,77,.76)!important;
+  }
+}
+
+/* Terkep es helykereso desktop layout */
+@media(min-width:1180px){
+  .spotfinder-grid,
+  .map-page-grid,
+  .map-layout,
+  .location-layout{
+    display:grid!important;
+    grid-template-columns:minmax(380px,.66fr) minmax(0,1.34fr)!important;
+    gap:24px!important;
+    align-items:start!important;
+  }
+
+  .spotfinder-form-card,
+  .map-side-card,
+  .location-side-card,
+  .gps-card{
+    border-radius:34px!important;
+    padding:26px 28px!important;
+    background:linear-gradient(180deg,rgba(255,249,239,.99),rgba(250,241,225,.95))!important;
+    border:1px solid var(--v12-line)!important;
+    box-shadow:var(--v12-shadow)!important;
+  }
+
+  .spotfinder-map-shell,
+  .map-shell,
+  #map,
+  #map-view,
+  #spotfinder-map-view{
+    min-height:620px!important;
+    border-radius:36px!important;
+    overflow:hidden!important;
+    border:1px solid rgba(120,90,50,.16)!important;
+    box-shadow:var(--v12-shadow-big)!important;
+    background:linear-gradient(135deg,rgba(47,111,115,.12),rgba(90,112,66,.08))!important;
+  }
+
+  .leaflet-container{
+    border-radius:36px!important;
+    font-family:system-ui,-apple-system,Segoe UI,sans-serif!important;
+  }
+
+  .leaflet-control-zoom,
+  .leaflet-control-layers{
+    border:0!important;
+    box-shadow:0 12px 32px rgba(74,48,24,.14)!important;
+    border-radius:18px!important;
+    overflow:hidden!important;
+  }
+
+  .leaflet-control-zoom a{
+    width:38px!important;
+    height:38px!important;
+    line-height:38px!important;
+    background:rgba(255,250,241,.92)!important;
+    color:var(--v12-map-blue)!important;
+    border-color:rgba(120,90,50,.12)!important;
+  }
+}
+
+/* GPS sav es helymeghatarozas */
+.gps-bar,
+.gps-card,
+.location-detect-card{
+  border-radius:28px!important;
+  background:rgba(255,250,241,.76)!important;
+  border:1px solid rgba(120,90,50,.13)!important;
+  box-shadow:0 14px 36px rgba(74,48,24,.08)!important;
+  backdrop-filter:blur(14px)!important;
+}
+
+.gps-dot{
+  width:12px!important;
+  height:12px!important;
+  box-shadow:0 0 0 6px rgba(47,111,115,.10)!important;
+}
+.gps-dot.ok,
+.gps-dot.active{background:var(--v12-map-green)!important;}
+.gps-dot.loading{background:var(--v1-leaf-gold)!important;}
+.gps-dot.error{background:var(--v1-leaf-rust)!important;}
+
+.gps-text,
+#gps-text{
+  font-weight:750!important;
+  color:rgba(42,31,21,.78)!important;
+}
+
+/* Helykereso beviteli elemek */
+#page-spotfinder input,
+#page-spotfinder select,
+#page-spotfinder textarea,
+#page-locations input,
+#page-locations select,
+#page-locations textarea,
+#page-map input,
+#page-map select,
+#page-map textarea{
+  min-height:50px!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.56)!important;
+}
+
+#page-spotfinder .btn-primary,
+#page-spotfinder .btn-secondary,
+#page-locations .btn-primary,
+#page-locations .btn-secondary,
+#page-map .btn-primary,
+#page-map .btn-secondary,
+.location-btn,
+.map-btn,
+.gps-btn{
+  min-height:52px!important;
+  border-radius:18px!important;
+  padding:13px 20px!important;
+  font-weight:850!important;
+}
+
+#page-spotfinder .btn-primary,
+#page-locations .btn-primary,
+#page-map .btn-primary,
+.gps-btn.primary,
+.location-btn.primary{
+  background:linear-gradient(135deg,var(--v12-map-blue),var(--v12-map-green))!important;
+  color:#fff!important;
+}
+
+/* Mentett pontok / lista */
+.saved-spot-list,
+.spot-list,
+.location-list-panel{
+  display:grid!important;
+  gap:14px!important;
+}
+
+.saved-spot-item,
+.spot-list-item,
+.location-list-item{
+  border-radius:24px!important;
+  padding:16px 18px!important;
+  background:rgba(255,250,241,.70)!important;
+  border:1px solid rgba(120,90,50,.12)!important;
+  box-shadow:0 10px 26px rgba(74,48,24,.065)!important;
+}
+
+.saved-spot-item:hover,
+.spot-list-item:hover,
+.location-list-item:hover{
+  transform:translateY(-2px)!important;
+  box-shadow:0 18px 44px rgba(74,48,24,.12)!important;
+  border-color:rgba(47,111,115,.23)!important;
+}
+
+/* Popupok */
+.leaflet-popup-content-wrapper{
+  border-radius:20px!important;
+  background:rgba(255,250,241,.96)!important;
+  color:var(--v1-leaf-text)!important;
+  box-shadow:0 18px 46px rgba(74,48,24,.16)!important;
+}
+.leaflet-popup-tip{background:rgba(255,250,241,.96)!important;}
+.leaflet-popup-content{font-family:system-ui,-apple-system,Segoe UI,sans-serif!important;line-height:1.45!important;}
+
+/* Mobil: gyors helymentes, nagy terkep, egyoszlop */
+@media(max-width:980px){
+  #page-locations.active,
+  #page-map.active,
+  #page-spotfinder.active{
+    display:grid!important;
+    gap:16px!important;
+  }
+
+  .spotfinder-grid,
+  .map-page-grid,
+  .map-layout,
+  .location-layout{
+    grid-template-columns:1fr!important;
+    gap:16px!important;
+  }
+
+  .spotfinder-map-shell,
+  .map-shell,
+  #map,
+  #map-view,
+  #spotfinder-map-view{
+    min-height:420px!important;
+    border-radius:28px!important;
+  }
+
+  #locations-list,
+  .locations-list{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:14px!important;
+  }
+
+  .loc-card,
+  .spot-card,
+  .location-card,
+  .spotfinder-form-card,
+  .map-side-card,
+  .gps-card{
+    border-radius:26px!important;
+    padding:18px!important;
+  }
+
+  .loc-icon,
+  .spot-icon{width:48px!important;height:48px!important;border-radius:18px!important;}
+  .loc-name,.spot-name{font-size:16px!important;}
+
+  #page-spotfinder .btn-primary,
+  #page-spotfinder .btn-secondary,
+  #page-locations .btn-primary,
+  #page-locations .btn-secondary,
+  #page-map .btn-primary,
+  #page-map .btn-secondary,
+  .location-btn,
+  .map-btn,
+  .gps-btn{
+    width:100%!important;
+    min-height:50px!important;
+  }
+}
+
+@media(max-width:430px){
+  .spotfinder-map-shell,
+  .map-shell,
+  #map,
+  #map-view,
+  #spotfinder-map-view{min-height:360px!important;}
+}
