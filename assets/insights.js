@@ -199,7 +199,7 @@ function renderPanel(sessions){
     +'</div><div class="ins-body">';
 
   html+='<div class="ins-card"><h3>📍 Legjobb helyek</h3>'+bars(locs)+'</div>';
-  html+='<div class="ins-card"><h3>🪱 Legjobb csalik</h3>'+bars(baits)+'</div>';
+  html+='<div class="ins-card"><h3>🧱 Legjobb csalik</h3>'+bars(baits)+'</div>';
   html+='<div class="ins-card"><h3>🎣 Legjobb módszerek</h3>'+bars(methods)+'</div>';
 
   html+='<div class="ins-card"><h3>🌤 Időjárási összefüggések</h3>';
@@ -256,7 +256,7 @@ function openPanel(){
     panel.id='ins2-panel';
     panel.className='ins-panel';
     panel.innerHTML='<div class="ins-wrap">'
-      +'<div class="ins-head"><div><h2>Elemzések</h2>'
+      +'<div class="ins-head"><div><h2>Tapasztalat</h2>'
       +'<p>A naplóadatokból készülő horgászati tudástár</p></div>'
       +'<button class="ins-close" type="button">Bezár ✕</button></div>'
       +'<div id="ins2-body"></div></div>';
@@ -305,9 +305,9 @@ function createEntry(){
   b.id='insights-entry';
   b.className='insights-entry';
   b.type='button';
-  b.innerHTML='<div class="ico">⌁</div>'
-    +'<div><strong>Elemzések</strong>'
-    +'<span>Minták és tanulságok a naplóadatokból</span></div>'
+  b.innerHTML='<div class="ico">⅁</div>'
+    +'<div><strong>Tapasztalat</strong>'
+    +'<span>Elemzések és tanulságok a naplóadatokból</span></div>'
     +'<div class="arr">›</div>';
   b.onclick=openPanel;
   return b;
@@ -331,4 +331,5 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 setTimeout(mount,800);setTimeout(mount,1800);setTimeout(mount,3500);
 document.addEventListener('click',function(){setTimeout(mount,350);},true);
 try{new MutationObserver(function(){mount();}).observe(document.body,{childList:true,subtree:true});}catch(e){}
+window.openInsightsPanel=openPanel;
 })();
