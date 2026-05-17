@@ -2,45 +2,47 @@
 <html lang="hu">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Horgász Napló</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>KapásPont · Horgász Napló</title>
 <style>
-  body{
-    margin:0;
-    font-family:system-ui,-apple-system,Segoe UI,sans-serif;
-    background:#f4f0e8;
-    color:#2a2018;
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-  .box{
-    max-width:560px;
-    background:#faf8f4;
-    border:1px solid rgba(120,100,70,.18);
-    border-radius:18px;
-    padding:24px;
-    box-shadow:0 10px 35px rgba(60,40,10,.12);
-  }
-  .t{font-weight:800;font-size:18px;margin-bottom:8px}
-  .s{color:#6b5840;line-height:1.5;font-size:14px}
-  a{color:#2c6e7a;font-weight:700;text-decoration:none}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f5efe3;color:#2a1f15;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+  #app-frame{position:fixed;inset:0;width:100%;height:100%;border:0;background:#f5efe3;display:block}
+  #boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f5efe3;z-index:10}
+  .box{max-width:560px;background:#faf5e9;border:1px solid rgba(120,90,50,.18);border-radius:24px;padding:26px;box-shadow:0 18px 48px rgba(74,48,24,.12)}
+  .t{font-weight:800;font-size:19px;margin-bottom:8px}.s{color:#7a6750;line-height:1.5;font-size:14px}.e{margin-top:10px;color:#a85a2b;font-size:13px;white-space:pre-wrap}
 </style>
-<script>
-(function(){
-  try{
-    window.location.replace('assets/app.html?v=direct-stable-26-19-1-5-' + Date.now());
-  }catch(e){
-    window.location.href='assets/app.html';
-  }
-})();
-</script>
 </head>
 <body>
-<div class="box">
-  <div class="t">Horgász Napló indítása…</div>
-  <div class="s">A program közvetlenül indul, a hibás köztes debug betöltő kikapcsolva. Ha nem indulna el automatikusan, <a href="assets/app.html?v=direct-stable-26-19-1-5">kattints ide</a>.</div>
-</div>
+<div id="boot"><div class="box"><div class="t">KapásPont indítása…</div><div class="s">V1 · Lombhullás felület betöltése.</div><div class="e" id="boot-msg"></div></div></div>
+<iframe id="app-frame" src="assets/app.html?v=v1-lombhullas-frame"></iframe>
+<script>
+(function(){
+  const frame=document.getElementById('app-frame');
+  const boot=document.getElementById('boot');
+  const msg=document.getElementById('boot-msg');
+  function injectDesign(){
+    try{
+      const doc=frame.contentDocument||frame.contentWindow.document;
+      if(!doc)throw new Error('Az app dokumentum még nem elérhető.');
+      if(!doc.getElementById('v1-lombhullas-css')){
+        const link=doc.createElement('link');
+        link.id='v1-lombhullas-css';
+        link.rel='stylesheet';
+        link.href='v1-lombhullas.css?v=20260517';
+        doc.head.appendChild(link);
+      }
+      try{frame.contentWindow.__KAPASPONT_V1_LOMBHULLAS__=true;}catch(e){}
+      boot.style.display='none';
+      console.info('[KapásPont] V1 Lombhullás design layer betöltve.');
+    }catch(err){
+      console.warn('[KapásPont] V1 design injektálási hiba:',err);
+      if(msg)msg.textContent='A program betöltött, de a V1 stílusréteg nem kapcsolódott automatikusan: '+(err&&err.message?err.message:err);
+      setTimeout(()=>{boot.style.display='none';},2200);
+    }
+  }
+  frame.addEventListener('load',()=>setTimeout(injectDesign,60));
+  setTimeout(()=>{if(boot&&boot.style.display!=='none')injectDesign();},3000);
+})();
+</script>
 </body>
 </html>
