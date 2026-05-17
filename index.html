@@ -7,7 +7,7 @@
 <style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center}.box{max-width:560px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:24px;box-shadow:0 10px 35px rgba(60,40,10,.12)}.t{font-weight:800;font-size:18px;margin-bottom:8px}.s{color:#6b5840;line-height:1.5;font-size:14px}</style>
 </head>
 <body>
-<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v30 · Fogás képnéző és ajánlók betöltése…</div></div>
+<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v31 · Append-only mentés és halfaj kártyák…</div></div>
 <script>
 (async function(){
   try{
@@ -15,7 +15,7 @@
     if(!res.ok) throw new Error('app.html fetch failed: '+res.status);
     let html=await res.text();
 
-    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v30.0 Fogás hotfix');
+    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v31.0 Append-only + Halfaj kártya hotfix');
     html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants.\n\n\n// CSALI ADATBÁZIS');
     html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
     html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
@@ -40,10 +40,11 @@
         var l=document.createElement('link');l.id='v18-image-manager-css';l.rel='stylesheet';l.href='assets/v1-image-manager-v18.css?v=20260517-18b';document.head.appendChild(l);
         addScript('v18-image-manager-script','assets/v1-image-manager-v18.js?v=20260517-18b');
         addScript('kp-v27-durable-image-archive','assets/kp-v27-durable-image-archive.js?v=20260517-291');
-        addScript('kp-v27-github-restore-guard','assets/kp-v27-github-restore-guard.js?v=20260517-291');
+        addScript('kp-v27-github-restore-guard','assets/kp-v27-github-restore-guard.js?v=20260517-273');
         addScript('kp-v28-season-weather','assets/kp-v28-season-weather.js?v=20260517-291');
-        addScript('kp-v29-stable-github-sync','assets/kp-v29-stable-github-sync.js?v=20260517-291');
-        addScript('kp-v30-catch-hotfix','assets/kp-v30-catch-hotfix.js?v=20260517-30');
+        addScript('kp-v29-stable-github-sync','assets/kp-v29-stable-github-sync.js?v=20260517-295');
+        addScript('kp-v30-catch-hotfix','assets/kp-v30-catch-hotfix.js?v=20260517-302');
+        addScript('kp-v31-fish-card-cleanup','assets/kp-v31-fish-card-cleanup.js?v=20260517-31');
       }catch(e){console.warn('[KapásPont] kiegészítő betöltés kihagyva:',e);}
     },300);
   }catch(err){console.error(err);document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';}
