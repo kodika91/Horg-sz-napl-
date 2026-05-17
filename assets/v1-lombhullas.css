@@ -20,7 +20,6 @@
   --v1-leaf-border:rgba(120,90,50,.17);
   --v1-leaf-shadow:0 18px 46px rgba(74,48,24,.12);
   --v1-leaf-shadow-soft:0 8px 24px rgba(74,48,24,.08);
-
   --bg:var(--v1-leaf-bg);
   --bg2:var(--v1-leaf-bg2);
   --bg3:#e7d9bf;
@@ -234,4 +233,128 @@ html,body{
 @media(max-width:430px){
   .page-content{padding-left:12px!important;padding-right:12px!important;}
   .fish-img-wrap{height:166px!important;}
+}
+
+/* Batch 2 — V1 desktop home/dashboard polish, CSS only */
+@media(min-width:1180px){
+  #page-home.active{
+    display:grid!important;
+    grid-template-columns:minmax(0,1.08fr) minmax(360px,.62fr)!important;
+    gap:22px!important;
+    align-items:start!important;
+  }
+  #page-home > .gps-bar:first-child,
+  #page-home > .weather-card,
+  #page-home > .main-cta,
+  #page-home > .stat-grid,
+  #page-home > .two-col,
+  #page-home > .three-col,
+  #page-home > .card{
+    min-width:0!important;
+  }
+  #page-home > .gps-bar:first-child{
+    grid-column:1 / -1!important;
+    margin-bottom:0!important;
+    border-radius:22px!important;
+    padding:13px 16px!important;
+    background:rgba(255,249,239,.72)!important;
+    backdrop-filter:blur(14px)!important;
+  }
+  #page-home > .weather-card{
+    grid-column:1 / 2!important;
+    margin-bottom:0!important;
+    min-height:300px!important;
+  }
+  #page-home > .main-cta{
+    grid-column:2 / 3!important;
+    grid-row:2!important;
+    min-height:300px!important;
+    align-items:flex-end!important;
+    padding:26px!important;
+    position:relative!important;
+    overflow:hidden!important;
+  }
+  #page-home > .main-cta::after{
+    content:''!important;
+    position:absolute!important;
+    right:-50px!important;
+    top:-50px!important;
+    width:170px!important;
+    height:170px!important;
+    border-radius:999px!important;
+    background:rgba(255,255,255,.16)!important;
+    pointer-events:none!important;
+  }
+  #page-home > .main-cta .cta-icon-wrap{
+    width:66px!important;
+    height:66px!important;
+    border-radius:22px!important;
+  }
+  #page-home > .main-cta .cta-title{font-size:26px!important;}
+  #page-home > .main-cta .cta-sub{font-size:14px!important;line-height:1.5!important;}
+  #page-home > .stat-grid{
+    grid-column:1 / -1!important;
+    margin-bottom:0!important;
+  }
+  #page-home > .two-col,
+  #page-home > .three-col{
+    grid-column:1 / -1!important;
+  }
+  #page-home .stat-card{
+    min-height:148px!important;
+    padding:22px!important;
+    position:relative!important;
+    overflow:hidden!important;
+  }
+  #page-home .stat-card::after{
+    content:''!important;
+    position:absolute!important;
+    right:-34px!important;
+    bottom:-42px!important;
+    width:118px!important;
+    height:118px!important;
+    border-radius:999px!important;
+    background:rgba(168,90,43,.06)!important;
+    pointer-events:none!important;
+  }
+  #page-home .stat-icon{
+    width:48px!important;
+    height:48px!important;
+    border-radius:17px!important;
+  }
+  #page-home .stat-value{font-size:34px!important;}
+  #page-home .item-list-card{
+    min-height:86px!important;
+    align-items:center!important;
+    padding:18px 20px!important;
+  }
+  #page-home .item-icon{
+    width:48px!important;
+    height:48px!important;
+    border-radius:17px!important;
+  }
+}
+
+/* Batch 2 — stronger desktop navigation readability */
+@media(min-width:1180px){
+  .sidebar-nav{padding:16px 12px!important;}
+  .nav-item-side{min-height:46px!important;}
+  .nav-item-side i{font-size:20px!important;}
+  .sidebar-footer{padding:18px!important;}
+  .new-session-btn-side{min-height:50px!important;}
+}
+
+/* Batch 2 — list/card rhythm */
+.session-item,.loc-card,.item-list-card{
+  transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease!important;
+}
+.session-item:hover,.loc-card:hover,.item-list-card:hover{
+  transform:translateY(-2px)!important;
+  border-color:rgba(168,90,43,.22)!important;
+}
+
+/* Batch 2 — mobile keeps original single-column flow */
+@media(max-width:980px){
+  #page-home.active{display:block!important;}
+  #page-home > .main-cta{min-height:auto!important;}
 }
