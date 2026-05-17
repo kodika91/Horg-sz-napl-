@@ -1,0 +1,65 @@
+/* V7 — Apple Weather jellegű időjárás kártya első vizuális finomítás */
+.weather-card{
+  position:relative !important;
+  overflow:hidden !important;
+  border-radius:30px !important;
+  padding:28px 30px !important;
+  background:
+    radial-gradient(circle at 88% 8%,rgba(255,255,255,.38) 0 0,rgba(255,255,255,.28) 0 80px,transparent 170px),
+    radial-gradient(circle at 10% 20%,rgba(255,215,120,.20),transparent 210px),
+    linear-gradient(135deg,rgba(244,246,232,.96),rgba(232,224,202,.94)) !important;
+  border:1px solid rgba(120,90,50,.16) !important;
+  box-shadow:0 22px 58px rgba(74,48,24,.13) !important;
+}
+.weather-card::before{
+  content:'' !important;
+  position:absolute !important;
+  inset:0 !important;
+  background:linear-gradient(90deg,rgba(255,255,255,.22),transparent 42%,rgba(168,90,43,.045)) !important;
+  pointer-events:none !important;
+}
+.weather-card > *{position:relative !important;z-index:1 !important;}
+.weather-inner{align-items:flex-start !important;gap:26px !important;}
+.weather-icon-big{
+  width:86px !important;
+  height:86px !important;
+  border-radius:26px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  background:rgba(255,255,255,.48) !important;
+  border:1px solid rgba(120,90,50,.12) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.62),0 12px 30px rgba(74,48,24,.08) !important;
+  font-size:42px !important;
+}
+.weather-temp{font-size:54px !important;letter-spacing:-.04em !important;line-height:.95 !important;}
+.weather-desc{font-size:17px !important;font-weight:650 !important;color:rgba(42,31,21,.64) !important;margin-top:8px !important;}
+.weather-loc{font-size:13px !important;color:rgba(117,99,77,.82) !important;margin-top:8px !important;}
+.weather-details{gap:12px !important;margin-left:auto !important;}
+.wd-item{
+  min-width:126px !important;
+  padding:13px 16px !important;
+  border-radius:18px !important;
+  background:rgba(255,250,241,.72) !important;
+  border:1px solid rgba(120,90,50,.12) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.54) !important;
+}
+.wd-val{font-size:18px !important;font-weight:800 !important;color:rgba(42,31,21,.88) !important;}
+.wd-lbl{font-size:11px !important;font-weight:700 !important;color:rgba(117,99,77,.62) !important;}
+.weather-actions{margin-top:20px !important;}
+.w-btn{
+  border-radius:999px !important;
+  padding:10px 16px !important;
+  background:rgba(255,255,255,.54) !important;
+  border:1px solid rgba(120,90,50,.14) !important;
+  color:var(--v1-leaf-water) !important;
+  font-weight:750 !important;
+}
+@media(max-width:980px){
+  .weather-card{padding:22px 20px !important;border-radius:26px !important;}
+  .weather-inner{gap:16px !important;}
+  .weather-icon-big{width:70px !important;height:70px !important;border-radius:22px !important;font-size:34px !important;}
+  .weather-temp{font-size:46px !important;}
+  .weather-details{width:100% !important;grid-template-columns:1fr 1fr !important;margin-left:0 !important;}
+  .wd-item{min-width:0 !important;}
+}
