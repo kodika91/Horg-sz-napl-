@@ -1,7 +1,7 @@
 (function(){
   if(window.KP_V27_DURABLE_IMAGES)return;
   window.KP_V27_DURABLE_IMAGES=true;
-  const V='v27.0';
+  const V='v27.1';
   const log=m=>{try{console.log('[KapásPont '+V+'] '+m)}catch(e){}};
   const toast=m=>{try{typeof showToast==='function'?showToast(m):console.log(m)}catch(e){}};
   const esc=v=>{try{return typeof escText==='function'?escText(v):String(v||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}catch(e){return String(v||'')}};
@@ -20,7 +20,7 @@
   const b64=data=>(String(data||'').match(/^data:[^;]+;base64,(.+)$/)||[])[1]||'';
   function ext(data){const m=String(data||'').match(/^data:([^;]+);base64,/);return m?((m[1].split('/')[1]||'jpg').replace('jpeg','jpg').replace(/[^a-z0-9]/gi,'')||'jpg'):'jpg'}
   const resizeP=(file,max,q)=>new Promise((res,rej)=>{try{resizeImage(file,max,q,d=>res(d))}catch(e){rej(e)}});
-  function thumbP(dataUrl){return new Promise(resolve=>{try{const img=new Image();img.onload=()=>{const max=360;let w=img.width,h=img.height;const r=Math.min(1,max/Math.max(w,h));w=Math.round(w*r);h=Math.round(h*r);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);resolve(c.toDataURL('image/jpeg',0.55))};img.onerror=()=>resolve('');img.src=dataUrl}catch(e){resolve('')}})}
+  function thumbP(dataUrl){return new Promise(resolve=>{try{const img=new Image();img.onload=()=>{const max=150;let w=img.width,h=img.height;const r=Math.min(1,max/Math.max(w,h));w=Math.round(w*r);h=Math.round(h*r);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);resolve(c.toDataURL('image/jpeg',0.32))};img.onerror=()=>resolve('');img.src=dataUrl}catch(e){resolve('')}})}
   async function putFile(c,path,content,msg){
     if(typeof githubPutFile==='function')return githubPutFile(c,path,content,msg||'KapásPont kép mentés');
     const apiPath=path.split('/').map(encodeURIComponent).join('/');
@@ -50,7 +50,7 @@
     let ok=0;
     for(const f of files){try{const rec=await uploadSpotPhoto(f,sid);spotFinderDraftPhotos.push(rec);ok++;renderSpotFinderPhotoPreview()}catch(e){console.error(e);toast('Egy fotó feltöltése sikertelen: '+e.message)}}
     input.value='';
-    toast(ok+' fotó GitHubra mentve. A böngészőben csak kis előnézet maradt.');
+    toast(ok+' fotó GitHubra mentve. Helyben csak kisméretű előnézet maradt.');
   };
   window.renderSpotFinderPhotoPreview=function(){
     const el=document.getElementById('sf-photo-preview');if(!el)return;
@@ -83,6 +83,13 @@
     document.getElementById('sf-id').value=s.id||'';document.getElementById('sf-name').value=s.name||'';document.getElementById('sf-gps').value=s.gps||'';document.getElementById('sf-note').value=s.note||'';document.getElementById('sf-lat').value=s.lat||'';document.getElementById('sf-lon').value=s.lon||'';
     spotFinderDraftPhotos=[...(s.photos||[])];renderSpotFinderPhotoPreview();renderSpotFinderMap();window.scrollTo(0,0);
   };
+  window.kpV27CompactSpotThumbs=function(){
+    const db=getDB();let changed=0;
+    (db.scoutSpots||[]).forEach(s=>(s.photos||[]).forEach(p=>{if(p&&p.thumb&&p.thumb.length>45000){p.thumb='';changed++}}));
+    if(changed){saveDB(db);if(typeof renderSpotFinder==='function')renderSpotFinder();toast(changed+' régi túl nagy előnézet törölve. A GitHub képek megmaradtak.')}
+    else toast('Nincs túl nagy helyi előnézet.');
+    return changed;
+  };
   window.kpV27MigrateSpotPhotosToGithub=async function(){
     const c=cfg();requireCfg(c);const db=getDB();let changed=0;
     for(const spot of (db.scoutSpots||[])){
@@ -106,5 +113,6 @@
     (db.scoutSpots||[]).forEach(s=>{const d=String(s.createdAt||s.updatedAt||new Date().toISOString()).slice(0,10);const sid=sanitize(s.id||s.name);(s.photos||[]).forEach((p,i)=>add(p.data,'images/scoutspots/'+d+'/'+sid+'_legacy_'+String(i+1).padStart(2,'0'),'helykereső kép'))});
     return base;
   };
-  log('Tartós GitHub képarchívum aktív a Helykeresőben.');
+  setTimeout(()=>{try{window.kpV27CompactSpotThumbs&&window.kpV27CompactSpotThumbs()}catch(e){}},1500);
+  log('Tartós GitHub képarchívum aktív a Helykeresőben, kisméretű előnézettel.');
 })();
