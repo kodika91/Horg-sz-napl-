@@ -19,6 +19,14 @@
     `;
     document.head.appendChild(s);
   }
+  function loadProtectedFishCards(){
+    if(document.getElementById('kp-v33-protected-fish-cards'))return;
+    var s=document.createElement('script');
+    s.id='kp-v33-protected-fish-cards';
+    s.src='assets/kp-v33-protected-fish-cards.js?v=20260518-33';
+    s.defer=false;
+    document.body.appendChild(s);
+  }
   function overlay(){let o=document.getElementById('kp-save-overlay');if(o)return o;o=document.createElement('div');o.id='kp-save-overlay';o.innerHTML='<div class="kp-save-card"><div class="kp-save-spinner"></div><div class="kp-save-title">GitHub mentés folyamatban</div><div class="kp-save-sub">Képek és naplóadatok feltöltése. Ne zárd be az appot, amíg be nem fejeződik.</div><div class="kp-save-progress"><span></span></div></div>';document.body.appendChild(o);return o;}
   function showSaving(msg){saving=true;css();clearTimeout(hideTimer);const o=overlay();if(msg)o.querySelector('.kp-save-sub').textContent=msg;o.classList.add('show');hideTimer=setTimeout(hideSaving,90000)}
   function hideSaving(){saving=false;clearTimeout(hideTimer);const o=document.getElementById('kp-save-overlay');if(o)o.classList.remove('show')}
@@ -31,7 +39,7 @@
   function backBtn(){css();let b=document.getElementById('kp-top-back');if(!b){b=document.createElement('button');b.id='kp-top-back';b.type='button';b.innerHTML='<i class="ti ti-arrow-left"></i><span>Vissza</span>';document.body.appendChild(b);b.onclick=function(){try{const cur=document.querySelector('.page.active,.page.show,[id^="page-"].active');const id=cur&&cur.id?cur.id.replace(/^page-/,''):'';if(id&&id!=='home'){if(typeof showPage==='function')showPage('home');else location.hash='home';window.scrollTo({top:0,behavior:'smooth'});return;}window.scrollTo({top:0,behavior:'smooth'});}catch(e){try{window.history.back()}catch(_){}}};}return b;}
   function activePageId(){const p=document.querySelector('.page.active,.page.show,[id^="page-"].active');return p&&p.id?p.id.replace(/^page-/,''):'';}
   function updateBack(){const b=backBtn();const id=activePageId();const should=id&&id!=='home'&&id!=='new-session';b.classList.toggle('show',!!should);const label=id==='fish'?'Halfajokból vissza':id==='session-detail'?'Túrából vissza':'Vissza';const span=b.querySelector('span');if(span)span.textContent=label;}
-  const oldShow=window.showPage;if(typeof oldShow==='function'){window.showPage=function(){const r=oldShow.apply(this,arguments);setTimeout(()=>{updateBack();patchToast();patchLog();patchSync();},80);return r;};}
-  function boot(){css();backBtn();updateBack();patchToast();patchLog();patchSync();}
-  boot();setInterval(()=>{updateBack();patchToast();patchLog();patchSync();if(!saving){const o=document.getElementById('kp-save-overlay');if(o)o.classList.remove('show')}},900);
+  const oldShow=window.showPage;if(typeof oldShow==='function'){window.showPage=function(){const r=oldShow.apply(this,arguments);setTimeout(()=>{updateBack();patchToast();patchLog();patchSync();loadProtectedFishCards();},80);return r;};}
+  function boot(){css();backBtn();updateBack();patchToast();patchLog();patchSync();loadProtectedFishCards();}
+  boot();setInterval(()=>{updateBack();patchToast();patchLog();patchSync();loadProtectedFishCards();if(!saving){const o=document.getElementById('kp-save-overlay');if(o)o.classList.remove('show')}},900);
 })();
