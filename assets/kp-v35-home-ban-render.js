@@ -11,7 +11,7 @@
     'Jászkeszeg':['jászkeszeg',['assets/fish/jászkeszeg.jpg','assets/fish/jaszkeszeg.jpg'],'Ápr. 15 – Máj. 29'],
     'Fejes domolykó':['domolyko',['assets/fish/domolyko.jpg','assets/fish/domolykó.jpg','assets/fish/fejes-domolyko.jpg'],'Ápr. 15 – Máj. 29'],
     'Domolykó':['domolyko',['assets/fish/domolyko.jpg','assets/fish/domolykó.jpg','assets/fish/fejes-domolyko.jpg'],'Ápr. 15 – Máj. 29'],
-    'Kősüllő':['kosullo',['assets/fish/kosullo.jpg','assets/fish/kősüllő.jpg','assets/fish/kosullo.jpg'],'Már. 1 – Jún. 30'],
+    'Kősüllő':['kosullo',['assets/fish/kosullo.jpg','assets/fish/kősüllő.jpg'],'Már. 1 – Jún. 30'],
     'Harcsa':['harcsa',['assets/fish/harcsa.jpg'],'Máj. 4 – Jún. 13']
   };
 
@@ -37,6 +37,20 @@
     img.onerror=function(){setFallbackImage(img,list,idx+1,box);};
   }
 
+  function resolveImages(name,d){
+    var list=[];
+    try{
+      if(typeof window.getFishImage==='function'){
+        var fake={id:d[0],name:name,img:(Array.isArray(d[1])&&d[1][0])?d[1][0]:''};
+        var fi=window.getFishImage(fake);
+        if(fi&&fi.src)list.push(fi.src);
+        if(fi&&Array.isArray(fi.fallbacks))fi.fallbacks.forEach(function(x){if(x)list.push(x);});
+      }
+    }catch(e){}
+    (Array.isArray(d[1])?d[1]:(d[1]?[d[1]]:[])).forEach(function(x){if(x)list.push(x);});
+    return Array.from(new Set(list));
+  }
+
   function card(name){
     var d=data[name]||['','', 'Aktív tilalom'];
     var btn=document.createElement('button');
@@ -44,7 +58,7 @@
     btn.className='kp-v35-card';
     var imgbox=document.createElement('div');
     imgbox.className='kp-v35-img';
-    var images=Array.isArray(d[1])?d[1]:(d[1]?[d[1]]:[]);
+    var images=resolveImages(name,d);
     if(images.length){var im=document.createElement('img');im.alt=name;imgbox.appendChild(im);setFallbackImage(im,images,0,imgbox);}else{imgbox.textContent='🐟';}
     var body=document.createElement('div');body.className='kp-v35-body';
     var n=document.createElement('div');n.className='kp-v35-name';n.textContent=name;
