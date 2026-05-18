@@ -3,6 +3,18 @@
   window.KP_V33_PROTECTED_FISH_CARDS=true;
   window.KP_V33_SHOW_ALL_PROTECTED_FISH=false;
 
+  function loadHomeBanCards(){
+    if(document.getElementById('kp-v34-home-ban-cards'))return;
+    var s=document.createElement('script');
+    s.id='kp-v34-home-ban-cards';
+    s.src='assets/kp-v34-home-ban-cards.js?v=20260518-34b';
+    s.defer=false;
+    document.body.appendChild(s);
+  }
+  loadHomeBanCards();
+  setTimeout(loadHomeBanCards,500);
+  setTimeout(loadHomeBanCards,1500);
+
   function safeText(v){
     if(typeof window.escText==='function')return window.escText(v);
     return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -75,6 +87,7 @@
     return true;
   }
   function hook(){
+    loadHomeBanCards();
     addStyle();
     const old=window.renderFishGrid;
     if(typeof old==='function'&&!old.KP_V33_WRAPPED){
