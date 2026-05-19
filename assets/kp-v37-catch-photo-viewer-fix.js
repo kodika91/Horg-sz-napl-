@@ -44,6 +44,14 @@
     });
   }
   function css(){if(document.getElementById('kp-v37-photo-css'))return;var s=document.createElement('style');s.id='kp-v37-photo-css';s.textContent='#kp-img-view{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.86);padding:10px}#kp-img-view.show{display:flex}#kp-img-view .box{position:relative;width:96vw;height:88dvh;background:#101816;border-radius:20px;overflow:hidden;display:flex;align-items:center;justify-content:center}#kp-img-view img{width:100%;height:100%;display:block;object-fit:contain;image-rendering:auto}#kp-img-view .x{position:absolute;right:10px;top:10px;border:0;border-radius:50%;width:38px;height:38px;background:rgba(0,0,0,.42);color:#fff;font-size:28px;z-index:2}';document.head.appendChild(s)}
-  function boot(){css();hook()}
+  function loadUploadHotfix(){
+    if(window.KP_V38_SESSION_PHOTO_TO_GITHUB || document.getElementById('kp-v38-session-photo-to-github'))return;
+    var s=document.createElement('script');
+    s.id='kp-v38-session-photo-to-github';
+    s.src='assets/kp-v38-session-photo-to-github.js?v=20260519-38stable2';
+    s.defer=false;
+    document.body.appendChild(s);
+  }
+  function boot(){css();hook();loadUploadHotfix()}
   boot();setTimeout(boot,800);setInterval(boot,2000);
 })();
