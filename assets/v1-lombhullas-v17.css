@@ -11,6 +11,45 @@
   --v17-shadow-big:0 28px 72px rgba(74,48,24,.16);
 }
 
+/* v17.1 mobile weather hard clipping fix */
+.main-area:has(#page-home.active) .weather-card,
+#page-home .weather-card,
+.weather-card{
+  border-radius:30px!important;
+  overflow:hidden!important;
+  contain:paint!important;
+  isolation:isolate!important;
+  clip-path:inset(0 round 30px)!important;
+  -webkit-mask-image:-webkit-radial-gradient(white,black)!important;
+}
+.main-area:has(#page-home.active) .weather-card::before,
+.main-area:has(#page-home.active) .weather-card::after,
+#page-home .weather-card::before,
+#page-home .weather-card::after,
+.weather-card::before,
+.weather-card::after{
+  border-radius:inherit!important;
+  overflow:hidden!important;
+}
+.main-area:has(#page-home.active) .weather-card > *,
+#page-home .weather-card > *,
+.weather-card > *{
+  max-width:100%!important;
+}
+@media(max-width:760px){
+  .page-content{overflow-x:hidden!important;}
+  .main-area:has(#page-home.active) .weather-card,
+  #page-home .weather-card,
+  .weather-card{
+    width:calc(100vw - 28px)!important;
+    max-width:calc(100vw - 28px)!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+    border-radius:28px!important;
+    clip-path:inset(0 round 28px)!important;
+  }
+}
+
 /* Desktop app shell */
 @media(min-width:1180px){
   .sidebar{
@@ -118,173 +157,8 @@
 @media(min-width:1180px){
   .card,
   .stat-card,
-  .session-item,
-  .loc-card,
-  .fish-card,
-  .github-card,
-  .github-panel,
-  .item-list-card,
-  .weather-card,
-  .spotfinder-map-shell,
-  .map-shell{
-    border-radius:34px!important;
-    border:1px solid var(--v17-line)!important;
-    box-shadow:var(--v17-shadow)!important;
+  .io-card,
+  .weather-card{
+    border-radius:24px!important;
   }
-
-  .card:hover,
-  .stat-card:hover,
-  .session-item:hover,
-  .loc-card:hover,
-  .fish-card:hover,
-  .github-card:hover,
-  .github-panel:hover,
-  .item-list-card:hover{
-    box-shadow:var(--v17-shadow-big)!important;
-  }
-
-  .section-header{
-    margin-bottom:14px!important;
-  }
-
-  .section-label{
-    font-size:10px!important;
-    letter-spacing:.16em!important;
-  }
-
-  .section-title,
-  h1,h2,h3{
-    letter-spacing:-.028em!important;
-  }
-}
-
-/* Toolbar, filter, control feluletek */
-.toolbar,
-.filter-row,
-.controls,
-.action-row,
-.form-row,
-.input-row{
-  gap:14px!important;
-}
-
-@media(min-width:1180px){
-  .toolbar,
-  .filter-row,
-  .controls{
-    border-radius:28px!important;
-    background:rgba(255,250,241,.66)!important;
-    border:1px solid rgba(120,90,50,.12)!important;
-    box-shadow:0 12px 30px rgba(74,48,24,.06)!important;
-    padding:15px 17px!important;
-  }
-}
-
-/* Focus allapotok */
-button,
-.btn-primary,
-.btn-secondary,
-.btn-danger-outline,
-.tb-btn,
-.w-btn,
-.nav-item-side,
-.nav-item-mobile,
-input,
-select,
-textarea,
-.form-input{
-  outline:none!important;
-}
-
-button:focus-visible,
-.btn-primary:focus-visible,
-.btn-secondary:focus-visible,
-.btn-danger-outline:focus-visible,
-.tb-btn:focus-visible,
-.w-btn:focus-visible,
-.nav-item-side:focus-visible,
-.nav-item-mobile:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-.form-input:focus-visible{
-  box-shadow:0 0 0 4px color-mix(in srgb,var(--v1-leaf-rust) 18%,transparent),0 14px 34px rgba(74,48,24,.10)!important;
-  border-color:color-mix(in srgb,var(--v1-leaf-rust) 42%,rgba(120,90,50,.18))!important;
-}
-
-/* Desktop tablazat es lista polish */
-@media(min-width:1180px){
-  table{
-    width:100%!important;
-    border-collapse:separate!important;
-    border-spacing:0!important;
-  }
-
-  th,td{
-    padding:12px 14px!important;
-  }
-
-  tr:hover td{
-    background:rgba(255,250,241,.52)!important;
-  }
-
-  .item-list-card,
-  .saved-spot-item,
-  .spot-list-item,
-  .location-list-item,
-  .top-item,
-  .rank-item,
-  .insight-item{
-    transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease!important;
-  }
-}
-
-/* Szeles kijelzos ritmus */
-@media(min-width:1500px){
-  .page-content{
-    padding-left:58px!important;
-    padding-right:58px!important;
-  }
-
-  .stat-grid{
-    gap:22px!important;
-  }
-
-  .two-col{
-    gap:24px!important;
-  }
-
-  .three-col{
-    gap:24px!important;
-  }
-
-  #sessions-list,.session-list,
-  #locations-list,.locations-list,
-  .fish-grid{
-    gap:24px!important;
-  }
-}
-
-@media(min-width:1800px){
-  :root{--v17-max:1760px;}
-  .page-content{
-    padding-left:68px!important;
-    padding-right:68px!important;
-  }
-}
-
-/* Scrollbar desktop */
-@media(min-width:1180px){
-  *::-webkit-scrollbar{width:12px;height:12px;}
-  *::-webkit-scrollbar-track{background:rgba(120,90,50,.06);border-radius:999px;}
-  *::-webkit-scrollbar-thumb{background:rgba(120,90,50,.24);border-radius:999px;border:3px solid rgba(255,250,241,.72);}
-  *::-webkit-scrollbar-thumb:hover{background:rgba(120,90,50,.34);}
-}
-
-/* Finom nyomtatas / export alap */
-@media print{
-  .sidebar,.mobile-nav,.top-bar,.tb-btn,.btn-primary,.btn-secondary,.btn-danger-outline{display:none!important;}
-  .main-area{margin-left:0!important;}
-  .page-content{padding:0!important;max-width:100%!important;}
-  .card,.stat-card,.session-item,.loc-card,.fish-card{box-shadow:none!important;border:1px solid #ddd!important;background:#fff!important;}
 }
