@@ -30,7 +30,7 @@
     if(!document.getElementById('kp-v35-home-ban-render')){
       var s2=document.createElement('script');
       s2.id='kp-v35-home-ban-render';
-      s2.src='assets/kp-v35-home-ban-render.js?v=20260518-35';
+      s2.src='assets/kp-v35-home-ban-render.js?v=20260519-35b';
       s2.defer=false;
       document.body.appendChild(s2);
     }
