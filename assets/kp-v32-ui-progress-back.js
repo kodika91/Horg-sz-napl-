@@ -34,6 +34,13 @@
       s2.defer=false;
       document.body.appendChild(s2);
     }
+    if(!document.getElementById('kp-v36-merge-restore-settings')){
+      var s3=document.createElement('script');
+      s3.id='kp-v36-merge-restore-settings';
+      s3.src='assets/kp-v36-merge-restore-settings.js?v=20260519-36a';
+      s3.defer=false;
+      document.body.appendChild(s3);
+    }
   }
   function overlay(){let o=document.getElementById('kp-save-overlay');if(o)return o;o=document.createElement('div');o.id='kp-save-overlay';o.innerHTML='<div class="kp-save-card"><div class="kp-save-spinner"></div><div class="kp-save-title">GitHub mentés folyamatban</div><div class="kp-save-sub">Képek és naplóadatok feltöltése. Ne zárd be az appot, amíg be nem fejeződik.</div><div class="kp-save-progress"><span></span></div></div>';document.body.appendChild(o);return o;}
   function showSaving(msg){saving=true;css();clearTimeout(hideTimer);const o=overlay();if(msg)o.querySelector('.kp-save-sub').textContent=msg;o.classList.add('show');hideTimer=setTimeout(hideSaving,90000)}
