@@ -6,7 +6,7 @@
     "karasz_hibrid": "assets/fish/karasz_hibrid.jpg",
     "kovi_csik": "assets/fish/kovi_csik.jpg",
     "kurta_baing": "assets/fish/kurta_baing.jpg",
-    "nemet_buco": "assets/fish/nemet_buco.jpg"
+    "selymes_durbincs": "assets/fish/selymes_durbincs.jpg"
   },
   "gear": {},
   "bait": {},
@@ -22,11 +22,11 @@
       "subcategoryLabel": "Halfaj",
       "updatedAt": "2026-05-22T08:41:43.913Z"
     },
-    "fish:nemet_buco": {
+    "fish:selymes_durbincs": {
       "subcategory": "general",
       "subcategoryLabel": "Halfaj",
-      "updatedAt": "2026-05-22T08:45:31.667Z"
+      "updatedAt": "2026-05-22T08:46:33.655Z"
     }
   },
-  "updatedAt": "2026-05-22T08:45:31.667Z"
+  "updatedAt": "2026-05-22T08:46:33.655Z"
 }
