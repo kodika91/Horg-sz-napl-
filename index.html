@@ -7,7 +7,7 @@
 <style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center}.box{max-width:560px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:24px;box-shadow:0 10px 35px rgba(60,40,10,.12)}.t{font-weight:800;font-size:18px;margin-bottom:8px}.s{color:#6b5840;line-height:1.5;font-size:14px}</style>
 </head>
 <body>
-<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v58 · SpotFinder GPS: azonnali helymeghatározás, főoldali GPS megosztás</div></div>
+<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v59 · Moduláris patch architektúra</div></div>
 <script>
 (async function(){
   try{
@@ -39,15 +39,13 @@
         function addScript(id,src){var old=document.getElementById(id);if(old)old.remove();var s=document.createElement('script');s.id=id;s.src=src;s.defer=false;document.body.appendChild(s)}
         var l=document.createElement('link');l.id='v18-image-manager-css';l.rel='stylesheet';l.href='assets/v1-image-manager-v18.css?v=20260522-18e';document.head.appendChild(l);
         addScript('v18-image-manager-script','assets/v1-image-manager-v18.js?v=20260522-18e');
-        addScript('kp-v27-durable-image-archive','assets/kp-v27-durable-image-archive.js?v=20260517-291');
-        addScript('kp-v27-github-restore-guard','assets/kp-v27-github-restore-guard.js?v=20260519-337');
-        addScript('kp-v28-season-weather','assets/kp-v28-season-weather.js?v=20260517-291');
-        addScript('kp-v29-stable-github-sync','assets/kp-v29-stable-github-sync.js?v=20260517-295');
-        addScript('kp-v30-catch-hotfix','assets/kp-v30-catch-hotfix.js?v=20260522-51');
-        addScript('kp-v31-fish-card-cleanup','assets/kp-v31-fish-card-cleanup.js?v=20260517-31');
-        addScript('kp-v32-ui-progress-back','assets/kp-v32-ui-progress-back.js?v=20260518-32d');
-        addScript('kp-v38-session-photo-to-github','assets/kp-v38-session-photo-to-github.js?v=20260522-51');
-        addScript('kp-v39-spotfinder-enhance','assets/kp-v39-spotfinder-enhance.js?v=20260522-4');
+        addScript('kp-v27-original','https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/94e999c02fdeb1834c317e434fe2dd5083d78080/assets/kp-v27-durable-image-archive.js');
+        addScript('kp-mod-sync','assets/kp-mod-sync.js?v=20260522-1');
+        addScript('kp-mod-weather','assets/kp-mod-weather.js?v=20260522-1');
+        addScript('kp-mod-fish','assets/kp-mod-fish.js?v=20260522-1');
+        addScript('kp-mod-ui','assets/kp-mod-ui.js?v=20260522-1');
+        addScript('kp-mod-session','assets/kp-mod-session.js?v=20260522-1');
+        addScript('kp-mod-spotfinder','assets/kp-mod-spotfinder.js?v=20260522-1');
       }catch(e){console.warn('[KapásPont] kiegészítő betöltés kihagyva:',e);}
     },300);
   }catch(err){console.error(err);document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';}
