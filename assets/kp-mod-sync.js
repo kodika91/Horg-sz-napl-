@@ -11,7 +11,7 @@
   const log=m=>{try{typeof githubLog==='function'?githubLog(m):console.log('[KapásPont '+V+'] '+m)}catch(e){}};
   const dec=s=>{try{return decodeURIComponent(escape(atob(String(s||'').replace(/\n/g,''))))}catch(e){try{return new TextDecoder().decode(Uint8Array.from(atob(String(s||'').replace(/\n/g,'')),c=>c.charCodeAt(0)))}catch(_){return ''}}};
   let autoRestoreChecked=false;
-  function refresh(){['updateHome','renderSpotFinder','renderSessionsList','renderStorageOverview','renderActiveSessionHome','renderLocations','renderSettings'].forEach(fn=>{try{window[fn]&&window[fn]()}catch(e){}})}
+  function refresh(){['updateHome','renderSpotFinder','renderSessionsList','renderStorageOverview','renderActiveSessionHome','renderLocations','renderSettings'].forEach(fn=>{try{window[fn]&&window[fn]()}catch(e){}})};
   function rawCfg(){if(typeof githubLoadConfig==='function')return githubLoadConfig();try{return JSON.parse(localStorage.getItem('kapaspont_github_sync')||localStorage.getItem('horgaszpro_github_sync')||'{}')}catch(e){return {}}}
   function cfg(){const c=rawCfg()||{};return {owner:c.owner||DEFAULT.owner,repo:c.repo||DEFAULT.repo,branch:c.branch||DEFAULT.branch,root:String(c.root||DEFAULT.root).replace(/^\/+|\/+$/g,'')||DEFAULT.root,token:(c.token||localStorage.getItem('v18_github_token')||'').trim()}}
   function apiPath(p){return String(p).replace(/^\/+/,'').split('/').map(encodeURIComponent).join('/')}
@@ -71,7 +71,7 @@
   function hasMeaningful(d){const c=countData(d||{});return c.sessions>0||c.locations>0||c.scoutSpots>0||c.catches>0}
   async function guard(c,local){const lc=countData(local||{});if(!hasMeaningful(local))throw new Error('Biztonsági védelem: nincs helyi túra/hely/fogás adat.');const man=await getJson(c,fpath(c,'manifest.json'));if(man&&man.backup){const remote=await getJson(c,man.backup);if(remote&&hasMeaningful(remote)){const rc=countData(remote);if(lc.sessions<rc.sessions||lc.catches<rc.catches){if(!confirm('VÉDELEM: a GitHub backupban több adat van mint a telefónon.\n\nTelefon: '+lc.sessions+' túra, '+lc.catches+' fogás\nGitHub: '+rc.sessions+' túra, '+rc.catches+' fogás\n\nKészítsü új mentésfájlt?'))throw new Error('Mentés megszakítva.');}}}
   async function sync(){if(running){toast('Már fut egy GitHub mentés.');return;}running=true;try{const c=cfg();check(c);if(typeof githubClearLog==='function')githubClearLog();const local=typeof getDB==='function'?getDB():{};await guard(c,local);const pack=await sanitize(local,c);for(const im of pack.imgs){await put(c,im.path,im.base64,'KapásPont kép mentés')}const ts=stamp();const backupPath=fpath(c,'backups/full_backup_'+ts+'.json');const backup={schemaVersion:5,backupType:'github-sync-full',app:'KapásPont',appVersion:V,exported:new Date().toISOString(),...pack.db};await put(c,backupPath,enc(JSON.stringify(backup,null,2)),'KapásPont új backup','create');const man={schemaVersion:3,mode:'append-only',created:new Date().toISOString(),app:'KapásPont',sessionCount:(pack.db.sessions||[]).length,backup:backupPath,latestBackup:backupPath};await put(c,fpath(c,'manifest.json'),enc(JSON.stringify(man,null,2)),'KapásPont manifest frissítés');toast('Új GitHub backup kész: '+ts);if(typeof renderStorageOverview==='function')renderStorageOverview();}catch(e){toast('Mentési hiba: '+e.message);}finally{running=false;}}
-  function activateButtons(){document.querySelectorAll('button').forEach(b=>{const t=(b.textContent||'').toLowerCase();if(t.includes('mentés githubra most')){b.disabled=false;b.onclick=function(ev){ev.preventDefault();ev.stopPropagation();sync();};}})}
+  function activateButtons(){document.querySelectorAll('button').forEach(b=>{const t=(b.textContent||'').toLowerCase();if(t.includes('mentés githubra most')){b.disabled=false;b.onclick=function(ev){ev.preventDefault();ev.stopPropagation();sync();};}})};
   function install(){if(typeof getDB!=='function'){setTimeout(install,250);return}window.githubSyncNow=function(){return sync()};window.githubScheduleAutoBackup=function(){};activateButtons();setInterval(activateButtons,1000);}
   install();
 })();
@@ -127,10 +127,62 @@
   window.githubRestoreLatestFromRepo=async function(){const c=cfg();try{if(typeof githubRequireConfig==='function')githubRequireConfig(c);const found=await findBackup(c);if(!found){toast('Nem találtam használható JSON mentést.');return;}const local=typeof getDB==='function'?getDB():{};const lc=count(local),rc=count(found.data);if(!confirm('GitHub backup összevonása a telefon adataival?\n\nTelefon: '+lc.sessions+' túra, '+lc.catches+' fogás\nGitHub: '+rc.sessions+' túra, '+rc.catches+' fogás'))return;saveSafety();const next=mergeDB(local,found.data,found.path);localStorage.setItem(DB_KEY,JSON.stringify(next));try{if(typeof migrateDB==='function')migrateDB()}catch(e){}refresh();toast('GitHub backup összevonva.');}catch(e){toast('GitHub visszatöltési hiba: '+e.message)}};
   window.githubDownloadLatestFromRepo=window.githubRestoreLatestFromRepo;
   window.kpRestoreLocalSafetyBackup=window.kpRestoreLocalSafetyBackup||function(){try{const raw=localStorage.getItem(DB_KEY+'_safety_restore_latest')||localStorage.getItem(DB_KEY+'_before_github_restore');if(!raw){toast('Nincs helyi biztonsági mentés.');return;}const d=JSON.parse(raw),c=count(d);if(!confirm('Visszatöltsem a helyi biztonsági mentést?\n\nTúrák: '+c.sessions))return;localStorage.setItem(DB_KEY,JSON.stringify(d));try{if(typeof migrateDB==='function')migrateDB()}catch(e){}refresh();toast('Biztonsági mentés visszatöltve.')}catch(e){toast('Biztonsági mentés visszatöltési hiba: '+e.message)}};
+  /* Fájlból visszatöltés: JSON fájl feltöltése és összevonás */
+  window.kpImportFromFile=function(){
+    const input=document.createElement('input');
+    input.type='file';
+    input.accept='.json,application/json';
+    input.onchange=function(){
+      const file=input.files[0];
+      if(!file)return;
+      const reader=new FileReader();
+      reader.onload=function(e){
+        try{
+          const d=JSON.parse(e.target.result);
+          if(!d||typeof d!=='object')throw new Error('Érvénytelen JSON fájl');
+          const rc=count(d);
+          const local=typeof getDB==='function'?getDB():{};
+          const lc=count(local);
+          if(!confirm('Fájlból visszatöltés?\n\nFájl: '+rc.sessions+' túra, '+rc.catches+' fogás\nTelefon: '+lc.sessions+' túra, '+lc.catches+' fogás\n\nAdatok ÖSSZEVONÁSRA kerülnek.'))return;
+          saveSafety();
+          const next=mergeDB(local,d,'file-import');
+          localStorage.setItem(DB_KEY,JSON.stringify(next));
+          try{if(typeof migrateDB==='function')migrateDB()}catch(err){}
+          refresh();
+          toast('Fájlból visszatöltés kész. '+rc.sessions+' túra, '+rc.catches+' fogás összevonva.');
+        }catch(err){toast('Importálási hiba: '+err.message);}
+      };
+      reader.readAsText(file);
+    };
+    document.body.appendChild(input);
+    input.click();
+    setTimeout(()=>input.remove(),5000);
+  };
   function activePageId(){const p=document.querySelector('.page.active,.page.show,[id^="page-"].active');return p&&p.id?p.id.replace(/^page-/,''):''}
   function isExportPage(){const id=activePageId();if(id&&id!=='export'&&id!=='settings'&&id!=='github-sync')return false;const t=(document.body.textContent||'').toLowerCase();return t.includes('json mentés')||t.includes('importálás')||t.includes('túraösszesítő export')}
   function removeCard(){const old=document.getElementById('kp-safety-restore-card');if(old)old.remove()}
-  function makeCard(){const w=document.createElement('div');w.className='card';w.id='kp-safety-restore-card';w.style.marginTop='14px';w.innerHTML='<h3 style="margin-top:0">Biztonsági mentés</h3><p class="muted" style="font-size:12px;line-height:1.5">GitHub visszatöltés előtt automatikus helyi mentés készül.</p>';const b=document.createElement('button');b.type='button';b.className='btn-secondary';b.style.width='100%';b.textContent='Biztonsági mentés visszatöltése';b.onclick=window.kpRestoreLocalSafetyBackup;w.appendChild(b);return w}
+  function makeCard(){
+    const w=document.createElement('div');
+    w.className='card';
+    w.id='kp-safety-restore-card';
+    w.style.marginTop='14px';
+    w.innerHTML='<h3 style="margin-top:0">Visszatöltés</h3><p class="muted" style="font-size:12px;line-height:1.5">Korábban letöltött JSON backup fájlból vagy helyi mentésből.</p>';
+    const b1=document.createElement('button');
+    b1.type='button';
+    b1.className='btn-primary';
+    b1.style.cssText='width:100%;margin-top:8px';
+    b1.textContent='📂 Fájlból visszatöltés (JSON)';
+    b1.onclick=window.kpImportFromFile;
+    const b2=document.createElement('button');
+    b2.type='button';
+    b2.className='btn-secondary';
+    b2.style.cssText='width:100%;margin-top:8px';
+    b2.textContent='Helyi biztonsági mentés visszatöltése';
+    b2.onclick=window.kpRestoreLocalSafetyBackup;
+    w.appendChild(b1);
+    w.appendChild(b2);
+    return w;
+  }
   function cardByText(word){return [...document.querySelectorAll('.card,section,article,div')].find(n=>{const r=n.getBoundingClientRect(),t=(n.textContent||'').toLowerCase();return r.width>250&&r.height>40&&t.includes(word)&&t.length<1200})}
   function addCard(){if(!isExportPage()){removeCard();return}if(document.getElementById('kp-safety-restore-card'))return;const target=cardByText('importálás')||cardByText('json mentés')||cardByText('túraösszesítő export');if(target&&target.parentNode)target.parentNode.insertBefore(makeCard(),target)}
   function ui(){try{if(!isExportPage())removeCard();else addCard();}catch(e){}}

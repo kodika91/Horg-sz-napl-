@@ -1,6 +1,6 @@
 /* kp-mod-spotfinder.js — helykereső, GPS, térkép
- * Tartalom: v39-spotfinder-enhance v5
- * v5: GPS auto-start, távolság kijelzés, zoom gombok, fotó IDB fallback
+ * Tartalom: v39-spotfinder-enhance v6
+ * v6: fotók mindig base64-ben is mentve (backup/restore biztonság), backfillPhotos
  */
 (function(){
 'use strict';
@@ -64,7 +64,7 @@ function sfUpdateDistanceDisplay(la,lo){
   }
 }
 
-/* ── Fotók olvasása (IDB + base64 fallback) ────────────────────── */
+/* ── Fotók olvasása (IDB + base64 mindig mentve) ───────────────── */
 window.spotFinderReadPhotos=function(input){
   const files=[...(input.files||[])].filter(f=>f.type&&f.type.startsWith('image/'));
   if(!files.length){toast('Nem képfájlt választottál.');return;}
@@ -81,9 +81,11 @@ window.spotFinderReadPhotos=function(input){
         cv.height=Math.round(img.height*sc);
         cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
         const id='sfidb_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-        const finish=(asIdb,dataUrl)=>{
+        /* base64 mindig generálva — IDB is cached, de backup-hoz kell a data mező */
+        const b64=cv.toDataURL('image/jpeg',0.78);
+        const finish=(asIdb)=>{
           if(asIdb)_pend.add(id);
-          spotFinderDraftPhotos.push({id,idb:asIdb,createdAt:new Date().toISOString(),data:asIdb?undefined:dataUrl});
+          spotFinderDraftPhotos.push({id,idb:asIdb,createdAt:new Date().toISOString(),data:b64});
           done++;
           if(done===files.length){renderSpotFinderPhotoPreview();toast(files.length+' fotó hozzáadva.');}
         };
@@ -91,10 +93,9 @@ window.spotFinderReadPhotos=function(input){
           if(!blob){done++;if(done===files.length)renderSpotFinderPhotoPreview();return;}
           idbPut(id,blob).then(()=>{
             _urlCache[id]=URL.createObjectURL(blob);
-            finish(true,null);
+            finish(true);
           }).catch(()=>{
-            /* IDB nem elérhető – base64 mentés */
-            finish(false,cv.toDataURL('image/jpeg',0.78));
+            finish(false);
           });
         },'image/jpeg',0.80);
       };
@@ -112,12 +113,12 @@ window.renderSpotFinderPhotoPreview=function(){
   if(!photos.length){el.innerHTML='<div class="spot-photo-empty">Még nincs csatolt fotó.</div>';return;}
   el.innerHTML=photos.map((p,i)=>`<div style="position:relative"><img class="spot-photo-thumb" data-pid="${p.id}" src="${p.data||''}" style="${p.data?'':'opacity:.3'}" onclick="sfOpenLightbox(this)" alt="Hely fotó"><button title="Fotó törlése" onclick="spotFinderRemovePhoto(${i})" style="position:absolute;right:-5px;top:-7px;width:22px;height:22px;border-radius:50%;background:var(--danger);color:white;font-size:12px;border:0;cursor:pointer">&times;</button></div>`).join('');
   photos.forEach(p=>{
-    if(!p.idb)return;
-    const img=el.querySelector(`img[data-pid="${p.id}"]`);
-    if(!img)return;
-    const url=_urlCache[p.id];
-    if(url){img.src=url;img.style.opacity='';return;}
-    photoUrl(p.id).then(u=>{if(u&&img.isConnected){img.src=u;img.style.opacity='';}});
+    if(!p.idb||_urlCache[p.id])return;
+    photoUrl(p.id).then(u=>{
+      if(!u)return;
+      const img=el.querySelector(`img[data-pid="${p.id}"]`);
+      if(img&&img.isConnected){img.src=u;img.style.opacity='';}
+    });
   });
 };
 
@@ -160,12 +161,12 @@ window.spotFinderSave=function(){
   const p=typeof spotFinderGetFormPoint==='function'?spotFinderGetFormPoint():null;
   if(!p){toast('Előbb rögzíts GPS pontot.');return;}
   if(!name){toast('Adj rövid nevet a helynek.');return;}
-  /* base64 fotókat is mentjük */
+  /* data mező mindig mentve — IDB-only spotok elveszhetnek backup/restore után */
   const photos=spotFinderDraftPhotos.map(ph=>({
     id:ph.id,
     idb:!!ph.idb,
     createdAt:ph.createdAt,
-    data:ph.idb?undefined:ph.data
+    data:ph.data
   }));
   const payload={id:sid||('spot_'+Date.now()),name,gps:gps||`${Number(p.lat).toFixed(5)}°N, ${Number(p.lon).toFixed(5)}°E`,lat:Number(p.lat),lon:Number(p.lon),note,photos,updatedAt:new Date().toISOString()};
   if(!sid)payload.createdAt=new Date().toISOString();
@@ -225,16 +226,15 @@ window.renderSpotFinderList=function(){
   el.innerHTML=list.map(s=>{
     const photos=s.photos||[];
     const thumbs=photos.slice(0,4).map(p=>{
-      const src=(!p.idb&&p.data)?p.data:'';
+      const src=p.data||'';
       return `<img class="spot-photo-thumb" data-pid="${p.id}" src="${src}" alt="" style="${src?'':'opacity:.3'}" onclick="sfOpenLightbox(this)">`;}).join('')+(photos.length>4?`<div class="spot-photo-empty">+${photos.length-4} fotó</div>`:'');
     return `<div class="spot-card"><div><div class="spot-card-name">${_esc(s.name||'Névtelen hely')}</div><div class="spot-card-meta"><i class="ti ti-current-location"></i> ${_esc(s.gps||'')} · ${_esc(_date(s.updatedAt||s.createdAt))} · ${photos.length} fotó</div>${s.note?`<div class="spot-card-note">${_esc(s.note)}</div>`:'' }${photos.length?`<div class="spot-photo-preview-grid">${thumbs}</div>`:''}</div><div class="spot-card-actions"><button class="btn-secondary" onclick="spotFinderEdit('${_escj(s.id)}')"><i class="ti ti-edit"></i> Szerkesztés</button><button class="btn-secondary" onclick="spotFinderOpenMap('${_escj(s.id)}')"><i class="ti ti-map-pin"></i> Térkép</button><button class="btn-danger-outline" onclick="spotFinderDelete('${_escj(s.id)}')"><i class="ti ti-trash"></i></button></div></div>`;
   }).join('');
+  /* IDB URL upgrade ha elérhető (opcionális, gyorsabb minőség) */
   list.forEach(s=>(s.photos||[]).slice(0,4).forEach(p=>{
-    if(!p.idb)return;
+    if(!p.idb||_urlCache[p.id])return;
     const img=el.querySelector(`img[data-pid="${p.id}"]`);
     if(!img)return;
-    const url=_urlCache[p.id];
-    if(url){img.src=url;img.style.opacity='';return;}
     photoUrl(p.id).then(u=>{if(u&&img.isConnected){img.src=u;img.style.opacity='';}});
   }));
 };
@@ -437,6 +437,37 @@ window.showPage=function(id){
   return typeof _origShow==='function'?_origShow.apply(this,arguments):undefined;
 };
 
+/* ── Régi IDB-only fotók pótlása base64-gyel ──────────────────── */
+async function backfillPhotos(){
+  const db=getdb();let changed=false;
+  for(const s of(db.scoutSpots||[])){
+    for(const p of(s.photos||[])){
+      if(p.data||!p.idb)continue;
+      try{
+        const blob=await idbGet(p.id);
+        if(!blob)continue;
+        await new Promise(res=>{
+          const url=URL.createObjectURL(blob);
+          const img=new Image();
+          img.onload=()=>{
+            try{
+              const cv=document.createElement('canvas');
+              cv.width=img.width;cv.height=img.height;
+              cv.getContext('2d').drawImage(img,0,0);
+              p.data=cv.toDataURL('image/jpeg',0.78);
+              changed=true;
+            }catch(e){}
+            URL.revokeObjectURL(url);res();
+          };
+          img.onerror=()=>{URL.revokeObjectURL(url);res();};
+          img.src=url;
+        });
+      }catch(e){console.warn('[v39] backfill:',e.message||e);}
+    }
+  }
+  if(changed){savedb(db);console.log('[v39] Régi IDB fotók pótolva base64-gyel.');}
+}
+
 /* ── Régi base64 fotók migrálása IDB-be ────────────────────────── */
 async function migratePhotos(){
   const db=getdb();let changed=false;
@@ -448,16 +479,16 @@ async function migratePhotos(){
         const bin=atob(raw),bytes=new Uint8Array(bin.length);
         for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
         await idbPut(p.id,new Blob([bytes],{type:'image/jpeg'}));
-        delete p.data;p.idb=true;changed=true;
+        p.idb=true;changed=true;
       }catch(e){
-        /* IDB nem érhető el — base64 marad */
         console.warn('[v39] migrate skip:',e.message||e);
       }
     }
   }
   if(changed){savedb(db);console.log('[v39] Régi base64 fotók migrálva IDB-be.');}
 }
-setTimeout(migratePhotos,2500);
+setTimeout(backfillPhotos,2500);
+setTimeout(migratePhotos,3500);
 setTimeout(()=>{sfInjectMapButtons();sfRenderLocationsRetry(5);},1200);
-console.log('[v39] SpotFinder Enhance v5 · GPS auto-start, távolság, zoom, fotó fallback');
+console.log('[v39] SpotFinder Enhance v6 · fotó backup fix, backfill');
 })();
