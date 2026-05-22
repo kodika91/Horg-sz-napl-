@@ -1,4 +1,4 @@
-/* V18.3 · Képkezelő – mobil fix: panel újra-injektálás navigációnál + sync-token fallback */
+/* V18.4 · Képkezelő – csali/felszerelés kép fix: wrapper nélküli kártyákon is megjelenik */
 (function(){
   const CFG={
     repo:'kodika91/Horg-sz-napl-',
@@ -173,12 +173,22 @@
     }catch(err){status(err.message||String(err),'err')}
   }
 
+  /* Wrapper divvel rendelkező kártyák (pl. halfaj .fish-img-wrap) */
   function setCardImage(card,src){const wrap=card.querySelector('.fish-img-wrap,.gear-img-wrap,.bait-img-wrap,.item-img-wrap,.card-img-wrap'); if(wrap){wrap.innerHTML=`<img class="v18-managed-img" src="${src}" alt="">`; return true;} return false;}
+
+  /* Wrapper div nélküli kártyák (csali, felszerelés .item-list-card) – ikon vagy meglévő kis fotó cseréje */
+  function setCardImageFallback(card,src){
+    const existImg=card.querySelector('img.photo-preview-small,img.v18-managed-img');
+    if(existImg){existImg.src=src; existImg.classList.add('v18-managed-img'); return;}
+    const icon=card.querySelector('.item-icon,.card-icon');
+    if(icon){const img=document.createElement('img'); img.src=src; img.alt=''; img.className='photo-preview-small v18-managed-img'; icon.replaceWith(img);}
+  }
+
   async function applyImages(){
     const idx=await loadIndex();
     qsa('.fish-card').forEach(card=>{const n=card.querySelector('.fish-name-sci,.fish-name,.item-name'); const key=slug(n&&n.textContent); const src=idx.fish&&idx.fish[key]; if(src)setCardImage(card,src);});
-    qsa('#page-gear .item-list-card,.gear-card').forEach(card=>{const n=card.querySelector('.item-name,.gear-name'); const key=slug(n&&n.textContent); const src=idx.gear&&idx.gear[key]; if(src)setCardImage(card,src);});
-    qsa('#page-baits .item-list-card,.bait-card').forEach(card=>{const n=card.querySelector('.item-name,.bait-name'); const key=slug(n&&n.textContent); const src=idx.bait&&idx.bait[key]; if(src)setCardImage(card,src);});
+    qsa('#page-gear .item-list-card,.gear-card').forEach(card=>{const n=card.querySelector('.item-name,.gear-name'); const key=slug(n&&n.textContent); const src=idx.gear&&idx.gear[key]; if(src&&!setCardImage(card,src))setCardImageFallback(card,src);});
+    qsa('#page-baits .item-list-card,.bait-card').forEach(card=>{const n=card.querySelector('.item-name,.bait-name'); const key=slug(n&&n.textContent); const src=idx.bait&&idx.bait[key]; if(src&&!setCardImage(card,src))setCardImageFallback(card,src);});
   }
 
   /* Navigációs hook: ha a felhasználó a Beállításokra lép, injektáljuk újra a panelt */
@@ -195,11 +205,9 @@
 
   function boot(){
     loadIndex().then(applyImages);
-    /* Első injektálás + retrók lassabb telefonokhoz */
     setTimeout(injectPanel,700);
     setTimeout(injectPanel,2000);
     setTimeout(injectPanel,4000);
-    /* Navigációs hook (két kísérlet, mert showPage később tölthet be) */
     setTimeout(hookNav,600);
     setTimeout(hookNav,1800);
     setTimeout(applyImages,1200);
