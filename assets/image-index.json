@@ -16,7 +16,7 @@
   },
   "gear": {},
   "bait": {
-    "giliszta": "assets/bait/live/giliszta.png",
+    "giliszta": "assets/bait/bait/giliszta.png",
     "csonti": "assets/bait/bait/csonti.png"
   },
   "places": {},
@@ -67,9 +67,9 @@
       "updatedAt": "2026-05-22T09:04:58.183Z"
     },
     "bait:giliszta": {
-      "subcategory": "live",
-      "subcategoryLabel": "Élő csali",
-      "updatedAt": "2026-05-22T09:20:00.815Z"
+      "subcategory": "bait",
+      "subcategoryLabel": "Csali",
+      "updatedAt": "2026-05-22T09:37:44.393Z"
     },
     "bait:csonti": {
       "subcategory": "bait",
@@ -77,5 +77,5 @@
       "updatedAt": "2026-05-22T09:23:26.959Z"
     }
   },
-  "updatedAt": "2026-05-22T09:23:26.959Z"
+  "updatedAt": "2026-05-22T09:37:44.393Z"
 }
