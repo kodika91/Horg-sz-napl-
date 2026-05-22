@@ -1,4 +1,4 @@
-/* V18.4 · Képkezelő – csali/felszerelés kép fix: wrapper nélküli kártyákon is megjelenik */
+/* V18.5 · Képkezelő – csali/gear kép az ikon containerben jelenik meg (méret megmarad) */
 (function(){
   const CFG={
     repo:'kodika91/Horg-sz-napl-',
@@ -25,7 +25,6 @@
   function qsa(s,r=document){return Array.from(r.querySelectorAll(s))}
   function status(msg,type='warn'){const el=qs('#v18-im-status'); if(!el)return; el.className='v18-im-status show '+type; el.textContent=msg;}
 
-  /* Token: első a saját v18 token, fallback a szinkron-tokenre */
   function getToken(){
     const own=(localStorage.getItem(STORE.token)||'').trim();
     if(own)return own;
@@ -108,11 +107,9 @@
   }
 
   function injectPanel(){
-    /* Ha a panel már benne van a settings oldalban, nincs teendő */
     const settingsPage=qs('#page-settings')||qs('[id*="settings"]');
     const existing=qs('#v18-image-manager');
     if(existing && settingsPage && settingsPage.contains(existing)) return;
-    /* Ha rossz helyen van (pl. body fallback), töröld és rakd vissza */
     if(existing) existing.remove();
     const page=settingsPage||document.body;
 
@@ -173,15 +170,28 @@
     }catch(err){status(err.message||String(err),'err')}
   }
 
-  /* Wrapper divvel rendelkező kártyák (pl. halfaj .fish-img-wrap) */
-  function setCardImage(card,src){const wrap=card.querySelector('.fish-img-wrap,.gear-img-wrap,.bait-img-wrap,.item-img-wrap,.card-img-wrap'); if(wrap){wrap.innerHTML=`<img class="v18-managed-img" src="${src}" alt="">`; return true;} return false;}
+  /* Wrapper divvel rendelkező kártyák (halfaj .fish-img-wrap) */
+  function setCardImage(card,src){
+    const wrap=card.querySelector('.fish-img-wrap,.gear-img-wrap,.bait-img-wrap,.item-img-wrap,.card-img-wrap');
+    if(wrap){wrap.innerHTML=`<img class="v18-managed-img" src="${src}" alt="">`; return true;}
+    return false;
+  }
 
-  /* Wrapper div nélküli kártyák (csali, felszerelés .item-list-card) – ikon vagy meglévő kis fotó cseréje */
+  /* Csali/gear .item-list-card: kép az .item-icon containerbe kerül (méret megmarad, object-fit:cover) */
   function setCardImageFallback(card,src){
-    const existImg=card.querySelector('img.photo-preview-small,img.v18-managed-img');
-    if(existImg){existImg.src=src; existImg.classList.add('v18-managed-img'); return;}
+    /* Ha már van menedzselt kép, csak az src-t frissítjük */
+    const existManaged=card.querySelector('img.v18-managed-img');
+    if(existManaged){existManaged.src=src; return;}
+    /* Ha a csali űrlőlapjából van foto (photo-preview-small), azt frissítjük */
+    const existPhoto=card.querySelector('img.photo-preview-small');
+    if(existPhoto){existPhoto.src=src; existPhoto.classList.add('v18-managed-img'); return;}
+    /* Nincs kép még – a kép az ikon containerbe kerül (nem helyette), méret megmarad */
     const icon=card.querySelector('.item-icon,.card-icon');
-    if(icon){const img=document.createElement('img'); img.src=src; img.alt=''; img.className='photo-preview-small v18-managed-img'; icon.replaceWith(img);}
+    if(icon){
+      icon.style.overflow='hidden';
+      icon.style.padding='0';
+      icon.innerHTML=`<img class="v18-managed-img" src="${src}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block">`;
+    }
   }
 
   async function applyImages(){
@@ -191,7 +201,6 @@
     qsa('#page-baits .item-list-card,.bait-card').forEach(card=>{const n=card.querySelector('.item-name,.bait-name'); const key=slug(n&&n.textContent); const src=idx.bait&&idx.bait[key]; if(src&&!setCardImage(card,src))setCardImageFallback(card,src);});
   }
 
-  /* Navigációs hook: ha a felhasználó a Beállításokra lép, injektáljuk újra a panelt */
   function hookNav(){
     if(typeof window.showPage!=='function'||window.showPage.__v18nav)return;
     const orig=window.showPage;
