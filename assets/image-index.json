@@ -17,7 +17,8 @@
   "gear": {},
   "bait": {
     "giliszta": "assets/bait/bait/giliszta.png",
-    "csonti": "assets/bait/bait/csonti.png"
+    "csonti": "assets/bait/bait/csonti.png",
+    "kukorica": "assets/bait/bait/kukorica.png"
   },
   "places": {},
   "meta": {
@@ -74,8 +75,13 @@
     "bait:csonti": {
       "subcategory": "bait",
       "subcategoryLabel": "Csali",
-      "updatedAt": "2026-05-22T09:50:58.169Z"
+      "updatedAt": "2026-05-22T09:23:26.959Z"
+    },
+    "bait:kukorica": {
+      "subcategory": "bait",
+      "subcategoryLabel": "Csali",
+      "updatedAt": "2026-05-22T09:54:24.056Z"
     }
   },
-  "updatedAt": "2026-05-22T09:50:58.169Z"
+  "updatedAt": "2026-05-22T09:54:24.056Z"
 }
