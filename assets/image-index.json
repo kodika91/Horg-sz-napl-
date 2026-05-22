@@ -7,7 +7,8 @@
     "kovi_csik": "assets/fish/kovi_csik.jpg",
     "kurta_baing": "assets/fish/kurta_baing.jpg",
     "selymes_durbincs": "assets/fish/selymes_durbincs.jpg",
-    "soregtok": "assets/fish/soregtok.jpg"
+    "soregtok": "assets/fish/soregtok.jpg",
+    "vago_csik": "assets/fish/vago_csik.jpg"
   },
   "gear": {},
   "bait": {},
@@ -32,7 +33,12 @@
       "subcategory": "general",
       "subcategoryLabel": "Halfaj",
       "updatedAt": "2026-05-22T08:50:43.552Z"
+    },
+    "fish:vago_csik": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-22T08:52:53.310Z"
     }
   },
-  "updatedAt": "2026-05-22T08:50:43.552Z"
+  "updatedAt": "2026-05-22T08:52:53.310Z"
 }
