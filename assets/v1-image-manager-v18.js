@@ -1,4 +1,4 @@
-/* V18.2 · Képkezelő hotfix: iPhone/HEIC és nagyobb fotók kezelése, automatikus JPG tömörítés */
+/* V18.3 · Képkezelő – mobil fix: panel újra-injektálás navigációnál + sync-token fallback */
 (function(){
   const CFG={
     repo:'kodika91/Horg-sz-napl-',
@@ -19,13 +19,23 @@
   const STORE={token:'v18_github_token',index:'v18_image_index_cache'};
   let selectedFile=null, selectedImage=null, selectedUpload=null, imageIndex=null;
 
-  function slug(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,80)||'kep';}
+  function slug(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,80)||'kep';}
   function ext(name,type){const n=String(name||'').toLowerCase(); if(n.endsWith('.png')&&type==='image/png')return 'png'; if(n.endsWith('.webp')&&type==='image/webp')return 'webp'; return 'jpg';}
   function qs(s,r=document){return r.querySelector(s)}
   function qsa(s,r=document){return Array.from(r.querySelectorAll(s))}
   function status(msg,type='warn'){const el=qs('#v18-im-status'); if(!el)return; el.className='v18-im-status show '+type; el.textContent=msg;}
-  function getToken(){return (localStorage.getItem(STORE.token)||'').trim()}
-  function setToken(v){if(v) localStorage.setItem(STORE.token,v.trim())}
+
+  /* Token: első a saját v18 token, fallback a szinkron-tokenre */
+  function getToken(){
+    const own=(localStorage.getItem(STORE.token)||'').trim();
+    if(own)return own;
+    try{
+      const sync=JSON.parse(localStorage.getItem('kapaspont_github_sync')||localStorage.getItem('horgaszpro_github_sync')||'{}');
+      return (sync.token||'').trim();
+    }catch(e){}
+    return '';
+  }
+  function setToken(v){if(v)localStorage.setItem(STORE.token,v.trim())}
   function subLabel(cat,sub){const list=CFG.subcats[cat]||[]; const row=list.find(x=>x[0]===sub); return row?row[1]:sub;}
 
   async function loadIndex(){
@@ -98,29 +108,35 @@
   }
 
   function injectPanel(){
-    if(qs('#v18-image-manager'))return;
-    const page=qs('#page-settings')||qs('[id*="settings"]')||document.body;
+    /* Ha a panel már benne van a settings oldalban, nincs teendő */
+    const settingsPage=qs('#page-settings')||qs('[id*="settings"]');
+    const existing=qs('#v18-image-manager');
+    if(existing && settingsPage && settingsPage.contains(existing)) return;
+    /* Ha rossz helyen van (pl. body fallback), töröld és rakd vissza */
+    if(existing) existing.remove();
+    const page=settingsPage||document.body;
+
     const wrap=document.createElement('div'); wrap.id='v18-image-manager'; wrap.className='v18-image-manager';
     wrap.innerHTML=`
-      <div class="v18-im-head"><div><div class="v18-im-title">Képkezelő</div><div class="v18-im-sub">Halfajokhoz, felszerelésekhez, csalikhoz és helyekhez tudsz képet feltölteni külön GitHub mappába. Nem az indexbe kerül.</div></div></div>
+      <div class="v18-im-head"><div><div class="v18-im-title">Képkezelő</div><div class="v18-im-sub">Halfajokhoz, felszerelésekhez, csalihoz és helyekhez tudsz képet feltölteni. A kép a GitHub-repóba kerül, token nem szükséges külön ha a szinkron be van állítva.</div></div></div>
       <div class="v18-im-grid">
         <div class="v18-im-field"><label>Kategória</label><select id="v18-im-cat"><option value="fish">Halfajok</option><option value="gear">Felszerelés</option><option value="bait">Csali / etetőanyag</option><option value="places">Helyszín</option></select></div>
         <div class="v18-im-field" id="v18-im-subcat-wrap"><label>Alkategória</label><select id="v18-im-subcat"></select></div>
         <div class="v18-im-field"><label>Cél elem</label><select id="v18-im-target"></select></div>
         <div class="v18-im-field" id="v18-im-custom-wrap" style="display:none"><label>Egyedi azonosító</label><input id="v18-im-custom" placeholder="pl. feederbot_390 vagy szilvaorru_keszeg"></div>
-        <div class="v18-im-field"><label>GitHub token</label><input id="v18-im-token" type="password" placeholder="Fine-grained token: Contents read/write"></div>
+        <div class="v18-im-field"><label>GitHub token (opcionális – szinkron tokent használja ha üres)</label><input id="v18-im-token" type="password" placeholder="Automatikus, ha a szinkron működik"></div>
         <div class="v18-im-file"><input id="v18-im-file" type="file" accept="image/*,.heic,.heif"><div class="v18-im-sub">Minimum ${CFG.minW}×${CFG.minH}px. A nagy telefonos képeket a program feltöltés előtt JPG-re tömöríti.</div></div>
-        <div class="v18-im-preview"><div class="v18-preview-card"><div class="v18-preview-img" id="v18-preview-img"><i class="ti ti-photo"></i></div><div class="v18-preview-body"><div class="v18-preview-name" id="v18-preview-name">Nincs kiválasztott cél</div><div class="v18-preview-meta" id="v18-preview-meta">Telefonos fotó is választható</div></div></div><div class="v18-im-info">A token csak a böngésződ localStorage tárhelyére kerül. GitHub tokenhez Contents: Read and write jogosultság kell ehhez a repóhoz. Ha nincs token, az előnézet működik, de GitHub mentés nem.</div></div>
+        <div class="v18-im-preview"><div class="v18-preview-card"><div class="v18-preview-img" id="v18-preview-img"><i class="ti ti-photo"></i></div><div class="v18-preview-body"><div class="v18-preview-name" id="v18-preview-name">Nincs kiválasztott cél</div><div class="v18-preview-meta" id="v18-preview-meta">Telefonos fotó is választható</div></div></div><div class="v18-im-info">A token a böngésződ localStorage tárhelyére kerül. Ha a szinkron be van állítva (GitHub Sync oldal), a feltöltés automatikusan azt a tokent használja. Külön token akkor kell, ha a szinkron token nem fér hozzá ehhez a repóhoz.</div></div>
         <div id="v18-im-status" class="v18-im-status"></div>
         <div class="v18-im-actions"><button class="v18-im-btn primary" id="v18-im-save">Kép feltöltése GitHubra</button><button class="v18-im-btn" id="v18-im-apply">Képek újraalkalmazása</button><button class="v18-im-btn" id="v18-im-refresh">Index újratöltése</button></div>
       </div>`;
     page.appendChild(wrap);
-    const token=qs('#v18-im-token'); token.value=getToken();
+    const tokenEl=qs('#v18-im-token'); tokenEl.value=getToken();
     qs('#v18-im-cat').addEventListener('change',()=>{fillTargetSelect();preview();});
     qs('#v18-im-subcat').addEventListener('change',preview);
     qs('#v18-im-target').addEventListener('change',e=>{qs('#v18-im-custom-wrap').style.display=e.target.value==='__custom'?'grid':'none';preview();});
     qs('#v18-im-custom').addEventListener('input',preview);
-    token.addEventListener('change',()=>setToken(token.value));
+    tokenEl.addEventListener('change',()=>setToken(tokenEl.value));
     qs('#v18-im-file').addEventListener('change',async e=>{try{
       selectedFile=e.target.files[0]||null; selectedImage=null; selectedUpload=null; if(!selectedFile){preview();return;}
       if(selectedFile.size>CFG.maxInputMB*1024*1024)throw new Error('A kép túl nagy. Maximum '+CFG.maxInputMB+' MB-os eredeti fotó választható.');
@@ -138,7 +154,10 @@
 
   async function saveImage(){
     try{
-      const token=(qs('#v18-im-token')?.value||getToken()).trim(); if(!token)throw new Error('GitHub token szükséges a mentéshez.'); setToken(token);
+      const tokenEl=qs('#v18-im-token');
+      const token=((tokenEl&&tokenEl.value)||getToken()).trim();
+      if(!token)throw new Error('GitHub token szükséges. Állítsd be a GitHub Sync oldalt, vagy add meg a tokent a Képkezelőben.');
+      setToken(token);
       if(!selectedFile||!selectedImage)throw new Error('Válassz ki egy megfelelő képet.');
       if(!selectedUpload)selectedUpload=await prepareUpload(selectedFile,selectedImage);
       const cat=qs('#v18-im-cat').value; const sub=qs('#v18-im-subcat')?.value||'general'; const target=qs('#v18-im-target').value; const custom=qs('#v18-im-custom').value;
@@ -162,7 +181,30 @@
     qsa('#page-baits .item-list-card,.bait-card').forEach(card=>{const n=card.querySelector('.item-name,.bait-name'); const key=slug(n&&n.textContent); const src=idx.bait&&idx.bait[key]; if(src)setCardImage(card,src);});
   }
 
-  function boot(){loadIndex().then(applyImages); setTimeout(injectPanel,700); setTimeout(applyImages,1200); document.addEventListener('click',()=>setTimeout(applyImages,80),true);}
+  /* Navigációs hook: ha a felhasználó a Beállításokra lép, injektáljuk újra a panelt */
+  function hookNav(){
+    if(typeof window.showPage!=='function'||window.showPage.__v18nav)return;
+    const orig=window.showPage;
+    window.showPage=function(id){
+      const r=orig.apply(this,arguments);
+      if(String(id||'').indexOf('setting')>=0)setTimeout(injectPanel,80);
+      return r;
+    };
+    window.showPage.__v18nav=true;
+  }
+
+  function boot(){
+    loadIndex().then(applyImages);
+    /* Első injektálás + retrók lassabb telefonokhoz */
+    setTimeout(injectPanel,700);
+    setTimeout(injectPanel,2000);
+    setTimeout(injectPanel,4000);
+    /* Navigációs hook (két kísérlet, mert showPage később tölthet be) */
+    setTimeout(hookNav,600);
+    setTimeout(hookNav,1800);
+    setTimeout(applyImages,1200);
+    document.addEventListener('click',()=>setTimeout(applyImages,80),true);
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
   window.v18ApplyManagedImages=applyImages;
 })();
