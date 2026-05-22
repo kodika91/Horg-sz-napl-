@@ -15,7 +15,9 @@
     "vagotok": "assets/fish/vagotok.png"
   },
   "gear": {},
-  "bait": {},
+  "bait": {
+    "giliszta": "assets/bait/live/giliszta.png"
+  },
   "places": {},
   "meta": {
     "fish:kovi_csik": {
@@ -62,7 +64,12 @@
       "subcategory": "general",
       "subcategoryLabel": "Halfaj",
       "updatedAt": "2026-05-22T09:04:58.183Z"
+    },
+    "bait:giliszta": {
+      "subcategory": "live",
+      "subcategoryLabel": "Élő csali",
+      "updatedAt": "2026-05-22T09:20:00.815Z"
     }
   },
-  "updatedAt": "2026-05-22T09:04:58.183Z"
+  "updatedAt": "2026-05-22T09:20:00.815Z"
 }
