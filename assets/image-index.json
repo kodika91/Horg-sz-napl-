@@ -9,7 +9,8 @@
     "selymes_durbincs": "assets/fish/selymes_durbincs.jpg",
     "soregtok": "assets/fish/soregtok.jpg",
     "reti_csik": "assets/fish/reti_csik.png",
-    "szivarvanyos_okle": "assets/fish/szivarvanyos_okle.jpg"
+    "szivarvanyos_okle": "assets/fish/szivarvanyos_okle.jpg",
+    "szeles_durbincs": "assets/fish/szeles_durbincs.jpg"
   },
   "gear": {},
   "bait": {},
@@ -44,7 +45,12 @@
       "subcategory": "general",
       "subcategoryLabel": "Halfaj",
       "updatedAt": "2026-05-22T08:56:03.218Z"
+    },
+    "fish:szeles_durbincs": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-22T08:58:39.683Z"
     }
   },
-  "updatedAt": "2026-05-22T08:56:03.218Z"
+  "updatedAt": "2026-05-22T08:58:39.683Z"
 }
