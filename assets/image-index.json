@@ -3,10 +3,18 @@
   "fish": {
     "razbora": "assets/fish/razbora.jpg",
     "tarka_geb": "assets/fish/tarka_geb.jpg",
-    "karasz_hibrid": "assets/fish/karasz_hibrid.jpg"
+    "karasz_hibrid": "assets/fish/karasz_hibrid.jpg",
+    "kovi_csik": "assets/fish/kovi_csik.jpg"
   },
   "gear": {},
   "bait": {},
   "places": {},
-  "updatedAt": "2026-05-17T13:10:46.501Z"
+  "meta": {
+    "fish:kovi_csik": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-22T08:39:03.151Z"
+    }
+  },
+  "updatedAt": "2026-05-22T08:39:03.151Z"
 }
