@@ -1,11 +1,12 @@
 /* ============================================================================
- * KapásPont · kp-v39-spotfinder-enhance.js  (v1)
+ * KapásPont · kp-v39-spotfinder-enhance.js  (v2)
  * ----------------------------------------------------------------------------
  * 1. IndexedDB fotótárolás  — 5 MB localStorage korlát megszűnik
  * 2. Helykeresés ↔ Helyek szinkron — spot mentésekor db.locations upsert
  * 3. Fotó lightbox  — tappintásra teljes képernyős nézet + X gomb
- * 4. Teljes képernyős térkép — GPS-eszköz stílus, Escape/gomb bezárja
+ * 4. Teljes képernyős térkép — natví Leaflet-vezérlők (+/- stílusban)
  * 5. Élő GPS nyomkövetés — watchPosition, pulzáló marker, auto-stop
+ * 6. Mentett Helyek megjelentése — db.locations zöld pontok SpotFinder térképen
  * ==========================================================================*/
 (function(){
 'use strict';
@@ -46,8 +47,6 @@ async function photoUrl(id){
 }
 
 // ── Draft-photo lifecycle tracking ───────────────────────────────────────────
-// _pend: newly added IDB photos not yet saved to a spot
-// _todel: existing spot photos removed in edit mode — delete on save/cancel
 const _pend=new Set(),_todel=new Set();
 function _cleanSet(s){s.forEach(id=>{idbDel(id).catch(()=>{});delete _urlCache[id];});s.clear();}
 
@@ -156,7 +155,6 @@ window.spotFinderSave=function(){
   const ix=db.scoutSpots.findIndex(s=>s.id===payload.id);
   if(ix>=0){payload.createdAt=db.scoutSpots[ix].createdAt||payload.updatedAt;db.scoutSpots[ix]=payload;}
   else{db.scoutSpots.unshift(payload);}
-  // ── Sync to db.locations ─────────────────────────────────────────────────
   if(!db.locations)db.locations=[];
   const locId='sfloc_'+payload.id;
   const ex=db.locations.find(l=>l.id===locId);
@@ -172,8 +170,8 @@ window.spotFinderSave=function(){
   }
   savedb(db);
   _cleanSet(_todel);
-  _pend.clear(); // photos are now saved — do NOT delete from IDB
-  spotFinderClearForm(); // _pend and _todel are both empty now, safe to call
+  _pend.clear();
+  spotFinderClearForm();
   if(typeof renderSpotFinder==='function')renderSpotFinder();
   toast('Helykeresői pont mentve. ✓ Helyek szinkronizálva.');
 };
@@ -212,7 +210,7 @@ window.spotFinderDelete=function(id){
   toast('Hely törölve.');
 };
 
-// ── Override renderSpotFinderList — IDB thumbnail support ────────────────────
+// ── Override renderSpotFinderList ────────────────────────────────────────────────
 window.renderSpotFinderList=function(){
   const el=document.getElementById('spotfinder-list');
   if(!el)return;
@@ -227,7 +225,6 @@ window.renderSpotFinderList=function(){
     const thumbs=photos.slice(0,4).map(p=>`<img class="spot-photo-thumb" data-pid="${p.id}" src="${p.data||''}" alt="" style="${p.data?'':'opacity:.3'}" onclick="sfOpenLightbox(this)">`).join('')+(photos.length>4?`<div class="spot-photo-empty">+${photos.length-4} fotó</div>`:'');
     return `<div class="spot-card"><div><div class="spot-card-name">${_esc(s.name||'Névtelen hely')}</div><div class="spot-card-meta"><i class="ti ti-current-location"></i> ${_esc(s.gps||'')} · ${_esc(_date(s.updatedAt||s.createdAt))} · ${photos.length} fotó</div>${s.note?`<div class="spot-card-note">${_esc(s.note)}</div>`:''}${photos.length?`<div class="spot-photo-preview-grid">${thumbs}</div>`:''}</div><div class="spot-card-actions"><button class="btn-secondary" onclick="spotFinderEdit('${_escj(s.id)}')"><i class="ti ti-edit"></i> Szerkesztés</button><button class="btn-secondary" onclick="spotFinderOpenMap('${_escj(s.id)}')"><i class="ti ti-map-pin"></i> Térkép</button><button class="btn-danger-outline" onclick="spotFinderDelete('${_escj(s.id)}')"><i class="ti ti-trash"></i></button></div></div>`;
   }).join('');
-  // Load IDB thumbnails async
   list.forEach(s=>(s.photos||[]).slice(0,4).forEach(p=>{
     if(!p.idb)return;
     const img=el.querySelector(`img[data-pid="${p.id}"]`);
@@ -236,6 +233,33 @@ window.renderSpotFinderList=function(){
     if(url){img.src=url;img.style.opacity='';return;}
     photoUrl(p.id).then(u=>{if(u&&img.isConnected){img.src=u;img.style.opacity='';}});
   }));
+};
+
+// ── Override renderSpotFinderMap — mentett Helyek mutatása ────────────────────
+let _locMarkers=[];
+function _clearLocMarkers(){_locMarkers.forEach(m=>m.remove());_locMarkers=[];}
+
+const _origRenderMap=window.renderSpotFinderMap;
+window.renderSpotFinderMap=function(){
+  _clearLocMarkers();
+  const result=typeof _origRenderMap==='function'?_origRenderMap.apply(this,arguments):undefined;
+  if(!window.spotFinderMap)return result;
+  const db=getdb();
+  (db.locations||[]).forEach(loc=>{
+    if(!loc.lat||!loc.lon)return;
+    if(loc.fromSpotFinder)return; // helykeresőből szinkronizált — már látszik scout spot ként
+    const m=L.marker([Number(loc.lat),Number(loc.lon)],{
+      icon:L.divIcon({
+        className:'',
+        html:'<div style="width:13px;height:13px;background:#5a7042;border:2.5px solid #fff;border-radius:50%;box-shadow:0 1px 5px rgba(0,0,0,.35)"></div>',
+        iconSize:[13,13],iconAnchor:[6,6]
+      }),
+      zIndexOffset:-100
+    }).addTo(spotFinderMap);
+    m.bindPopup(`<div style="font-weight:700;font-size:13px">${_esc(loc.name||'Helyszín')}</div><div style="font-size:11px;color:#666;margin-top:2px">${_esc(loc.type||'Ismeretlen')}</div>`);
+    _locMarkers.push(m);
+  });
+  return result;
 };
 
 // ── Photo lightbox ────────────────────────────────────────────────────────────
@@ -274,8 +298,7 @@ window.sfToggleFullscreen=function(){
     _shellStyle=shell.style.cssText;
     _mapStyle=mapEl.style.cssText;
     shell.style.cssText='position:fixed;inset:0;z-index:9990;border-radius:0;margin:0;padding:0';
-    mapEl.style.height='100dvh';
-    mapEl.style.width='100vw';
+    mapEl.style.cssText='height:100dvh;width:100vw';
     if(btn)btn.innerHTML='<i class="ti ti-minimize"></i>';
     document.body.style.overflow='hidden';
   }else{
@@ -295,7 +318,7 @@ document.addEventListener('keydown',e=>{
   }
 });
 
-// ── Live GPS tracking ─────────────────────────────────────────────────────────
+// ── Live GPS nyomkövetés ───────────────────────────────────────────────────────
 let _watchId=null,_gpsMark=null,_gpsFollow=true;
 
 const _gpsCSS=document.createElement('style');
@@ -311,7 +334,7 @@ window.sfToggleLiveGps=function(){
   if(!navigator.geolocation){toast('GPS nem támogatott ezen az eszközön.');return;}
   _gpsFollow=true;
   const btn=document.getElementById('sf-btn-gps');
-  if(btn){btn.style.background='rgba(41,121,255,.85)';btn.style.color='#fff';}
+  if(btn)btn.classList.add('sf-gps-active');
   toast('Élő GPS nyomkövetés indítva…');
   _watchId=navigator.geolocation.watchPosition(pos=>{
     const la=pos.coords.latitude,lo=pos.coords.longitude;
@@ -334,40 +357,56 @@ function sfStopGps(){
   if(_watchId!=null){navigator.geolocation.clearWatch(_watchId);_watchId=null;}
   if(_gpsMark){_gpsMark.remove();_gpsMark=null;}
   const btn=document.getElementById('sf-btn-gps');
-  if(btn){btn.style.background='rgba(255,255,255,.9)';btn.style.color='';}
+  if(btn)btn.classList.remove('sf-gps-active');
   _gpsFollow=true;
 }
 window.sfStopGps=sfStopGps;
 
-// ── Map overlay buttons ───────────────────────────────────────────────────────
-function sfAddMapButtons(){
-  const shell=document.querySelector('.spotfinder-map-shell');
-  if(!shell||shell.dataset.v39btn)return;
-  shell.dataset.v39btn='1';
-  if(getComputedStyle(shell).position==='static')shell.style.position='relative';
-  const bar=document.createElement('div');
-  bar.id='sf-map-bar';
-  bar.style.cssText='position:absolute;top:10px;right:10px;z-index:1001;display:flex;flex-direction:column;gap:6px';
-  bar.innerHTML=`
-    <button id="sf-btn-fs" onclick="sfToggleFullscreen()" title="Teljes képernyős térkép"
-      style="width:40px;height:40px;border:0;border-radius:10px;background:rgba(255,255,255,.92);box-shadow:0 2px 8px rgba(0,0,0,.22);cursor:pointer;display:flex;align-items:center;justify-content:center">
-      <i class="ti ti-maximize" style="font-size:18px"></i></button>
-    <button id="sf-btn-gps" onclick="sfToggleLiveGps()" title="Élő GPS követés"
-      style="width:40px;height:40px;border:0;border-radius:10px;background:rgba(255,255,255,.92);box-shadow:0 2px 8px rgba(0,0,0,.22);cursor:pointer;display:flex;align-items:center;justify-content:center">
-      <i class="ti ti-current-location" style="font-size:18px"></i></button>
-  `;
-  shell.appendChild(bar);
+// ── Natví Leaflet-vezérlők (zoom-gombokkal azonos stílus) ────────────────────────
+const _ctrlCSS=document.createElement('style');
+_ctrlCSS.textContent='.sf-map-ctrl{margin-top:5px!important}.sf-map-ctrl a{width:30px!important;height:30px!important;line-height:30px!important;display:flex!important;align-items:center;justify-content:center;font-size:16px}.sf-gps-active{background:#2979ff!important;color:#fff!important}';
+document.head.appendChild(_ctrlCSS);
+
+function sfAddMapControls(){
+  if(!window.spotFinderMap||spotFinderMap._v39ctrl)return;
+  spotFinderMap._v39ctrl=true;
+
+  const SfCtrl=L.Control.extend({
+    options:{position:'topright'},
+    onAdd:function(){
+      const c=L.DomUtil.create('div','leaflet-bar leaflet-control sf-map-ctrl');
+
+      const fsA=L.DomUtil.create('a','',c);
+      fsA.id='sf-btn-fs';
+      fsA.href='#';
+      fsA.title='Teljes képernyős térkép';
+      fsA.innerHTML='<i class="ti ti-maximize"></i>';
+      L.DomEvent.disableClickPropagation(fsA);
+      L.DomEvent.on(fsA,'click',e=>{L.DomEvent.preventDefault(e);sfToggleFullscreen();});
+
+      const gpsA=L.DomUtil.create('a','',c);
+      gpsA.id='sf-btn-gps';
+      gpsA.href='#';
+      gpsA.title='Élő GPS követés';
+      gpsA.innerHTML='<i class="ti ti-current-location"></i>';
+      L.DomEvent.disableClickPropagation(gpsA);
+      L.DomEvent.on(gpsA,'click',e=>{L.DomEvent.preventDefault(e);sfToggleLiveGps();});
+
+      return c;
+    }
+  });
+  new SfCtrl().addTo(spotFinderMap);
 }
 
-// ── Override spotFinderEnsureMap to inject buttons after map init ──────────────
+// ── Override spotFinderEnsureMap ──────────────────────────────────────────────────
 const _origEnsure=window.spotFinderEnsureMap;
 window.spotFinderEnsureMap=function(){
   const r=typeof _origEnsure==='function'?_origEnsure.apply(this,arguments):false;
-  if(r)setTimeout(sfAddMapButtons,60);
+  if(r)setTimeout(sfAddMapControls,60);
   return r;
 };
 
-// ── Hook showPage — stop GPS and exit fullscreen on page switch ───────────────
+// ── Hook showPage ──────────────────────────────────────────────────────────────────
 const _origShow=window.showPage;
 window.showPage=function(id){
   if(id&&id!=='spotfinder'){
@@ -379,7 +418,7 @@ window.showPage=function(id){
   return typeof _origShow==='function'?_origShow.apply(this,arguments):undefined;
 };
 
-// ── Migrate legacy base64 photos to IDB ──────────────────────────────────────
+// ── Migráció: régi base64 fotók → IDB ─────────────────────────────────────────
 async function migratePhotos(){
   const db=getdb();
   let changed=false;
@@ -395,11 +434,11 @@ async function migratePhotos(){
       }catch(e){console.warn('[v39] migrate:',e);}
     }
   }
-  if(changed){savedb(db);console.log('[v39] Régi base64 fotók sikeresen migrálva IDB-be.');}
+  if(changed){savedb(db);console.log('[v39] Régi base64 fotók migrálva IDB-be.');}
 }
 setTimeout(migratePhotos,2500);
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-setTimeout(sfAddMapButtons,1000);
-console.log('[v39] SpotFinder Enhance: IDB fotók · Helyek sync · Lightbox · Fullscreen térkép · GPS nyomkövetés');
+setTimeout(sfAddMapControls,1000);
+console.log('[v39] SpotFinder Enhance v2: IDB fotók · Helyek sync · Lightbox · Fullscreen · GPS · Helyek mutatása');
 })();

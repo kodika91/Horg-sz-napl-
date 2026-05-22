@@ -7,7 +7,7 @@
 <style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center}.box{max-width:560px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:24px;box-shadow:0 10px 35px rgba(60,40,10,.12)}.t{font-weight:800;font-size:18px;margin-bottom:8px}.s{color:#6b5840;line-height:1.5;font-size:14px}</style>
 </head>
 <body>
-<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v55 · SpotFinder: IDB fotók, GPS, fullscreen térkép</div></div>
+<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v56 · SpotFinder: Leaflet gombok, mentett Helyek térképen</div></div>
 <script>
 (async function(){
   try{
@@ -47,7 +47,7 @@
         addScript('kp-v31-fish-card-cleanup','assets/kp-v31-fish-card-cleanup.js?v=20260517-31');
         addScript('kp-v32-ui-progress-back','assets/kp-v32-ui-progress-back.js?v=20260518-32d');
         addScript('kp-v38-session-photo-to-github','assets/kp-v38-session-photo-to-github.js?v=20260522-51');
-        addScript('kp-v39-spotfinder-enhance','assets/kp-v39-spotfinder-enhance.js?v=20260522-1');
+        addScript('kp-v39-spotfinder-enhance','assets/kp-v39-spotfinder-enhance.js?v=20260522-2');
       }catch(e){console.warn('[KapásPont] kiegészítő betöltés kihagyva:',e);}
     },300);
   }catch(err){console.error(err);document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';}
