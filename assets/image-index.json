@@ -6,7 +6,8 @@
     "karasz_hibrid": "assets/fish/karasz_hibrid.jpg",
     "kovi_csik": "assets/fish/kovi_csik.jpg",
     "kurta_baing": "assets/fish/kurta_baing.jpg",
-    "selymes_durbincs": "assets/fish/selymes_durbincs.jpg"
+    "selymes_durbincs": "assets/fish/selymes_durbincs.jpg",
+    "soregtok": "assets/fish/soregtok.jpg"
   },
   "gear": {},
   "bait": {},
@@ -26,7 +27,12 @@
       "subcategory": "general",
       "subcategoryLabel": "Halfaj",
       "updatedAt": "2026-05-22T08:46:33.655Z"
+    },
+    "fish:soregtok": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-22T08:50:43.552Z"
     }
   },
-  "updatedAt": "2026-05-22T08:46:33.655Z"
+  "updatedAt": "2026-05-22T08:50:43.552Z"
 }
