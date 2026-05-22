@@ -1,25 +1,18 @@
 /* ============================================================================
- * KapásPont · kp-v38-session-photo-to-github.js  (v50: közvetlen párosítás)
+ * KapásPont · kp-v38-session-photo-to-github.js  (v51: src-alapú párosítás)
  * ----------------------------------------------------------------------------
- * VÉGSŐ JAVÍTÁS. A korábbi verziók azért hibáztak, mert a feltöltő egy 360px-es
- * thumbnailt jegyzett meg, a fogásba viszont az app egy 900px-es képet tett
- * (handleModalPhoto -> resizeImage(file,900,...)). A kettő sosem egyezett, ezért
- * a párosítás (data-full) mindig NINCS lett, és a régi v37 nagyító nyílt a
- * pixeles thumbnaillel.
- *
- * MEGOLDÁS: a handleModalPhoto / handleCatchPhoto köré kapcsolódunk; a kiválasztott
- * fájl ÉLES verzióját feltöltjük GitHubra, és a kapott photoPath-ot ahhoz a 900px
- * base64-hez kötjük, amit az app ténylegesen a fogásba tesz. Így a párosítás pontos.
- * A nagyításnál saját nagyítónk nyílik, a régi v30/v37-et kizárjuk.
- *
- * Ezt a fájlt töltsd fel az assets/ mappába ugyanezen a néven (felülírja a régit).
+ * v51 változások:
+ *   - tagDetailImages() index-alapú párosítás helyett src (base64) -> photoPath
+ *     szótárat használ: nem téved el, ha a DOM-sorrend és az adatsorrend eltér.
+ *   - v30 hookImages() no-op lett, v37 kikerült az index.html-ből.
+ *     Egyetlen képnagyító marad: #kp-v50-view (ez a fájl).
  * ==========================================================================*/
 (function(){
 if(window.KP_V38_SESSION_PHOTO_TO_GITHUB)return;window.KP_V38_SESSION_PHOTO_TO_GITHUB=true;
 const DEF={owner:'kodika91',repo:'horgasz-naplo-adatok',branch:'main',root:'kapaspont'};
 const MAX_SIDE=2048,MAX_MB=3;
 const pad=n=>String(n).padStart(2,'0');
-const slug=s=>String(s||'kep').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9._-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)||'kep';
+const slug=s=>String(s||'kep').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9._-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)||'kep';
 function toast(m){try{typeof showToast==='function'?showToast(m):console.log('[KP kep]',m)}catch(e){console.log('[KP kep]',m)}}
 function cfg(){let c={};try{c=typeof githubLoadConfig==='function'?githubLoadConfig():JSON.parse(localStorage.getItem('kapaspont_github_sync')||localStorage.getItem('horgaszpro_github_sync')||'{}')}catch(e){}return{owner:c.owner||DEF.owner,repo:c.repo||DEF.repo,branch:c.branch||DEF.branch,root:String(c.root||DEF.root).replace(/^\/+|\/+$/g,'')||DEF.root,token:(c.token||localStorage.getItem('v18_github_token')||'').trim()}}
 function apiPath(p){return String(p).split('/').map(encodeURIComponent).join('/')}
@@ -58,7 +51,6 @@ function wrapPhotoHandlers(){
   }
 }
 
-/* a 900px base64 ugyanugy, ahogy az app csinalja (resizeImage 900, 0.8) */
 function make900(file){
   return new Promise((res,rej)=>{
     const reader=new FileReader();
@@ -105,7 +97,7 @@ function linkDb(){
 setInterval(function(){wrapPhotoHandlers();linkDb();},2000);
 wrapPhotoHandlers();
 
-/* ====== eles megjelenites + sajat nagyito (v30/v37 kizarva) ====== */
+/* ====== eles megjelenites + sajat nagyito ====== */
 const _urlCache={},_inflight={};
 function pathOf(o){return o&&(o.photoPath||(o.photoRef&&(o.photoRef.path||o.photoRef.relativePath))||'')}
 function loadFull(path){
@@ -128,11 +120,14 @@ function tagDetailImages(){
   const imgs=wrap.querySelectorAll('.catch-photo-preview, #session-detail-wrap img');
   if(!imgs.length)return;
   const d=getdb();const s=activeSession(d);if(!s)return;
-  const objs=[];(s.catches||[]).forEach(c=>{if(c&&(c.photo||pathOf(c)))objs.push(c)});(s.events||[]).forEach(e=>{if(e&&(e.photo||pathOf(e)))objs.push(e)});if(s.photo||pathOf(s))objs.push(s);
-  Array.prototype.forEach.call(imgs,function(img,idx){
+  const pathMap={};
+  (s.catches||[]).forEach(c=>{if(c&&c.photo&&pathOf(c))pathMap[c.photo]=pathOf(c);});
+  (s.events||[]).forEach(e=>{if(e&&e.photo&&pathOf(e))pathMap[e.photo]=pathOf(e);});
+  if(s.photo&&pathOf(s))pathMap[s.photo]=pathOf(s);
+  Array.prototype.forEach.call(imgs,function(img){
     if(img.dataset.full)return;
-    const o=objs[idx];const path=o&&pathOf(o);
-    if(path)img.dataset.full=path;
+    const src=img.getAttribute('src')||img.src||'';
+    if(src&&pathMap[src])img.dataset.full=pathMap[src];
   });
 }
 function ownViewer(){let v=document.getElementById('kp-v50-view');if(v)return v;v=document.createElement('div');v.id='kp-v50-view';v.style.cssText='position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);padding:10px';v.innerHTML='<div style="position:relative;width:96vw;height:88dvh;display:flex;align-items:center;justify-content:center"><button id="kp-v50-x" style="position:absolute;right:8px;top:8px;border:0;border-radius:50%;width:42px;height:42px;background:rgba(0,0,0,.55);color:#fff;font-size:26px;z-index:2">&times;</button><div id="kp-v50-spin" style="position:absolute;color:#cfe;font-size:13px">Eles kep betoltese...</div><img alt="Fogas foto" style="max-width:100%;max-height:100%;object-fit:contain;display:block;border-radius:14px"></div>';document.body.appendChild(v);v.addEventListener('click',e=>{if(e.target===v||e.target.id==='kp-v50-x')v.style.display='none'});return v;}
@@ -144,5 +139,5 @@ document.addEventListener('click',function(e){
 },true);
 setInterval(tagDetailImages,1500);
 
-console.log('[KP v50] kozvetlen parositas + sajat eles nagyito aktiv');
+console.log('[KP v51] src-alapu parositas + sajat eles nagyito aktiv');
 })();
