@@ -3,47 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>KapásPont</title>
 <style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center}.box{max-width:560px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:24px;box-shadow:0 10px 35px rgba(60,40,10,.12)}.t{font-weight:800;font-size:18px;margin-bottom:8px}.s{color:#6b5840;line-height:1.5;font-size:14px}</style>
 </head>
 <body>
-<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v63 · egyszerű beállítások + visszatalálás mód</div></div>
+<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v64 · cache refresh + settings cleanup</div></div>
 <script>
 (async function(){
   try{
-    const res=await fetch('https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/22233b8c04acdd3ad868a9b78ed71514c0d58365/assets/app.html',{cache:'no-store'});
+    const appUrl='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/22233b8c04acdd3ad868a9b78ed71514c0d58365/assets/app.html?v=20260523-64';
+    const res=await fetch(appUrl,{cache:'reload'});
     if(!res.ok) throw new Error('app.html fetch failed: '+res.status);
     let html=await res.text();
 
-    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v44 párosítás + lista + minőség');
+    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v64 cache refresh');
     html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants.\n\n\n// CSALI ADATBÁZIS');
     html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
     html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
     html=html.replace("let fishFilter='all',fishSearch='';","var fishFilter='all',fishSearch='';");
     html=html.replace('const HU_PROTECTED_OR_NOT_KEEPABLE_IDS=new Set(','var HU_PROTECTED_OR_NOT_KEEPABLE_IDS=new Set(');
     html=html.replace('const HU_POND_OR_DECORATIVE_IDS=new Set','var HU_POND_OR_DECORATIVE_IDS=new Set');
-    html=html.replace('Jelenleg nincs egységesített képkártya','Kép elérhető');
-    html=html.replace('<div class="fish-image-tools">','<div class="fish-image-tools" style="display:none">');
-
     document.open();document.write(html);document.close();
+
     setTimeout(function(){
       try{
         function addScript(id,src){var old=document.getElementById(id);if(old)old.remove();var s=document.createElement('script');s.id=id;s.src=src;s.defer=false;document.body.appendChild(s)}
-        var l=document.createElement('link');l.id='v18-image-manager-css';l.rel='stylesheet';l.href='assets/v1-image-manager-v18.css?v=20260522-18e';document.head.appendChild(l);
-        addScript('v18-image-manager-script','assets/v1-image-manager-v18.js?v=20260522-18e');
-        addScript('kp-v27-original','https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/94e999c02fdeb1834c317e434fe2dd5083d78080/assets/kp-v27-durable-image-archive.js');
-        addScript('kp-mod-sync','assets/kp-mod-sync.js?v=20260523-3');
-        addScript('kp-mod-weather','assets/kp-mod-weather.js?v=20260522-1');
-        addScript('kp-mod-fish','assets/kp-mod-fish.js?v=20260522-2');
-        addScript('kp-mod-ui','assets/kp-mod-ui.js?v=20260522-1');
-        addScript('kp-mod-session','assets/kp-mod-session.js?v=20260522-2');
-        addScript('kp-mod-spotfinder','assets/kp-mod-spotfinder.js?v=20260522-4');
-        addScript('kp-mod-spotfinder-photo-backup','assets/kp-mod-spotfinder-photo-backup.js?v=20260523-1');
-        addScript('kp-mod-spotfinder-nav','assets/kp-mod-spotfinder-nav.js?v=20260523-1');
-        addScript('kp-mod-settings-simple','assets/kp-mod-settings-simple.js?v=20260523-1');
-      }catch(e){console.warn('[KapásPont] kiegészítő betöltés kihagyva:',e);}
-    },300);
-  }catch(err){console.error(err);document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';}
+        var l=document.createElement('link');
+        l.id='v18-image-manager-css';
+        l.rel='stylesheet';
+        l.href='assets/v1-image-manager-v18.css?v=20260523-64';
+        document.head.appendChild(l);
+
+        addScript('v18-image-manager-script','assets/v1-image-manager-v18.js?v=20260523-64');
+        addScript('kp-v27-original','https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/94e999c02fdeb1834c317e434fe2dd5083d78080/assets/kp-v27-durable-image-archive.js?v=20260523-64');
+        addScript('kp-mod-sync','assets/kp-mod-sync.js?v=20260523-64');
+        addScript('kp-mod-weather','assets/kp-mod-weather.js?v=20260523-64');
+        addScript('kp-mod-fish','assets/kp-mod-fish.js?v=20260523-64');
+        addScript('kp-mod-ui','assets/kp-mod-ui.js?v=20260523-64');
+        addScript('kp-mod-session','assets/kp-mod-session.js?v=20260523-64');
+        addScript('kp-mod-spotfinder','assets/kp-mod-spotfinder.js?v=20260523-64');
+        addScript('kp-mod-spotfinder-photo-backup','assets/kp-mod-spotfinder-photo-backup.js?v=20260523-64');
+        addScript('kp-mod-spotfinder-nav','assets/kp-mod-spotfinder-nav.js?v=20260523-64');
+        addScript('kp-mod-settings-simple','assets/kp-mod-settings-simple.js?v=20260523-64');
+        addScript('kp-mod-force-hide-settings','assets/kp-mod-force-hide-settings.js?v=20260523-64');
+      }catch(e){console.warn('[KapásPont] modul betöltési hiba:',e);}
+    },250);
+  }catch(err){
+    console.error(err);
+    document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';
+  }
 })();
 </script>
 </body>
