@@ -7,7 +7,7 @@
 <style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center}.box{max-width:560px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:24px;box-shadow:0 10px 35px rgba(60,40,10,.12)}.t{font-weight:800;font-size:18px;margin-bottom:8px}.s{color:#6b5840;line-height:1.5;font-size:14px}</style>
 </head>
 <body>
-<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v62 · SpotFinder fotó backup + fájlból visszatöltés</div></div>
+<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v63 · egyszerű beállítások + visszatalálás mód</div></div>
 <script>
 (async function(){
   try{
@@ -25,14 +25,6 @@
     html=html.replace('Jelenleg nincs egységesített képkártya','Kép elérhető');
     html=html.replace('<div class="fish-image-tools">','<div class="fish-image-tools" style="display:none">');
 
-    html=html.replace('<div class="top-bar-title" id="page-title">Főoldal</div>','<div class="top-bar-title" id="page-title"><span class="ptitle-icon"><i class="ti ti-fish" id="page-title-icon-el"></i></span><span class="ptitle-wrap"><span class="ptitle-main" id="page-title-text">Főoldal</span><span class="ptitle-sub" id="page-title-sub">Horgász Napló</span></span></div>');
-    html=html.replace("document.getElementById('page-title').textContent=PAGE_TITLES[id]||id;","document.getElementById('page-title-text').textContent=PAGE_TITLES[id]||id;(function(){var ic={home:'ti-home',sessions:'ti-list','new-session':'ti-fish',locations:'ti-map-pin',map:'ti-map',spotfinder:'ti-search',fish:'ti-fish',baits:'ti-droplet',gear:'ti-tool',stats:'ti-chart-bar',export:'ti-download',settings:'ti-settings','github-sync':'ti-cloud','session-detail':'ti-fish'};var sb={home:'Horgász Napló',sessions:'Előzmények','new-session':'Naplózás',locations:'Helyszínek',map:'Térkép',spotfinder:'Helykereső',fish:'Halfajok',baits:'Csali & Etetőanyag',gear:'Felszerelés',stats:'Statisztika',export:'Adatmentés',settings:'Beállítások','github-sync':'Szinkronizáció','session-detail':'Részletek'};var ei=document.getElementById('page-title-icon-el');if(ei)ei.className='ti '+(ic[id]||'ti-fish');var es=document.getElementById('page-title-sub');if(es)es.textContent=sb[id]||'Horgász Napló';})();");
-
-    const modalCss='<style id="fish-modal-fix-v11">#data-modal.show{align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:72px 16px 28px}#data-modal .modal-card{max-height:calc(100dvh - 92px);overflow-y:auto;-webkit-overflow-scrolling:touch}#data-modal .modal-body{padding-bottom:34px}#data-modal .fish-detail-hero{grid-template-columns:1fr!important;gap:18px!important}#data-modal .fish-detail-img{width:100%!important;height:230px!important;border-radius:22px!important}#data-modal .fish-detail-img img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}#data-modal .fish-detail-grid{grid-template-columns:1fr 1fr!important}#data-modal .fish-id-pill-card:nth-child(2){display:none!important}@media(max-width:640px){#data-modal{padding:54px 10px 22px!important}#data-modal .modal-card{max-height:calc(100dvh - 70px)!important}#data-modal .fish-detail-grid{grid-template-columns:1fr!important}}</style>';
-    const topbarCss='<style id="topbar-enhanced-v1">.top-bar-title{display:flex!important;align-items:center!important;gap:12px!important}.ptitle-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#5a7042 0%,#a85a2b 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px rgba(90,112,66,.24),inset 0 1px 0 rgba(255,255,255,.25)}.ptitle-icon i{font-size:20px;color:#fff}.ptitle-wrap{display:flex;flex-direction:column;gap:2px}.ptitle-main{font-family:Playfair Display,Georgia,serif;font-size:19px;font-weight:700;color:var(--text);line-height:1.2}.ptitle-sub{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#a85a2b;opacity:.78}@media(max-width:768px){.ptitle-icon{width:34px;height:34px;border-radius:10px}.ptitle-icon i{font-size:17px}.ptitle-main{font-size:16px}}</style>';
-    const v1Css='<link id="v1-lombhullas-css" rel="stylesheet" href="assets/v1-lombhullas.css?v=20260517-1"><link id="v1-lombhullas-v8-css" rel="stylesheet" href="assets/v1-lombhullas-v8.css?v=20260517-8"><link id="v1-lombhullas-v9-css" rel="stylesheet" href="assets/v1-lombhullas-v9.css?v=20260517-9"><link id="v1-lombhullas-v10-css" rel="stylesheet" href="assets/v1-lombhullas-v10.css?v=20260517-10"><link id="v1-lombhullas-v11-css" rel="stylesheet" href="assets/v1-lombhullas-v11.css?v=20260517-11"><link id="v1-lombhullas-v12-css" rel="stylesheet" href="assets/v1-lombhullas-v12.css?v=20260517-12"><link id="v1-lombhullas-v13-css" rel="stylesheet" href="assets/v1-lombhullas-v13.css?v=20260517-13"><link id="v1-lombhullas-v14-css" rel="stylesheet" href="assets/v1-lombhullas-v14.css?v=20260517-14"><link id="v1-lombhullas-v15-css" rel="stylesheet" href="assets/v1-lombhullas-v15.css?v=20260517-15"><link id="v1-lombhullas-v16-css" rel="stylesheet" href="assets/v1-lombhullas-v16.css?v=20260517-16"><link id="v1-lombhullas-v17-css" rel="stylesheet" href="assets/v1-lombhullas-v17.css?v=20260517-17"><link id="kp-v34-weather-card-rounding-css" rel="stylesheet" href="assets/kp-v34-weather-card-rounding.css?v=20260519-341">';
-    html=html.replace('</head>', v1Css + modalCss + topbarCss + '</head>');
-
     document.open();document.write(html);document.close();
     setTimeout(function(){
       try{
@@ -40,12 +32,15 @@
         var l=document.createElement('link');l.id='v18-image-manager-css';l.rel='stylesheet';l.href='assets/v1-image-manager-v18.css?v=20260522-18e';document.head.appendChild(l);
         addScript('v18-image-manager-script','assets/v1-image-manager-v18.js?v=20260522-18e');
         addScript('kp-v27-original','https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/94e999c02fdeb1834c317e434fe2dd5083d78080/assets/kp-v27-durable-image-archive.js');
-        addScript('kp-mod-sync','assets/kp-mod-sync.js?v=20260522-2');
+        addScript('kp-mod-sync','assets/kp-mod-sync.js?v=20260523-3');
         addScript('kp-mod-weather','assets/kp-mod-weather.js?v=20260522-1');
         addScript('kp-mod-fish','assets/kp-mod-fish.js?v=20260522-2');
         addScript('kp-mod-ui','assets/kp-mod-ui.js?v=20260522-1');
         addScript('kp-mod-session','assets/kp-mod-session.js?v=20260522-2');
         addScript('kp-mod-spotfinder','assets/kp-mod-spotfinder.js?v=20260522-4');
+        addScript('kp-mod-spotfinder-photo-backup','assets/kp-mod-spotfinder-photo-backup.js?v=20260523-1');
+        addScript('kp-mod-spotfinder-nav','assets/kp-mod-spotfinder-nav.js?v=20260523-1');
+        addScript('kp-mod-settings-simple','assets/kp-mod-settings-simple.js?v=20260523-1');
       }catch(e){console.warn('[KapásPont] kiegészítő betöltés kihagyva:',e);}
     },300);
   }catch(err){console.error(err);document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';}
