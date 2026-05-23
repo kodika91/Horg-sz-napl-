@@ -1,10 +1,10 @@
 /* kp-mod-spotfinder-nav.js — egyszerű visszatalálás mód horgászhelyhez
- * v1.1 · stabil GPS követés és célpont-kezelés.
+ * v1.2 · stabil GPS követés, célpont-kezelés, dupla gomb megszüntetés.
  */
 (function(){
 'use strict';
-if(window.KP_SPOT_NAV_V11)return;
-window.KP_SPOT_NAV_V11=true;
+if(window.KP_SPOT_NAV_V12)return;
+window.KP_SPOT_NAV_V12=true;
 
 let target=null,line=null,marker=null,follow=true,gpsWatch=null,lastPos=null;
 function qs(s,r=document){return r.querySelector(s)}
@@ -71,6 +71,12 @@ function stop(){target=null;if(line){try{line.remove()}catch(e){} line=null;}if(
 window.kpSpotNavigateTo=setTarget;
 window.kpSpotStopNavigation=stop;
 
+function cleanupDupes(row){
+  const btns=qsa('.kp-nav-btn',row);
+  btns.forEach((b,i)=>{if(i>0)b.remove()});
+  const all=qsa('button',row).filter(b=>(b.textContent||'').toLowerCase().includes('visszatalálás'));
+  all.forEach((b,i)=>{if(i>0)b.remove()});
+}
 function attachButtons(){
   const db=(typeof getDB==='function'?getDB():{});
   const spots=(db.scoutSpots||[]);
@@ -78,6 +84,7 @@ function attachButtons(){
     const txt=(row.textContent||'').trim();
     const spot=spots.find(s=>s&&s.name&&txt.includes(String(s.name).trim()));
     if(!spot)return;
+    cleanupDupes(row);
     if(row.querySelector('.kp-nav-btn'))return;
     const nav=document.createElement('button');
     nav.type='button';
@@ -85,12 +92,15 @@ function attachButtons(){
     nav.textContent='📍 Visszatalálás';
     nav.style.cssText='margin-top:8px;width:100%;border:0;border-radius:12px;padding:11px 12px;font-weight:800;background:linear-gradient(135deg,#2c6e7a,#3a8a99);color:#fff';
     nav.onclick=function(){setTarget(spot)};
-    row.appendChild(nav);
+    const actions=row.querySelector('.spot-actions,.actions,.btn-row');
+    if(actions&&actions.parentNode===row)actions.insertAdjacentElement('afterend',nav); else row.appendChild(nav);
+    cleanupDupes(row);
   });
 }
 const oldList=window.renderSpotFinderList;
-if(typeof oldList==='function'&&!oldList.KP_SPOT_NAV_V11_WRAPPED){window.renderSpotFinderList=function(){const r=oldList.apply(this,arguments);setTimeout(attachButtons,160);setTimeout(attachButtons,900);return r};window.renderSpotFinderList.KP_SPOT_NAV_V11_WRAPPED=true}
+if(typeof oldList==='function'&&!oldList.KP_SPOT_NAV_V12_WRAPPED){window.renderSpotFinderList=function(){const r=oldList.apply(this,arguments);setTimeout(attachButtons,160);setTimeout(attachButtons,900);return r};window.renderSpotFinderList.KP_SPOT_NAV_V12_WRAPPED=true}
 setInterval(update,3000);
-setInterval(attachButtons,2500);
-console.log('[spot-nav] v1.1 aktív');
+setInterval(attachButtons,1500);
+setTimeout(attachButtons,500);
+console.log('[spot-nav] v1.2 aktív');
 })();
