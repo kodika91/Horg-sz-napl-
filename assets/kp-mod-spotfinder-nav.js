@@ -1,27 +1,28 @@
 /* kp-mod-spotfinder-nav.js — teljes visszatalálás modul kompakt UI-val
- * v1.9 · visszahozza a gombbeszúrást + kompakt állapotsávot.
+ * v2.0 · Követés BE/KI állapotjelzés + térkép húzásra követés kikapcsolás + debug self-check.
  */
 (function(){
 'use strict';
-if(window.KP_SPOT_NAV_V19)return;
-window.KP_SPOT_NAV_V19=true;
+if(window.KP_SPOT_NAV_V20)return;
+window.KP_SPOT_NAV_V20=true;
 
-let target=null,line=null,marker=null,follow=true,gpsWatch=null,lastPos=null,lastButton=null,cachedMap=null;
+let target=null,line=null,marker=null,follow=true,gpsWatch=null,lastPos=null,lastButton=null,cachedMap=null,dragBoundMap=null;
 function qs(s,r=document){return r.querySelector(s)}
 function qsa(s,r=document){return Array.from(r.querySelectorAll(s))}
 function toast(m){try{typeof showToast==='function'?showToast(m):alert(m)}catch(e){console.log(m)}}
 function fmt(m){m=Number(m)||0;return m<1000?Math.round(m)+' m':(m/1000).toFixed(2)+' km'}
 function isMapObject(o){return !!(o&&typeof o.setView==='function'&&typeof o.fitBounds==='function'&&typeof o.addLayer==='function')}
+function debugLog(label,data){try{console.log('[spot-nav debug] '+label,data||'')}catch(e){}}
 function discoverMap(){
   if(isMapObject(cachedMap))return cachedMap;
   const candidates=[];
   try{candidates.push(window.spotFinderMap,window.map,window.leafletMap)}catch(e){}
   try{candidates.push(Function('try{return spotFinderMap}catch(e){return null}')())}catch(e){}
-  for(const c of candidates){if(isMapObject(c)){cachedMap=c;window.spotFinderMap=c;return c}}
-  try{for(const k of Object.keys(window)){const o=window[k];if(isMapObject(o)&&o._container&&String(o._container.id||'').includes('spotfinder')){cachedMap=o;window.spotFinderMap=o;return o}}}catch(e){}
+  for(const c of candidates){if(isMapObject(c)){cachedMap=c;window.spotFinderMap=c;bindMapDrag(c);return c}}
+  try{for(const k of Object.keys(window)){const o=window[k];if(isMapObject(o)&&o._container&&String(o._container.id||'').includes('spotfinder')){cachedMap=o;window.spotFinderMap=o;bindMapDrag(o);return o}}}catch(e){}
   try{if(typeof spotFinderEnsureMap==='function')spotFinderEnsureMap()}catch(e){}
   try{if(typeof renderSpotFinderMap==='function')renderSpotFinderMap()}catch(e){}
-  try{const c=Function('try{return spotFinderMap}catch(e){return null}')();if(isMapObject(c)){cachedMap=c;window.spotFinderMap=c;return c}}catch(e){}
+  try{const c=Function('try{return spotFinderMap}catch(e){return null}')();if(isMapObject(c)){cachedMap=c;window.spotFinderMap=c;bindMapDrag(c);return c}}catch(e){}
   return null;
 }
 function map(){return discoverMap()}
@@ -42,27 +43,52 @@ function positionOverlay(){
   }else{ov.style.position='fixed';ov.style.left='10px';ov.style.right='10px';ov.style.width='auto';ov.style.top='72px'}
 }
 function dist(a,b){const R=6371000;const dLat=(b.lat-a.lat)*Math.PI/180;const dLon=(b.lon-a.lon)*Math.PI/180;const s1=Math.sin(dLat/2),s2=Math.sin(dLon/2);const q=s1*s1+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*s2*s2;return 2*R*Math.atan2(Math.sqrt(q),Math.sqrt(1-q))}
+function applyFollowUi(){
+  const btn=qs('#sf-nav-follow');if(!btn)return;
+  if(follow){
+    btn.textContent='Követés BE';
+    btn.title='A térkép automatikusan követi a pozíciódat és a célt.';
+    btn.style.background='linear-gradient(135deg,#1e7f3e,#2fa85b)';
+    btn.style.color='#fff';
+    btn.style.border='1px solid rgba(30,127,62,.35)';
+    btn.style.boxShadow='0 2px 8px rgba(30,127,62,.22)';
+  }else{
+    btn.textContent='Követés KI';
+    btn.title='A térkép nem mozog automatikusan. Kattints a követés visszakapcsolásához.';
+    btn.style.background='#f6f1e9';
+    btn.style.color='#6b5840';
+    btn.style.border='1px solid rgba(120,100,70,.28)';
+    btn.style.boxShadow='none';
+  }
+}
+function setFollow(v,reason){follow=!!v;applyFollowUi();debugLog('follow='+follow+(reason?' · '+reason:''));}
+function bindMapDrag(m){
+  if(!m||dragBoundMap===m||typeof m.on!=='function')return;
+  dragBoundMap=m;
+  try{m.on('dragstart zoomstart',function(){if(target&&follow)setFollow(false,'manual map move')});}catch(e){debugLog('map drag bind failed',e.message||e)}
+}
 function ensureStyle(){
-  if(qs('#sf-nav-style-v19'))return;
-  const st=document.createElement('style');st.id='sf-nav-style-v19';
-  st.textContent='.sf-target-pin{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#2c6e7a;color:#fff;font-size:20px;font-weight:900;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.35);position:relative}.sf-target-pin:after{content:"";position:absolute;width:44px;height:44px;border-radius:50%;border:2px solid rgba(44,110,122,.35);animation:sfPulse 1.4s infinite}@keyframes sfPulse{0%{transform:scale(.8);opacity:1}100%{transform:scale(1.45);opacity:0}}.kp-nav-btn-active{background:linear-gradient(135deg,#1e7f3e,#2fa85b)!important;color:#fff!important}#sf-nav-overlay .sf-nav-box{background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-radius:14px;padding:8px 10px;box-shadow:0 4px 14px rgba(0,0,0,.18);border:1px solid rgba(44,110,122,.24);box-sizing:border-box}#sf-nav-overlay .sf-nav-row{display:flex;justify-content:space-between;gap:8px;align-items:center}#sf-nav-overlay .sf-nav-title{font-weight:800;font-size:13px;color:#2a2018;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:350px}#sf-nav-overlay .sf-nav-dist{font-size:12px;color:#6b5840;line-height:1.15;margin-top:2px}#sf-nav-overlay button{border:0;border-radius:10px;padding:7px 10px;font-weight:800;font-size:12px;min-height:34px}#sf-nav-follow{background:#2c6e7a;color:#fff}#sf-nav-stop{background:#efe7dc;color:#2a2018}@media(max-width:720px){#sf-nav-overlay{left:10px!important;right:10px!important;width:auto!important;top:72px!important}#sf-nav-overlay .sf-nav-title{max-width:calc(100vw - 190px)}}';
+  if(qs('#sf-nav-style-v20'))return;
+  const st=document.createElement('style');st.id='sf-nav-style-v20';
+  st.textContent='.sf-target-pin{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#2c6e7a;color:#fff;font-size:20px;font-weight:900;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.35);position:relative}.sf-target-pin:after{content:"";position:absolute;width:44px;height:44px;border-radius:50%;border:2px solid rgba(44,110,122,.35);animation:sfPulse 1.4s infinite}@keyframes sfPulse{0%{transform:scale(.8);opacity:1}100%{transform:scale(1.45);opacity:0}}.kp-nav-btn-active{background:linear-gradient(135deg,#1e7f3e,#2fa85b)!important;color:#fff!important}#sf-nav-overlay .sf-nav-box{background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-radius:14px;padding:8px 10px;box-shadow:0 4px 14px rgba(0,0,0,.18);border:1px solid rgba(44,110,122,.24);box-sizing:border-box}#sf-nav-overlay .sf-nav-row{display:flex;justify-content:space-between;gap:8px;align-items:center}#sf-nav-overlay .sf-nav-title{font-weight:800;font-size:13px;color:#2a2018;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:350px}#sf-nav-overlay .sf-nav-dist{font-size:12px;color:#6b5840;line-height:1.15;margin-top:2px}#sf-nav-overlay button{border-radius:10px;padding:7px 10px;font-weight:800;font-size:12px;min-height:34px;transition:background .15s,color .15s,border .15s,box-shadow .15s}#sf-nav-stop{background:#efe7dc;color:#2a2018;border:1px solid rgba(120,100,70,.18)}@media(max-width:720px){#sf-nav-overlay{left:10px!important;right:10px!important;width:auto!important;top:72px!important}#sf-nav-overlay .sf-nav-title{max-width:calc(100vw - 205px)}#sf-nav-overlay button{padding:7px 8px;font-size:11px}}';
   document.head.appendChild(st);
 }
 function targetIcon(){ensureStyle();return L.divIcon({className:'',html:'<div class="sf-target-pin">🎯</div>',iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-18]})}
 function ensureUi(){
   ensureStyle();
-  if(qs('#sf-nav-overlay')){positionOverlay();return}
+  if(qs('#sf-nav-overlay')){positionOverlay();applyFollowUi();return}
   const wrap=document.createElement('div');wrap.id='sf-nav-overlay';wrap.style.cssText='position:fixed;z-index:99999;display:none;box-sizing:border-box';
-  wrap.innerHTML='<div class="sf-nav-box"><div class="sf-nav-row"><div style="min-width:0"><div id="sf-nav-name" class="sf-nav-title">🎯 Visszatalálás aktív</div><div id="sf-nav-dist" class="sf-nav-dist">📡 Indítás…</div></div><div style="display:flex;gap:6px;flex-shrink:0"><button id="sf-nav-follow">Kövess</button><button id="sf-nav-stop">Leállítás</button></div></div></div>';
+  wrap.innerHTML='<div class="sf-nav-box"><div class="sf-nav-row"><div style="min-width:0"><div id="sf-nav-name" class="sf-nav-title">🎯 Visszatalálás aktív</div><div id="sf-nav-dist" class="sf-nav-dist">📡 Indítás…</div></div><div style="display:flex;gap:6px;flex-shrink:0"><button id="sf-nav-follow">Követés BE</button><button id="sf-nav-stop">Leállítás</button></div></div></div>';
   document.body.appendChild(wrap);
-  qs('#sf-nav-follow').onclick=function(){follow=true;update();toast('📍 Visszatalálás követés aktív.')};
+  qs('#sf-nav-follow').onclick=function(){setFollow(!follow,'button toggle');if(follow)update();toast(follow?'📍 Követés bekapcsolva.':'📍 Követés kikapcsolva.')};
   qs('#sf-nav-stop').onclick=stop;
+  applyFollowUi();
   positionOverlay();
 }
-function showStatus(name,msg){ensureUi();positionOverlay();const ov=qs('#sf-nav-overlay');if(ov)ov.style.display='block';const n=qs('#sf-nav-name');if(n)n.textContent='🎯 '+(name||'Visszatalálás aktív');const d=qs('#sf-nav-dist');if(d)d.textContent=msg||'📡 GPS keresése…'}
+function showStatus(name,msg){ensureUi();positionOverlay();const ov=qs('#sf-nav-overlay');if(ov)ov.style.display='block';const n=qs('#sf-nav-name');if(n)n.textContent='🎯 '+(name||'Visszatalálás aktív');const d=qs('#sf-nav-dist');if(d)d.textContent=msg||'📡 GPS keresése…';applyFollowUi()}
 function current(){if(lastPos)return lastPos;const la=Number(window._gpsLat||window.lat);const lo=Number(window._gpsLon||window.lon);if(Number.isFinite(la)&&Number.isFinite(lo))return {lat:la,lon:lo};return null}
 function startGps(){if(gpsWatch)return;if(!navigator.geolocation){showStatus(target&&target.name,'⚠️ A böngésző nem engedi a GPS-t.');toast('⚠️ GPS nem elérhető ebben a böngészőben.');return}showStatus(target&&target.name,'📡 GPS pozíció keresése…');gpsWatch=navigator.geolocation.watchPosition(function(p){lastPos={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy||0};window._gpsLat=lastPos.lat;window._gpsLon=lastPos.lon;update()},function(err){showStatus(target&&target.name,'⚠️ GPS hiba: '+err.message);toast('GPS hiba: '+err.message)},{enableHighAccuracy:true,maximumAge:2000,timeout:15000})}
-function setButtonActive(btn){if(lastButton&&lastButton!==btn){lastButton.classList.remove('kp-nav-btn-active');lastButton.textContent='📍 Visszatalálás'}lastButton=btn;if(btn){btn.classList.add('kp-nav-btn-active');btn.textContent='✅ Visszatalálás aktív'}}
+function setButtonActive(btn){if(lastButton&&lastButton!==btn){lastButton.classList.remove('kp-nav-btn-active');lastButton.textContent='📍 Visszatalálás'}lastButton=btn;if(btn){btn.classList.add('kp-nav-btn-active');if(btn.id==='sf-btn-nav'){btn.title='Visszatalálás aktív'}else{btn.textContent='✅ Visszatalálás aktív'}}}
 function setTarget(s,btn){
   showStatus(s&&s.name,'📡 Visszatalálás indítása…');setButtonActive(btn);
   if(!s){showStatus('Visszatalálás','⚠️ A mentett hely nem található.');toast('⚠️ A mentett hely nem található.');return}
@@ -74,15 +100,35 @@ function setTarget(s,btn){
   if(marker){try{marker.remove()}catch(e){}}
   marker=L.marker([target.lat,target.lon],{zIndexOffset:1500,icon:targetIcon()}).addTo(m);marker.bindPopup('🎯 '+target.name).openPopup();
   if(line){try{line.remove()}catch(e){}}
-  follow=true;showStatus(target.name,'📡 GPS pozíció keresése…');startGps();update();toast('📍 Visszatalálás elindítva.');
+  setFollow(true,'new target');showStatus(target.name,'📡 GPS pozíció keresése…');startGps();update();toast('📍 Visszatalálás elindítva.');
 }
 function update(){if(!target||!window.L)return;positionOverlay();const m=map();if(!m)return;const me=current();if(!me){showStatus(target.name,'📡 GPS pozíció keresése…');return}const di=dist(me,target);showStatus(target.name,'📏 '+fmt(di)+(me.acc?' · ±'+Math.round(me.acc)+' m':'')+(di<15?' · ✅ Megérkeztél':''));if(line){try{line.remove()}catch(e){}}line=L.polyline([[me.lat,me.lon],[target.lat,target.lon]],{weight:4,opacity:.82}).addTo(m);if(follow){const b=L.latLngBounds([[me.lat,me.lon],[target.lat,target.lon]]);m.fitBounds(b,{padding:[60,60],maxZoom:17})}}
-function stop(){target=null;if(line){try{line.remove()}catch(e){} line=null}if(marker){try{marker.remove()}catch(e){} marker=null}const ov=qs('#sf-nav-overlay');if(ov)ov.style.display='none';if(lastButton){lastButton.classList.remove('kp-nav-btn-active');lastButton.textContent='📍 Visszatalálás';lastButton=null}if(gpsWatch){try{navigator.geolocation.clearWatch(gpsWatch)}catch(e){} gpsWatch=null}toast('🛑 Visszatalálás leállítva.')}
-window.kpSpotNavigateTo=setTarget;window.kpSpotStopNavigation=stop;
+function stop(){target=null;if(line){try{line.remove()}catch(e){} line=null}if(marker){try{marker.remove()}catch(e){} marker=null}const ov=qs('#sf-nav-overlay');if(ov)ov.style.display='none';if(lastButton){lastButton.classList.remove('kp-nav-btn-active');if(lastButton.id==='sf-btn-nav'){lastButton.title='Visszatalálás a kijelölt helyhez'}else{lastButton.textContent='📍 Visszatalálás'}lastButton=null}if(gpsWatch){try{navigator.geolocation.clearWatch(gpsWatch)}catch(e){} gpsWatch=null}setFollow(true,'stop reset');toast('🛑 Visszatalálás leállítva.')}
 function cleanupDupes(row){const btns=qsa('.kp-nav-btn',row);btns.forEach((b,i)=>{if(i>0)b.remove()});const all=qsa('button',row).filter(b=>(b.textContent||'').toLowerCase().includes('visszatalálás'));all.forEach((b,i)=>{if(i>0)b.remove()})}
 function attachButtons(){ensureStyle();const db=(typeof getDB==='function'?getDB():{});const spots=(db.scoutSpots||[]);qsa('.spot-card,.card,.list-card,.item-list-card').forEach(function(row){const txt=(row.textContent||'').trim();const spot=spots.find(s=>s&&s.name&&txt.includes(String(s.name).trim()));if(!spot)return;cleanupDupes(row);if(row.querySelector('.kp-nav-btn'))return;const nav=document.createElement('button');nav.type='button';nav.className='kp-nav-btn';nav.textContent='📍 Visszatalálás';nav.style.cssText='margin-top:8px;width:100%;border:0;border-radius:12px;padding:11px 12px;font-weight:800;background:linear-gradient(135deg,#2c6e7a,#3a8a99);color:#fff';nav.onclick=function(){setTarget(spot,nav)};const actions=row.querySelector('.spot-card-actions,.spot-actions,.actions,.btn-row');if(actions&&actions.parentNode===row)actions.insertAdjacentElement('afterend',nav); else row.appendChild(nav);cleanupDupes(row)})}
-const oldList=window.renderSpotFinderList;if(typeof oldList==='function'&&!oldList.KP_SPOT_NAV_V19_WRAPPED){window.renderSpotFinderList=function(){const r=oldList.apply(this,arguments);setTimeout(attachButtons,160);setTimeout(attachButtons,900);return r};window.renderSpotFinderList.KP_SPOT_NAV_V19_WRAPPED=true}
+window.kpSpotNavigateTo=setTarget;window.kpSpotStopNavigation=stop;
+window.kpSpotNavDebug=function(){
+  const m=map();
+  const state={
+    module:'kp-mod-spotfinder-nav.js v2.0',
+    leafletLoaded:!!window.L,
+    mapFound:!!m,
+    mapHasFitBounds:!!(m&&typeof m.fitBounds==='function'),
+    overlayFound:!!qs('#sf-nav-overlay'),
+    mapButtonFound:!!qs('#sf-btn-nav'),
+    gpsSupported:!!navigator.geolocation,
+    targetActive:!!target,
+    follow:follow,
+    gpsWatchActive:gpsWatch!=null,
+    lastPosition:!!lastPos,
+    publicStartFunction:typeof window.kpSpotNavigateTo,
+    publicStopFunction:typeof window.kpSpotStopNavigation
+  };
+  try{console.table(state)}catch(e){console.log('[spot-nav debug]',state)}
+  return state;
+};
+const oldList=window.renderSpotFinderList;if(typeof oldList==='function'&&!oldList.KP_SPOT_NAV_V20_WRAPPED){window.renderSpotFinderList=function(){const r=oldList.apply(this,arguments);setTimeout(attachButtons,160);setTimeout(attachButtons,900);return r};window.renderSpotFinderList.KP_SPOT_NAV_V20_WRAPPED=true}
 window.addEventListener('resize',positionOverlay);window.addEventListener('scroll',positionOverlay,true);
-setInterval(update,3000);setInterval(attachButtons,1500);setInterval(positionOverlay,1000);setTimeout(attachButtons,500);setTimeout(attachButtons,1800);
-console.log('[spot-nav] v1.9 teljes modul aktív');
+setInterval(update,3000);setInterval(attachButtons,1500);setInterval(positionOverlay,1000);setTimeout(attachButtons,500);setTimeout(attachButtons,1800);setTimeout(()=>{debugLog('self-check',window.kpSpotNavDebug())},2200);
+console.log('[spot-nav] v2.0 teljes modul aktív · follow state + debug');
 })();
