@@ -1,13 +1,13 @@
-/* kp-mod-mobile-modal-scroll-fix.js — gyors fogás űrlap belső görgetés javítás
- * v1.2 · Nem méretezi át a panelt agresszíven; a tényleges űrlap-konténert teszi görgethetővé.
+/* kp-mod-mobile-modal-scroll-fix.js — gyors fogás űrlap alsó gomb elérhetőség javítás
+ * v1.3 · A scroll már működik; most extra alsó kifutást és stabil viewport-magasságot ad, hogy a mentés gomb is elérhető legyen.
  * Nem nyúl mentéshez, helykeresőhöz, DB-hez.
  */
 (function(){
 'use strict';
-if(window.KP_MOBILE_MODAL_SCROLL_FIX_V12)return;
-window.KP_MOBILE_MODAL_SCROLL_FIX_V12=true;
+if(window.KP_MOBILE_MODAL_SCROLL_FIX_V13)return;
+window.KP_MOBILE_MODAL_SCROLL_FIX_V13=true;
 
-let locked=false, lockY=0, activePanel=null, activeScroll=null, lastY=null;
+let locked=false, activePanel=null, activeScroll=null, lastY=null, spacer=null;
 const FIELD_SEL='#ac-bait,#ac-method,#ac-weight,#ac-length,#ac-fish,#ac-count,#ac-photo,input[list="bait-options"],input[list="method-options"]';
 function qs(s,r=document){return r.querySelector(s)}
 function qsa(s,r=document){return Array.from(r.querySelectorAll(s))}
@@ -24,27 +24,22 @@ function goodContainerName(el){return /modal|sheet|dialog|drawer|popup|catch|fog
 function nearestPanelFromField(f){
   if(!f)return null;
   let best=null, n=f;
-  for(let i=0;n&&n!==document.body&&i<14;i++,n=n.parentElement){
+  for(let i=0;n&&n!==document.body&&i<16;i++,n=n.parentElement){
     if(!visible(n)||!containsFields(n))continue;
     const r=n.getBoundingClientRect();
     const st=getComputedStyle(n);
-    const pos=st.position;
     const controls=n.querySelectorAll('input,select,textarea,button').length;
     let score=0;
-    if(goodContainerName(n))score+=20;
-    if(pos==='fixed'||pos==='absolute')score+=18;
-    if(r.height>260)score+=10;
-    if(r.height<window.innerHeight*0.96)score+=8;
-    score+=Math.min(controls,12);
+    if(goodContainerName(n))score+=25;
+    if(st.position==='fixed'||st.position==='absolute')score+=18;
+    if(r.height>260)score+=12;
+    if(r.width>260)score+=4;
+    score+=Math.min(controls,14);
     if(!best||score>best.score)best={el:n,score};
   }
   return best&&best.el;
 }
-function findPanel(){
-  const f=field();
-  if(!f)return null;
-  return nearestPanelFromField(f);
-}
+function findPanel(){const f=field();return f?nearestPanelFromField(f):null}
 function findScrollArea(panel){
   if(!panel)return null;
   const named=['.modal-body','.modal-content','.sheet-body','.bottom-sheet-body','.drawer-body','.dialog-body','.event-form-grid','.form-grid','form'];
@@ -54,14 +49,23 @@ function findScrollArea(panel){
   }
   return panel;
 }
+function ensureSpacer(sc){
+  if(!sc)return;
+  spacer=sc.querySelector(':scope > .kp-catch-scroll-spacer');
+  if(!spacer){
+    spacer=document.createElement('div');
+    spacer.className='kp-catch-scroll-spacer';
+    spacer.setAttribute('aria-hidden','true');
+    spacer.style.cssText='height:180px;min-height:180px;flex:0 0 180px;pointer-events:none';
+    sc.appendChild(spacer);
+  }
+}
 function lockBody(){
   if(locked)return;
-  lockY=window.scrollY||document.documentElement.scrollTop||0;
   document.body.classList.add('kp-catch-scroll-lock');
   document.documentElement.classList.add('kp-catch-scroll-lock');
   document.body.style.overflow='hidden';
   document.documentElement.style.overflow='hidden';
-  document.body.style.touchAction='none';
   locked=true;
 }
 function unlockBody(){
@@ -70,31 +74,38 @@ function unlockBody(){
   document.documentElement.classList.remove('kp-catch-scroll-lock');
   document.body.style.overflow='';
   document.documentElement.style.overflow='';
-  document.body.style.touchAction='';
   if(activePanel){activePanel.classList.remove('kp-catch-panel-active');}
-  if(activeScroll){activeScroll.classList.remove('kp-catch-scroll-area');activeScroll.style.overflowY='';activeScroll.style.webkitOverflowScrolling='';activeScroll.style.overscrollBehavior='';activeScroll.style.touchAction='';activeScroll.style.maxHeight='';activeScroll.style.paddingBottom='';}
-  locked=false;activePanel=null;activeScroll=null;
+  if(activeScroll){
+    activeScroll.classList.remove('kp-catch-scroll-area');
+    activeScroll.style.overflowY='';
+    activeScroll.style.webkitOverflowScrolling='';
+    activeScroll.style.overscrollBehavior='';
+    activeScroll.style.touchAction='';
+    activeScroll.style.maxHeight='';
+    activeScroll.style.height='';
+    activeScroll.style.paddingBottom='';
+  }
+  activePanel=null;activeScroll=null;locked=false;
 }
 function activate(panel){
   if(!panel)return;
   activePanel=panel;
   activeScroll=findScrollArea(panel)||panel;
   panel.classList.add('kp-catch-panel-active');
-  const r=panel.getBoundingClientRect();
-  const max=Math.max(280,Math.min(window.innerHeight-24,r.height||window.innerHeight-24));
   activeScroll.classList.add('kp-catch-scroll-area');
+  const vh=(window.visualViewport&&window.visualViewport.height)||window.innerHeight||700;
+  const max=Math.max(320,Math.floor(vh-16));
   activeScroll.style.overflowY='auto';
   activeScroll.style.webkitOverflowScrolling='touch';
   activeScroll.style.overscrollBehavior='contain';
   activeScroll.style.touchAction='pan-y';
   activeScroll.style.maxHeight=max+'px';
-  activeScroll.style.paddingBottom='max(34px, env(safe-area-inset-bottom))';
+  activeScroll.style.height='auto';
+  activeScroll.style.paddingBottom='max(190px, calc(150px + env(safe-area-inset-bottom)))';
+  ensureSpacer(activeScroll);
   lockBody();
 }
-function update(){
-  const p=findPanel();
-  if(p&&field())activate(p); else unlockBody();
-}
+function update(){const p=findPanel();if(p&&field())activate(p);else unlockBody()}
 function canScroll(el,dy){
   if(!el)return false;
   if(el.scrollHeight<=el.clientHeight+4)return false;
@@ -113,15 +124,16 @@ document.addEventListener('touchmove',function(e){
 },{passive:false,capture:true});
 document.addEventListener('click',function(){setTimeout(update,50);setTimeout(update,250);setTimeout(update,800);},true);
 window.addEventListener('resize',function(){setTimeout(update,100)});
+if(window.visualViewport)visualViewport.addEventListener('resize',function(){setTimeout(update,80)});
 window.addEventListener('orientationchange',function(){setTimeout(update,350)});
 setInterval(update,700);
 (function style(){
   if(qs('#kp-mobile-modal-scroll-fix-css'))qs('#kp-mobile-modal-scroll-fix-css').remove();
   const st=document.createElement('style');st.id='kp-mobile-modal-scroll-fix-css';
-  st.textContent='html.kp-catch-scroll-lock,body.kp-catch-scroll-lock{overscroll-behavior:none!important}.kp-catch-panel-active{overscroll-behavior:contain!important}.kp-catch-scroll-area{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;touch-action:pan-y!important}.kp-catch-scroll-area input,.kp-catch-scroll-area textarea,.kp-catch-scroll-area select,.kp-catch-scroll-area button{touch-action:manipulation!important}';
+  st.textContent='html.kp-catch-scroll-lock,body.kp-catch-scroll-lock{overscroll-behavior:none!important}.kp-catch-panel-active{overscroll-behavior:contain!important;max-height:calc(100dvh - 8px)!important}.kp-catch-scroll-area{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;touch-action:pan-y!important;scroll-padding-bottom:190px!important}.kp-catch-scroll-area input,.kp-catch-scroll-area textarea,.kp-catch-scroll-area select,.kp-catch-scroll-area button{touch-action:manipulation!important}.kp-catch-scroll-spacer{display:block!important}';
   document.head.appendChild(st);
 })();
 setTimeout(update,500);setTimeout(update,1500);
-window.kpCatchModalScrollDebug=function(){const p=findPanel();return{field:!!field(),panel:p?(p.id||p.className||p.tagName):null,scroll:activeScroll?(activeScroll.id||activeScroll.className||activeScroll.tagName):null,locked,scrollHeight:activeScroll&&activeScroll.scrollHeight,clientHeight:activeScroll&&activeScroll.clientHeight}};
-console.log('[mobile-modal-scroll-fix] v1.2 aktív');
+window.kpCatchModalScrollDebug=function(){const p=findPanel();return{field:!!field(),panel:p?(p.id||p.className||p.tagName):null,scroll:activeScroll?(activeScroll.id||activeScroll.className||activeScroll.tagName):null,locked,scrollTop:activeScroll&&activeScroll.scrollTop,scrollHeight:activeScroll&&activeScroll.scrollHeight,clientHeight:activeScroll&&activeScroll.clientHeight}};
+console.log('[mobile-modal-scroll-fix] v1.3 aktív');
 })();
