@@ -1,17 +1,19 @@
 /* kp-mod-catch-bait-combo.js — Gyors fogás csali kombináció választó
- * v1.0 · Csak a #ac-bait mezőhöz ad kombináció gombot/chipeket.
+ * v1.1 · Scroll pozíció megtartása: a csali lista nem ugrik vissza felülre görgetés/kijelölés közben.
  * Nem módosít menüket, backupot, helykeresőt, mentési logikát; mentés előtt az input értékét állítja be.
  */
 (function(){
 'use strict';
-if(window.KP_CATCH_BAIT_COMBO_V1)return;
-window.KP_CATCH_BAIT_COMBO_V1=true;
+if(window.KP_CATCH_BAIT_COMBO_V11)return;
+window.KP_CATCH_BAIT_COMBO_V11=true;
 
 const DEFAULTS=['Gumikukorica','Tigrismogyoró','Kukorica','Csonti','Pinki','Giliszta','Wafter','Pop up','Pellet','Method mix','Aqua Garant 2,5 mm'];
 let enabled=false;
 let selected=[];
 let lastComboText='';
 let lastComboArr=[];
+let lastListScrollTop=0;
+let lastRenderKey='';
 
 function qs(s,r=document){return r.querySelector(s)}
 function qsa(s,r=document){return Array.from(r.querySelectorAll(s))}
@@ -41,11 +43,20 @@ function syncInput(){
   lastComboText=t;
   lastComboArr=selected.slice();
 }
+function rememberScroll(){
+  const list=qs('#kp-bait-combo-list');
+  if(list)lastListScrollTop=list.scrollTop||0;
+}
+function restoreScroll(){
+  const list=qs('#kp-bait-combo-list');
+  if(list){list.scrollTop=lastListScrollTop||0;setTimeout(()=>{try{list.scrollTop=lastListScrollTop||0}catch(e){}},0);}
+}
 function toggleItem(name){
+  rememberScroll();
   name=norm(name);if(!name)return;
   const ix=selected.findIndex(x=>x.toLowerCase()===name.toLowerCase());
   if(ix>=0)selected.splice(ix,1); else selected.push(name);
-  render();syncInput();
+  render(true);syncInput();restoreScroll();
 }
 function seedFromInput(){
   const input=baitInput();
@@ -55,7 +66,19 @@ function seedFromInput(){
   if(v.includes('+'))selected=v.split('+').map(norm).filter(Boolean);
   else if(!selected.length)selected=[v];
 }
-function render(){
+function updateSummaryOnly(host){
+  const sum=qs('#kp-bait-combo-summary',host);
+  if(sum)sum.textContent=enabled&&selected.length?comboText():'';
+  qsa('.kp-bait-chip',host).forEach(b=>{
+    const n=b.getAttribute('data-bait')||'';
+    const on=selected.some(x=>x.toLowerCase()===n.toLowerCase());
+    b.classList.toggle('on',on);
+    b.style.border='1px solid '+(on?'rgba(74,124,89,.35)':'var(--border)');
+    b.style.background=on?'var(--moss-bg)':'var(--card)';
+    b.style.color=on?'var(--moss)':'var(--text2)';
+  });
+}
+function render(force){
   const input=baitInput();if(!input)return;
   let host=qs('#kp-bait-combo-host');
   if(!host){
@@ -63,24 +86,39 @@ function render(){
     host.id='kp-bait-combo-host';
     host.style.cssText='margin-top:8px;margin-bottom:10px';
     input.insertAdjacentElement('afterend',host);
+    force=true;
   }
   const names=baitNames();
+  const key=JSON.stringify({enabled,names,selected});
+  if(!force&&host.dataset.ready==='1'&&lastRenderKey===key){return;}
+  const oldList=qs('#kp-bait-combo-list',host);
+  if(oldList)lastListScrollTop=oldList.scrollTop||lastListScrollTop||0;
+  if(!force&&host.dataset.ready==='1'&&enabled&&qs('#kp-bait-combo-list',host)){
+    updateSummaryOnly(host);
+    lastRenderKey=key;
+    return;
+  }
   host.innerHTML=`
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:${enabled?'8px':'0'}">
       <button type="button" id="kp-bait-combo-toggle" class="kp-bait-combo-toggle ${enabled?'on':''}" style="border:1px solid ${enabled?'rgba(44,110,122,.35)':'var(--border2)'};background:${enabled?'linear-gradient(135deg,var(--water),var(--water2))':'var(--card2)'};color:${enabled?'#fff':'var(--text2)'};border-radius:999px;padding:8px 13px;font-weight:800;font-size:13px;display:inline-flex;gap:6px;align-items:center">
         <span>＋</span><span>Kombináció</span>
       </button>
       ${enabled?`<button type="button" id="kp-bait-combo-clear" style="border:1px solid var(--border);background:var(--card);color:var(--text3);border-radius:999px;padding:8px 11px;font-weight:700;font-size:12px">Törlés</button>`:''}
-      ${enabled&&selected.length?`<span style="font-size:12px;color:var(--text3);font-weight:700">${esc(comboText())}</span>`:''}
+      <span id="kp-bait-combo-summary" style="font-size:12px;color:var(--text3);font-weight:700">${enabled&&selected.length?esc(comboText()):''}</span>
     </div>
-    ${enabled?`<div id="kp-bait-combo-list" style="display:flex;gap:7px;flex-wrap:wrap;max-height:146px;overflow:auto;-webkit-overflow-scrolling:touch;padding:2px 2px 8px 2px">
+    ${enabled?`<div id="kp-bait-combo-list" style="display:flex;gap:7px;flex-wrap:wrap;max-height:146px;overflow:auto;-webkit-overflow-scrolling:touch;padding:2px 2px 8px 2px;overscroll-behavior:contain">
       ${names.map(n=>{const on=selected.some(x=>x.toLowerCase()===n.toLowerCase());return `<button type="button" data-bait="${esc(n)}" class="kp-bait-chip ${on?'on':''}" style="border:1px solid ${on?'rgba(74,124,89,.35)':'var(--border)'};background:${on?'var(--moss-bg)':'var(--card)'};color:${on?'var(--moss)':'var(--text2)'};border-radius:999px;padding:8px 11px;font-size:13px;font-weight:800">${esc(n)}</button>`}).join('')}
     </div>`:''}`;
+  host.dataset.ready='1';
+  lastRenderKey=key;
   const toggle=qs('#kp-bait-combo-toggle',host);
-  if(toggle)toggle.onclick=function(){enabled=!enabled;if(enabled)seedFromInput();render();syncInput();};
+  if(toggle)toggle.onclick=function(){rememberScroll();enabled=!enabled;if(enabled)seedFromInput();else lastListScrollTop=0;render(true);syncInput();restoreScroll();};
   const clear=qs('#kp-bait-combo-clear',host);
-  if(clear)clear.onclick=function(){selected=[];lastComboText='';lastComboArr=[];if(input)input.value='';render();};
+  if(clear)clear.onclick=function(){rememberScroll();selected=[];lastComboText='';lastComboArr=[];if(input)input.value='';render(true);restoreScroll();};
+  const list=qs('#kp-bait-combo-list',host);
+  if(list){list.addEventListener('scroll',function(){lastListScrollTop=this.scrollTop||0},{passive:true});}
   qsa('.kp-bait-chip',host).forEach(b=>b.onclick=function(){toggleItem(this.getAttribute('data-bait'))});
+  restoreScroll();
 }
 function beforeSave(){
   if(enabled)syncInput();
@@ -106,7 +144,7 @@ function wrapSaveDB(){
   window.saveDB=nw;
 }
 function boot(){
-  if(hasQuickCatch())render();
+  if(hasQuickCatch())render(false);
   wrapSaveDB();
 }
 document.addEventListener('click',function(e){
@@ -115,7 +153,7 @@ document.addEventListener('click',function(e){
   setTimeout(boot,80);setTimeout(boot,400);
 },true);
 document.addEventListener('input',function(e){if(e.target&&e.target.id==='ac-bait'&&!enabled){lastComboText='';lastComboArr=[];}},true);
-setInterval(boot,900);
+setInterval(boot,1500);
 setTimeout(boot,500);setTimeout(boot,1500);
-console.log('[bait-combo] v1.0 aktív');
+console.log('[bait-combo] v1.1 aktív · scroll megtartás');
 })();
