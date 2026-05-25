@@ -25,4 +25,36 @@
 .v18-im-status.warn{background:rgba(184,132,46,.13);border:1px solid rgba(184,132,46,.25);color:var(--v1-leaf-gold,#b8842e)}
 .v18-im-status.err{background:rgba(168,90,43,.12);border:1px solid rgba(168,90,43,.25);color:var(--v1-leaf-rust,#a85a2b)}
 .v18-managed-img{width:100%;height:100%;object-fit:cover;display:block}
+/* V18.6 hotfix: csali/felszerelés kártyákban a menedzselt kép soha ne nőjön hero méretre */
+#page-baits .item-list-card img.v18-managed-img,
+#page-baits .bait-card img.v18-managed-img,
+#page-gear .item-list-card img.v18-managed-img,
+#page-gear .gear-card img.v18-managed-img,
+img.photo-preview-small.v18-managed-img{
+  width:64px!important;
+  height:64px!important;
+  max-width:64px!important;
+  max-height:64px!important;
+  min-width:64px!important;
+  min-height:64px!important;
+  object-fit:cover!important;
+  border-radius:12px!important;
+  display:block!important;
+  flex:0 0 64px!important;
+}
+#page-baits .item-icon img.v18-managed-img,
+#page-baits .card-icon img.v18-managed-img,
+#page-gear .item-icon img.v18-managed-img,
+#page-gear .card-icon img.v18-managed-img{
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  object-fit:cover!important;
+  border-radius:inherit!important;
+}
+#page-baits .item-list-card:has(img.v18-managed-img),
+#page-gear .item-list-card:has(img.v18-managed-img){overflow:hidden!important;}
 @media(max-width:980px){.v18-im-grid{grid-template-columns:1fr}.v18-im-preview{grid-template-columns:1fr}.v18-im-actions{display:grid;grid-template-columns:1fr}.v18-im-btn{width:100%}.v18-preview-img{height:180px}}
