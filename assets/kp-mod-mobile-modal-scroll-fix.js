@@ -1,14 +1,16 @@
 /* kp-mod-mobile-modal-scroll-fix.js — gyors fogás űrlap alsó gomb elérhetőség javítás
- * v1.3 · A scroll már működik; most extra alsó kifutást és stabil viewport-magasságot ad, hogy a mentés gomb is elérhető legyen.
+ * v1.4 · Fontos szűkítés: csak a gyors fogás űrlapra aktiválódik, csali hozzáadásnál nem zárja le a scrollt.
  * Nem nyúl mentéshez, helykeresőhöz, DB-hez.
  */
 (function(){
 'use strict';
-if(window.KP_MOBILE_MODAL_SCROLL_FIX_V13)return;
-window.KP_MOBILE_MODAL_SCROLL_FIX_V13=true;
+if(window.KP_MOBILE_MODAL_SCROLL_FIX_V14)return;
+window.KP_MOBILE_MODAL_SCROLL_FIX_V14=true;
 
 let locked=false, activePanel=null, activeScroll=null, lastY=null, spacer=null;
-const FIELD_SEL='#ac-bait,#ac-method,#ac-weight,#ac-length,#ac-fish,#ac-count,#ac-photo,input[list="bait-options"],input[list="method-options"]';
+const FIELD_SEL='#ac-bait,#ac-method,#ac-weight,#ac-length,#ac-fish,#ac-count,#ac-photo';
+const REQUIRED_SEL='#ac-bait';
+const SECONDARY_SEL='#ac-method,#ac-weight,#ac-length,#ac-fish,#ac-count,#ac-photo';
 function qs(s,r=document){return r.querySelector(s)}
 function qsa(s,r=document){return Array.from(r.querySelectorAll(s))}
 function visible(el){
@@ -18,8 +20,13 @@ function visible(el){
   const r=el.getBoundingClientRect();
   return r.width>35&&r.height>35;
 }
-function field(){return qsa(FIELD_SEL).find(visible)||null}
-function containsFields(el){return !!(el&&qs(FIELD_SEL,el))}
+function quickCatchActive(){
+  const main=qs(REQUIRED_SEL);
+  if(!visible(main))return false;
+  return qsa(SECONDARY_SEL).some(visible);
+}
+function field(){return quickCatchActive()?qs(REQUIRED_SEL):null}
+function containsFields(el){return !!(el&&qs(REQUIRED_SEL,el)&&qs(SECONDARY_SEL,el))}
 function goodContainerName(el){return /modal|sheet|dialog|drawer|popup|catch|fog|active|form|panel|content|body/i.test((el.id||'')+' '+(el.className||''))}
 function nearestPanelFromField(f){
   if(!f)return null;
@@ -134,6 +141,6 @@ setInterval(update,700);
   document.head.appendChild(st);
 })();
 setTimeout(update,500);setTimeout(update,1500);
-window.kpCatchModalScrollDebug=function(){const p=findPanel();return{field:!!field(),panel:p?(p.id||p.className||p.tagName):null,scroll:activeScroll?(activeScroll.id||activeScroll.className||activeScroll.tagName):null,locked,scrollTop:activeScroll&&activeScroll.scrollTop,scrollHeight:activeScroll&&activeScroll.scrollHeight,clientHeight:activeScroll&&activeScroll.clientHeight}};
-console.log('[mobile-modal-scroll-fix] v1.3 aktív');
+window.kpCatchModalScrollDebug=function(){const p=findPanel();return{quickCatchActive:quickCatchActive(),field:!!field(),panel:p?(p.id||p.className||p.tagName):null,scroll:activeScroll?(activeScroll.id||activeScroll.className||activeScroll.tagName):null,locked,scrollTop:activeScroll&&activeScroll.scrollTop,scrollHeight:activeScroll&&activeScroll.scrollHeight,clientHeight:activeScroll&&activeScroll.clientHeight}};
+console.log('[mobile-modal-scroll-fix] v1.4 aktív · csak gyors fogásra');
 })();
