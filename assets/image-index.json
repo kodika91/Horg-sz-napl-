@@ -21,7 +21,8 @@
     "kukorica": "assets/bait/bait/kukorica.png",
     "pinki": "assets/bait/bait/pinki.png",
     "pop_up_bojli": "assets/bait/bait/pop_up_bojli.png",
-    "wafter": "assets/bait/bait/wafter.png"
+    "wafter": "assets/bait/bait/wafter.png",
+    "gumikukorica": "assets/bait/bait/gumikukorica.png"
   },
   "places": {},
   "meta": {
@@ -99,7 +100,12 @@
       "subcategory": "bait",
       "subcategoryLabel": "Csali",
       "updatedAt": "2026-05-22T09:59:57.407Z"
+    },
+    "bait:gumikukorica": {
+      "subcategory": "bait",
+      "subcategoryLabel": "Csali",
+      "updatedAt": "2026-05-25T13:36:41.958Z"
     }
   },
-  "updatedAt": "2026-05-22T09:59:57.407Z"
+  "updatedAt": "2026-05-25T13:36:41.958Z"
 }
