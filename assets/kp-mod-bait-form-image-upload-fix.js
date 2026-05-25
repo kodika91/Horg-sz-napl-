@@ -1,11 +1,10 @@
 /* kp-mod-bait-form-image-upload-fix.js — Csali hozzáadás kép méret + GitHub feltöltés
- * v1.0 · Csak Csalik oldal / új-szerkesztett csali űrlap képkezelés.
- * Cél: előnézet 64×64 méretben, mentéskor GitHub image-index frissítés, hogy ne tűnjön el.
+ * v1.1 · Fontos javítás: nem méretezi át általánosan az appon keresztül feltöltött képeket, csak a Csalik oldali csali képeket.
  */
 (function(){
 'use strict';
-if(window.KP_BAIT_FORM_IMAGE_UPLOAD_FIX_V1)return;
-window.KP_BAIT_FORM_IMAGE_UPLOAD_FIX_V1=true;
+if(window.KP_BAIT_FORM_IMAGE_UPLOAD_FIX_V11)return;
+window.KP_BAIT_FORM_IMAGE_UPLOAD_FIX_V11=true;
 
 const CFG={repo:'kodika91/Horg-sz-napl-',branch:'main',indexPath:'assets/image-index.json',folder:'assets/bait/bait',tokenKey:'v18_github_token'};
 let pickedFile=null,pickedDataUrl='',pickedAt=0;
@@ -38,11 +37,27 @@ function findName(panel){
   const first=candidates.find(i=>String(i.value||'').trim());
   return first?String(first.value).trim():'';
 }
-function markThumbs(root=document){
-  qsa('img.photo-preview-small,img.v18-managed-img,#page-baits .item-list-card img,#page-baits .bait-card img',root).forEach(img=>{
-    img.style.width='64px';img.style.height='64px';img.style.maxWidth='64px';img.style.maxHeight='64px';img.style.minWidth='64px';img.style.minHeight='64px';
-    img.style.objectFit='cover';img.style.borderRadius='12px';img.style.display='block';img.style.flex='0 0 64px';
+function clearBadInlineOutsideBaits(){
+  qsa('img.v18-managed-img').forEach(img=>{
+    if(img.closest('#page-baits'))return;
+    ['width','height','maxWidth','maxHeight','minWidth','minHeight','flex','borderRadius'].forEach(p=>img.style[p]='');
+    img.style.objectFit='cover';
+    img.style.display='block';
   });
+}
+function markThumbs(root=document){
+  const scope=(root&&root.closest&&root.closest('#page-baits'))||qs('#page-baits');
+  if(!scope)return;
+  qsa('.item-icon img.v18-managed-img,.card-icon img.v18-managed-img,.bait-img-wrap img.v18-managed-img,.item-img-wrap img.v18-managed-img,img.photo-preview-small.v18-managed-img',scope).forEach(img=>{
+    const inIcon=!!img.closest('.item-icon,.card-icon,.bait-img-wrap,.item-img-wrap');
+    if(inIcon){
+      img.style.width='100%';img.style.height='100%';img.style.maxWidth='100%';img.style.maxHeight='100%';img.style.minWidth='0';img.style.minHeight='0';img.style.flex='';
+    }else{
+      img.style.width='48px';img.style.height='48px';img.style.maxWidth='48px';img.style.maxHeight='48px';img.style.minWidth='48px';img.style.minHeight='48px';img.style.flex='0 0 48px';
+    }
+    img.style.objectFit='cover';img.style.borderRadius='12px';img.style.display='block';
+  });
+  clearBadInlineOutsideBaits();
 }
 async function fileToPreparedDataUrl(file){
   const raw=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(String(fr.result));fr.onerror=rej;fr.readAsDataURL(file)});
@@ -114,5 +129,5 @@ document.addEventListener('click',function(e){
 },true);
 setInterval(markThumbs,1200);setTimeout(markThumbs,600);setTimeout(markThumbs,1600);
 window.kpBaitImageUploadDebug=function(){return{picked:!!pickedFile,hasData:!!pickedDataUrl,token:!!token(),ageSec:pickedAt?Math.round((Date.now()-pickedAt)/1000):null}};
-console.log('[bait-form-image-upload-fix] v1.0 aktív');
+console.log('[bait-form-image-upload-fix] v1.1 aktív · csak csali képeket méretez');
 })();
