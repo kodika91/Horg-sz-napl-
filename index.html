@@ -10,19 +10,19 @@
 <style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center}.box{max-width:560px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:24px;box-shadow:0 10px 35px rgba(60,40,10,.12)}.t{font-weight:800;font-size:18px;margin-bottom:8px}.s{color:#6b5840;line-height:1.5;font-size:14px}</style>
 </head>
 <body>
-<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v66.2 · mobile modal scroll fix</div></div>
+<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v66.3 · modal scroll and restore fix</div></div>
 <script>
 (async function(){
   try{
-    const appUrl='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/22233b8c04acdd3ad868a9b78ed71514c0d58365/assets/app.html?v=20260523-662-modal-scroll';
+    const appUrl='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/22233b8c04acdd3ad868a9b78ed71514c0d58365/assets/app.html?v=20260523-663-modal-restore';
     const res=await fetch(appUrl,{cache:'reload'});
     if(!res.ok) throw new Error('app.html fetch failed: '+res.status);
     let html=await res.text();
 
-    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v66.2 mobile modal scroll fix');
+    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v66.3 modal scroll and restore fix');
     html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants.\n\n\n// CSALI ADATBÁZIS');
     html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
-    html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
+    html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,forecast24Cache=[];');
     html=html.replace("let fishFilter='all',fishSearch='';","var fishFilter='all',fishSearch='';");
     html=html.replace('const HU_PROTECTED_OR_NOT_KEEPABLE_IDS=new Set(','var HU_PROTECTED_OR_NOT_KEEPABLE_IDS=new Set(');
     html=html.replace('const HU_POND_OR_DECORATIVE_IDS=new Set','var HU_POND_OR_DECORATIVE_IDS=new Set');
@@ -34,24 +34,25 @@
         var l=document.createElement('link');
         l.id='v18-image-manager-css';
         l.rel='stylesheet';
-        l.href='assets/v1-image-manager-v18.css?v=20260523-662-modal-scroll';
+        l.href='assets/v1-image-manager-v18.css?v=20260523-663-modal-restore';
         document.head.appendChild(l);
 
-        addScript('v18-image-manager-script','assets/v1-image-manager-v18.js?v=20260523-662-modal-scroll');
-        addScript('kp-v27-original','https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/94e999c02fdeb1834c317e434fe2dd5083d78080/assets/kp-v27-durable-image-archive.js?v=20260523-662-modal-scroll');
-        addScript('kp-mod-sync','assets/kp-mod-sync.js?v=20260523-662-modal-scroll');
-        addScript('kp-mod-weather','assets/kp-mod-weather.js?v=20260523-662-modal-scroll');
-        addScript('kp-mod-fish','assets/kp-mod-fish.js?v=20260523-662-modal-scroll');
-        addScript('kp-mod-ui','assets/kp-mod-ui.js?v=20260523-662-modal-scroll');
-        addScript('kp-mod-session','assets/kp-mod-session.js?v=20260523-662-modal-scroll');
-        addScript('kp-mod-spotfinder','assets/kp-mod-spotfinder.js?v=20260523-662-modal-scroll');
-        addScript('kp-mod-spotfinder-photo-backup','assets/kp-mod-spotfinder-photo-backup.js?v=20260523-662-modal-scroll');
-        addScript('kp-mod-spotfinder-nav','assets/kp-mod-spotfinder-nav.js?v=20260523-662-modal-scroll');
-        addScript('kp-mod-spotfinder-map-nav-button','assets/kp-mod-spotfinder-map-nav-button.js?v=20260523-662-modal-scroll');
-        addScript('kp-mod-spotfinder-nav-pagehide','assets/kp-mod-spotfinder-nav-pagehide.js?v=20260523-662-modal-scroll');
-        addScript('kp-mod-mobile-modal-scroll-fix','assets/kp-mod-mobile-modal-scroll-fix.js?v=20260523-662-modal-scroll');
-        addScript('kp-mod-settings-simple','assets/kp-mod-settings-simple.js?v=20260523-662-modal-scroll');
-        addScript('kp-mod-force-hide-settings','assets/kp-mod-force-hide-settings.js?v=20260523-662-modal-scroll');
+        addScript('v18-image-manager-script','assets/v1-image-manager-v18.js?v=20260523-663-modal-restore');
+        addScript('kp-v27-original','https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/94e999c02fdeb1834c317e434fe2dd5083d78080/assets/kp-v27-durable-image-archive.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-sync','assets/kp-mod-sync.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-github-restore-button-fix','assets/kp-mod-github-restore-button-fix.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-weather','assets/kp-mod-weather.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-fish','assets/kp-mod-fish.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-ui','assets/kp-mod-ui.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-session','assets/kp-mod-session.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-spotfinder','assets/kp-mod-spotfinder.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-spotfinder-photo-backup','assets/kp-mod-spotfinder-photo-backup.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-spotfinder-nav','assets/kp-mod-spotfinder-nav.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-spotfinder-map-nav-button','assets/kp-mod-spotfinder-map-nav-button.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-spotfinder-nav-pagehide','assets/kp-mod-spotfinder-nav-pagehide.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-mobile-modal-scroll-fix','assets/kp-mod-mobile-modal-scroll-fix.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-settings-simple','assets/kp-mod-settings-simple.js?v=20260523-663-modal-restore');
+        addScript('kp-mod-force-hide-settings','assets/kp-mod-force-hide-settings.js?v=20260523-663-modal-restore');
       }catch(e){console.warn('[KapásPont] modul betöltési hiba:',e);}
     },250);
   }catch(err){
