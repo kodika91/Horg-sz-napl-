@@ -23,7 +23,8 @@
     "pop_up_bojli": "assets/bait/bait/pop_up_bojli.png",
     "wafter": "assets/bait/bait/wafter.png",
     "gumikukorica": "assets/bait/bait/gumikukorica.png",
-    "tigrismogyoro": "assets/bait/bait/tigrismogyoro.png"
+    "tigrismogyoro": "assets/bait/bait/tigrismogyoro.png",
+    "kodika91": "assets/bait/bait/kodika91.jpg"
   },
   "places": {},
   "meta": {
@@ -111,7 +112,13 @@
       "subcategory": "bait",
       "subcategoryLabel": "Csali",
       "updatedAt": "2026-05-26T12:56:09.537Z"
+    },
+    "bait:kodika91": {
+      "subcategory": "bait",
+      "subcategoryLabel": "Csali",
+      "updatedAt": "2026-05-26T13:52:54.883Z"
     }
   },
-  "updatedAt": "2026-05-26T12:56:09.537Z"
+  "updatedAt": "2026-05-26T13:52:54.883Z",
+  "__sha": "3eba0ccce2de1227d84fe33fa515fdfcbed2c805"
 }
