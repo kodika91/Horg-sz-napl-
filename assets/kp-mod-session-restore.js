@@ -1,5 +1,5 @@
 // kp-mod-session-restore.js — GitHub sessions/*.json visszatöltés
-// v1.5 · delay() rate limit + mergeListFromBackup (gear/loc/scout/baits)
+// v1.6 · iOS quota fix: saveLocalDb fallback + _kpBackupCache reuse
 (function(){
 'use strict';
 if(window.KP_MOD_SESSION_RESTORE_V1)return;
@@ -23,13 +23,14 @@ function dec64(s){s=String(s||'').replace(/\n/g,'');try{return decodeURIComponen
 async function getJson(c,path){const url='https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'+apiPath(path)+'?ref='+encodeURIComponent(c.branch)+'&t='+Date.now();const data=await req(c,url);let txt;if(data&&data.sha&&(data.encoding==='none'||data.content==='')){const blobUrl='https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/git/blobs/'+data.sha;const blob=await req(c,blobUrl);txt=dec64(blob&&blob.content||'')}else{txt=dec64(data&&data.content||'')}await delay(300);if(!txt||!txt.trim())return null;return JSON.parse(txt)}
 async function listSessionFiles(c){const p=rootPath(c,'sessions');const url='https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'+apiPath(p)+'?ref='+encodeURIComponent(c.branch)+'&t='+Date.now();const data=await req(c,url);return Array.isArray(data)?data.filter(x=>x&&x.type==='file'&&/\.json$/i.test(x.name||'')).map(x=>x.path).sort():[]}
 async function loadLatestFullBackup(c){
+  if(window._kpBackupCache&&typeof window._kpBackupCache.data==='object'&&Date.now()-window._kpBackupCache.ts<60000){return window._kpBackupCache.data}
   const paths=[];
   try{const man=await getJson(c,rootPath(c,'manifest.json'));if(man){[man.latestBackup,man.latest,man.backup].filter(Boolean).forEach(p=>{paths.push(String(p).replace(/^\/+/,''));paths.push(rootPath(c,p))})}}catch(e){console.warn('[KP session restore] manifest olvasás sikertelen:',e)}
   paths.push(rootPath(c,'latest/full_backup_latest.json'));
   const seen={};
   for(const p of paths){
     if(!p||seen[p])continue;seen[p]=1;
-    try{const d=await getJson(c,p);if(d&&typeof d==='object')return d}catch(e){console.warn('[KP session restore] backup kihagyva:',p,e)}
+    try{const d=await getJson(c,p);if(d&&typeof d==='object'){window._kpBackupCache={data:d,path:p,ts:Date.now()};return d}}catch(e){console.warn('[KP session restore] backup kihagyva:',p,e)}
   }
   return null;
 }
@@ -50,7 +51,7 @@ function mergeListFromBackup(db,backup,key){
 }
 function finalCatchCount(db){return arr(db&&db.sessions).reduce((a,s)=>a+arr(s&&s.catches).length+arr(s&&s.fogások).length+arr(s&&s.fogasok).length,0)}
 function localDb(){try{if(typeof getDB==='function')return getDB()}catch(e){console.warn('[KP session restore] getDB hiba:',e)}try{return JSON.parse(localStorage.getItem(MAIN_DB_KEY)||'{}')}catch(e){return {}}}
-function saveLocalDb(d){if(typeof saveDB==='function')saveDB(d);else localStorage.setItem(MAIN_DB_KEY,JSON.stringify(d||{}))}
+function saveLocalDb(d){const trySave=(obj)=>{try{if(typeof saveDB==='function')saveDB(obj);else localStorage.setItem(MAIN_DB_KEY,JSON.stringify(obj||{}));return true}catch(e){if(String(e).includes('quota')||e.name==='QuotaExceededError')return false;throw e}};if(!trySave(d)){if(!trySave({...d,fishImages:{}}))throw new Error('Tár megtelt, mentés sikertelen. Szabadíts fel helyet!');toast('Visszatöltve (halképek nélkül — tár megtelt).') }}
 function keyOf(o,p){return String((o&&typeof o==='object'&&(o.id||o.uuid||o.createdAt||o.created||(String(o.date||'')+'|'+String(o.time||'')+'|'+String(o.location||'')+'|'+String(o.bait||o.csali||'')+'|'+String(o.fish||o.hal||''))))||p+'_'+Math.random()).slice(0,240)}
 function mergeArray(a,b,p){const out=[],seen={};arr(a).forEach(x=>{const k=keyOf(x,p);seen[k]=1;out.push(x)});arr(b).forEach(x=>{const k=keyOf(x,p);if(!seen[k]){seen[k]=1;out.push(x)}});return out}
 function mergeNamedLists(localObj,remoteObj,names,prefix){const out={...(localObj||{})};names.forEach(name=>{const l=arr(localObj&&localObj[name]);const r=arr(remoteObj&&remoteObj[name]);if(!(l.length||r.length))return;if(name==='catches'||name==='fogások'||name==='fogasok')out[name]=mergeCatchArray(l,r,prefix+':'+name);else out[name]=mergeArray(l,r,prefix+':'+name)});return out}
