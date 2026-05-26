@@ -1,5 +1,5 @@
 // kp-mod-sync.js — KapásPont GitHub szinkron és visszatöltés
-// v39.8 · strip csak remote adaton; helyi mentés érintetlen
+// v39.9 · strip csak fishImages remote adatból; user fotók érintetlen
 (function(){
 'use strict';
 if(window.KP_MOD_SYNC_V39)return;
@@ -37,7 +37,7 @@ function check(c){const miss=[];['owner','repo','branch','token'].forEach(k=>{if
 function db(){try{return typeof getDB==='function'?getDB():JSON.parse(localStorage.getItem(DB_KEY)||'{}')}catch(e){return {}}}
 function saveDb(d){const json=JSON.stringify(d||{});try{localStorage.setItem(DB_KEY,json)}catch(e){if(String(e).includes('quota')||e.name==='QuotaExceededError'){throw new Error('Tár megtelt, mentés sikertelen. Szabadíts fel helyet!')}else{throw e}}try{if(typeof migrateDB==='function')migrateDB()}catch(e){}refresh();}
 function refresh(){['updateHome','renderSpotFinder','renderSessionsList','renderStorageOverview','renderActiveSessionHome','renderLocations','renderSettings'].forEach(fn=>{try{window[fn]&&window[fn]()}catch(e){}})}
-function stripRemote(obj){if(!obj||typeof obj!=='object')return obj;if(Array.isArray(obj))return obj.map(stripRemote);const out={};for(const k of Object.keys(obj)){const v=obj[k];if(typeof v==='string'&&v.startsWith('data:'))continue;out[k]=stripRemote(v)}return out}
+function stripRemote(obj){if(!obj||typeof obj!=='object')return obj;const out={...obj};if('fishImages' in out)out.fishImages={};return out}
 function counts(d){d=d||{};return{sessions:arr(d.sessions).length,locations:arr(d.locations).length,scoutSpots:arr(d.scoutSpots).length,catches:arr(d.sessions).reduce((a,s)=>a+arr(s&&s.catches).length+arr(s&&s.fogások).length+arr(s&&s.fogasok).length,0),baits:arr(d.baits).length,gear:arr(d.gear).length}}
 function meaningful(d){const c=counts(d);return c.sessions||c.locations||c.scoutSpots||c.catches||c.baits||c.gear}
 function keyOf(o,p){return String((o&&typeof o==='object'&&(o.id||o.uuid||o.createdAt||o.created||(String(o.date||'')+'|'+String(o.time||'')+'|'+String(o.location||'')+'|'+String(o.lat||'')+'|'+String(o.lon||'')+'|'+String(o.bait||o.csali||'')+'|'+String(o.fish||o.hal||''))))||p+'_'+Math.random()).slice(0,240)}

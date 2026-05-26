@@ -11,7 +11,7 @@
 <style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center}.box{max-width:560px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:24px;box-shadow:0 10px 35px rgba(60,40,10,.12)}.t{font-weight:800;font-size:18px;margin-bottom:8px}.s{color:#6b5840;line-height:1.5}</style>
 </head>
 <body>
-<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v68.5 · foto + fogás dedup fix</div></div>
+<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v68.6 · foto restore fix</div></div>
 <script>
 (async function(){
   try{
@@ -20,7 +20,7 @@
     if(!res.ok) throw new Error('app.html fetch failed: '+res.status);
     let html=await res.text();
 
-    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v68.5 foto + fogás dedup fix');
+    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v68.6 foto restore fix');
     html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants.\n\n\n// CSALI ADATBÁZIS');
     html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
     html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
@@ -40,7 +40,7 @@
 
         addScript('v18-image-manager-script','assets/v1-image-manager-v18.js?v=20260523-679-self-test');
         addScript('kp-v27-original','https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/94e999c02fdeb1834c317e434fe2dd5083d78080/assets/kp-v27-durable-image-archive.js?v=20260523-679-self-test');
-        addScript('kp-mod-sync','assets/kp-mod-sync.js?v=20260526-7');
+        addScript('kp-mod-sync','assets/kp-mod-sync.js?v=20260526-8');
         addScript('kp-mod-github-restore-button-fix','assets/kp-mod-github-restore-button-fix.js?v=20260523-679-self-test');
         addScript('kp-mod-mobile-layout-center-fix','assets/kp-mod-mobile-layout-center-fix.js?v=20260523-679-self-test');
         addScript('kp-mod-weather','assets/kp-mod-weather.js?v=20260523-679-self-test');
@@ -62,7 +62,7 @@
         addScript('kp-mod-settings-simple','assets/kp-mod-settings-simple.js?v=20260523-679-self-test');
         addScript('kp-mod-force-hide-settings','assets/kp-mod-force-hide-settings.js?v=20260523-679-self-test');
         addScript('kp-mod-sync-db-fallback-fix','assets/kp-mod-sync-db-fallback-fix.js?v=20260526-1');
-        addScript('kp-mod-session-restore','assets/kp-mod-session-restore.js?v=20260526-7');
+        addScript('kp-mod-session-restore','assets/kp-mod-session-restore.js?v=20260526-8');
         addScript('kp-mod-resize-image-fix','assets/kp-mod-resize-image-fix.js?v=20260526-1');
       }catch(e){console.warn('[KapásPont] modul betöltési hiba:',e);}
     },250);
