@@ -1,5 +1,5 @@
 // kp-mod-sync.js — KapásPont GitHub szinkron és visszatöltés
-// v39.5 · iOS quota fix: saveDb QuotaExceeded fallback + _kpBackupCache
+// v39.6 · strip base64 photos (catches/baits) before localStorage save
 (function(){
 'use strict';
 if(window.KP_MOD_SYNC_V39)return;
@@ -35,7 +35,8 @@ function cfg(){
 }
 function check(c){const miss=[];['owner','repo','branch','token'].forEach(k=>{if(!c[k])miss.push(k)});if(miss.length)throw new Error('Hiányzó GitHub beállítás: '+miss.join(', '));}
 function db(){try{return typeof getDB==='function'?getDB():JSON.parse(localStorage.getItem(DB_KEY)||'{}')}catch(e){return {}}}
-function saveDb(d){const json=JSON.stringify(d||{});try{localStorage.setItem(DB_KEY,json)}catch(e){if(String(e).includes('quota')||e.name==='QuotaExceededError'){try{localStorage.setItem(DB_KEY,JSON.stringify({...d,fishImages:{}}));toast('Visszatöltve (halképek nélkül — tár megtelt).')}catch(e2){throw new Error('Tár megtelt, mentés sikertelen. Szabadíts fel helyet!')}}else{throw e}}try{if(typeof migrateDB==='function')migrateDB()}catch(e){}refresh();}
+function stripInlinePhotos(d){if(!d||typeof d!=='object')return d;const sc=c=>{if(!c||typeof c!=='object')return c;const o={...c};if(typeof o.photo==='string'&&o.photo.startsWith('data:'))delete o.photo;return o};const ss=s=>{if(!s||typeof s!=='object')return s;return{...s,catches:arr(s.catches).map(sc),fogások:arr(s.fogások).map(sc),fogasok:arr(s.fogasok).map(sc)}};const sb=b=>{if(!b||typeof b!=='object')return b;const o={...b};if(typeof o.photo==='string'&&o.photo.startsWith('data:'))delete o.photo;return o};return{...d,sessions:arr(d.sessions).map(ss),baits:arr(d.baits).map(sb)}}
+function saveDb(d){const clean=stripInlinePhotos(d);const json=JSON.stringify(clean||{});try{localStorage.setItem(DB_KEY,json)}catch(e){if(String(e).includes('quota')||e.name==='QuotaExceededError'){try{localStorage.setItem(DB_KEY,JSON.stringify({...clean,fishImages:{}}));toast('Visszatöltve (halképek nélkül — tár megtelt).')}catch(e2){throw new Error('Tár megtelt, mentés sikertelen. Szabadíts fel helyet!')}}else{throw e}}try{if(typeof migrateDB==='function')migrateDB()}catch(e){}refresh();}
 function refresh(){['updateHome','renderSpotFinder','renderSessionsList','renderStorageOverview','renderActiveSessionHome','renderLocations','renderSettings'].forEach(fn=>{try{window[fn]&&window[fn]()}catch(e){}})}
 function counts(d){d=d||{};return{sessions:arr(d.sessions).length,locations:arr(d.locations).length,scoutSpots:arr(d.scoutSpots).length,catches:arr(d.sessions).reduce((a,s)=>a+arr(s&&s.catches).length+arr(s&&s.fogások).length+arr(s&&s.fogasok).length,0),baits:arr(d.baits).length,gear:arr(d.gear).length}}
 function meaningful(d){const c=counts(d);return c.sessions||c.locations||c.scoutSpots||c.catches||c.baits||c.gear}
