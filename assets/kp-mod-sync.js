@@ -1,5 +1,5 @@
 // kp-mod-sync.js — KapásPont GitHub szinkron és visszatöltés
-// v40.1 · quota retry: fishImages nélkül próbálés iOS limit elérésekor
+// v40.2 · saveDb: kpSlimDbForStorage hívás IDB photo strip-hez
 (function(){
 'use strict';
 if(window.KP_MOD_SYNC_V39)return;
@@ -37,11 +37,12 @@ function check(c){const miss=[];['owner','repo','branch','token'].forEach(k=>{if
 function db(){try{return typeof getDB==='function'?getDB():JSON.parse(localStorage.getItem(DB_KEY)||'{}')}catch(e){return {}}}
 function saveDb(d){
   const isQuota=e=>String(e).toLowerCase().includes('quota')||e.name==='QuotaExceededError';
+  const slim=typeof window.kpSlimDbForStorage==='function'?window.kpSlimDbForStorage(d):d;
   const trySave=obj=>{const json=JSON.stringify(obj||{});localStorage.setItem(DB_KEY,json);};
-  try{trySave(d);}
+  try{trySave(slim);}
   catch(e){
     if(isQuota(e)){
-      try{trySave({...d,fishImages:{}});console.warn('[KP sync] iOS quota: fishImages törölve mentésből');}
+      try{trySave({...slim,fishImages:{}});console.warn('[KP sync] iOS quota: fishImages törölve');}
       catch(e2){throw new Error('Tár megtelt, mentés sikertelen. Szabadíts fel helyet!');}
     }else{throw e;}
   }
