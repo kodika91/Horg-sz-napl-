@@ -22,7 +22,8 @@
     "pinki": "assets/bait/bait/pinki.png",
     "pop_up_bojli": "assets/bait/bait/pop_up_bojli.png",
     "wafter": "assets/bait/bait/wafter.png",
-    "gumikukorica": "assets/bait/bait/gumikukorica.png"
+    "gumikukorica": "assets/bait/bait/gumikukorica.png",
+    "tigrismogyoro": "assets/bait/bait/tigrismogyoro.png"
   },
   "places": {},
   "meta": {
@@ -105,7 +106,12 @@
       "subcategory": "bait",
       "subcategoryLabel": "Csali",
       "updatedAt": "2026-05-25T13:39:52.476Z"
+    },
+    "bait:tigrismogyoro": {
+      "subcategory": "bait",
+      "subcategoryLabel": "Csali",
+      "updatedAt": "2026-05-26T12:56:09.537Z"
     }
   },
-  "updatedAt": "2026-05-25T13:39:52.476Z"
+  "updatedAt": "2026-05-26T12:56:09.537Z"
 }
