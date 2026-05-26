@@ -1,12 +1,13 @@
 // kp-mod-photo-idb.js — base64 fotók IndexedDB-ben, localStorage slim
-// v1.0 · saveDB/getDB intercept; kpSlimDbForStorage export
+// v1.1 · iOS kvóta fix: fishImages/localStorage strip + meglévő DB takarítás
 (function(){
 'use strict';
-if(window.KP_MOD_PHOTO_IDB_V1)return;
-window.KP_MOD_PHOTO_IDB_V1=true;
+if(window.KP_MOD_PHOTO_IDB_V11)return;
+window.KP_MOD_PHOTO_IDB_V11=true;
 
 const IDB_NAME='kp_photos';
 const IDB_STORE='photos';
+const MAIN_DB_KEY='horgaszpro_v0230';
 let _idb=null;
 const _cache=Object.create(null);
 
@@ -26,11 +27,22 @@ function idbGetAll(){return openIdb().then(db=>new Promise((res,rej)=>{const tx=
 
 function isB64(v){return typeof v==='string'&&v.startsWith('data:image');}
 function genKey(){return 'kp_p_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);}
+function dbKey(){try{return window.DB_KEY||MAIN_DB_KEY}catch(e){return MAIN_DB_KEY}}
+function toast(m){try{typeof showToast==='function'?showToast(m):console.log(m)}catch(e){console.log(m)}}
+
+function stripHeavyStaticImages(target){
+  if(!target||typeof target!=='object')return target;
+  // A halfaj képadatbázis több MB is lehet. Ez beépített/statikus adat,
+  // ezért nem szabad a fő localStorage DB-be visszamenteni iOS-en.
+  if('fishImages' in target)target.fishImages={};
+  return target;
+}
 
 function slimDbForStorage(db){
   if(!db||typeof db!=='object')return db;
   let slim;
-  try{slim=JSON.parse(JSON.stringify(db));}catch(e){return db;}
+  try{slim=JSON.parse(JSON.stringify(db));}catch(e){return stripHeavyStaticImages(db);}
+  stripHeavyStaticImages(slim);
   const extract=(origArr,slimArr)=>{
     if(!Array.isArray(origArr)||!Array.isArray(slimArr))return;
     for(let i=0;i<origArr.length;i++){
@@ -84,9 +96,23 @@ function installIntercepts(){
   }
 }
 
-loadCache().then(()=>{installIntercepts();setTimeout(rerender,150);});
+function cleanupExistingLocalStorageDb(){
+  try{
+    const key=dbKey();
+    const raw=localStorage.getItem(key);
+    if(!raw||raw.indexOf('fishImages')<0)return;
+    const parsed=JSON.parse(raw);
+    if(!parsed||!parsed.fishImages||!Object.keys(parsed.fishImages||{}).length)return;
+    const slim=slimDbForStorage(parsed);
+    localStorage.setItem(key,JSON.stringify(slim||{}));
+    console.log('[KP photo IDB] meglévő localStorage DB slimelve: fishImages törölve');
+    toast('Telefonos tárhely javítva: a nagy halfotó-cache törölve lett a helyi DB-ből.');
+  }catch(e){console.warn('[KP photo IDB] localStorage cleanup hiba:',e);}
+}
+
+loadCache().then(()=>{installIntercepts();cleanupExistingLocalStorageDb();setTimeout(rerender,150);});
 setTimeout(installIntercepts,400);
 setTimeout(installIntercepts,1200);
-setTimeout(installIntercepts,3000);
-console.log('[KP photo IDB] modul betöltve.');
+setTimeout(()=>{installIntercepts();cleanupExistingLocalStorageDb();},3000);
+console.log('[KP photo IDB] modul betöltve, v1.1 iOS quota fix.');
 })();
