@@ -1,0 +1,13 @@
+/* kp-mod-bait-photo-fix.css — csali kép méretezés fix */
+#page-baits img.photo-preview-small {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+  object-fit: cover !important;
+  border-radius: 12px !important;
+  display: block !important;
+  flex: 0 0 48px !important;
+}
