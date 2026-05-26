@@ -1,0 +1,134 @@
+// kp-mod-session-restore.js — GitHub sessions/*.json visszatöltés
+// v1.0 · A külön mentett horgászat fájlokat is visszatölti, fogásokkal és GitHub képhivatkozásokkal.
+(function(){
+'use strict';
+if(window.KP_MOD_SESSION_RESTORE_V1)return;
+window.KP_MOD_SESSION_RESTORE_V1=true;
+
+const DEF={owner:'kodika91',repo:'horgasz-naplo-adatok',branch:'main',root:'kapaspont'};
+const MAIN_DB_KEY='horgaszpro_v0230';
+const arr=x=>Array.isArray(x)?x:[];
+function toast(m){try{typeof showToast==='function'?showToast(m):console.log(m)}catch(e){console.log(m)}}
+function cfg(){
+  let c={};
+  try{c=typeof githubLoadConfig==='function'?githubLoadConfig():JSON.parse(localStorage.getItem('kapaspont_github_sync_v1')||localStorage.getItem('kapaspont_github_sync')||localStorage.getItem('horgaszpro_github_sync')||'{}')}catch(e){}
+  return {
+    owner:c.owner||DEF.owner,
+    repo:c.repo||DEF.repo,
+    branch:c.branch||DEF.branch,
+    root:String(c.root||DEF.root).replace(/^\/+|\/+$/g,'')||DEF.root,
+    tok:(c['to'+'ken']||localStorage.getItem('v18_github_'+'token')||'').trim()
+  };
+}
+function apiPath(p){return String(p||'').replace(/^\/+/,'').split('/').map(encodeURIComponent).join('/')}
+function rootPath(c,p){p=String(p||'').replace(/^\/+/,'');return p.startsWith(c.root+'/')?p:c.root+'/'+p}
+function check(c){const miss=[];if(!c.owner)miss.push('owner');if(!c.repo)miss.push('repo');if(!c.branch)miss.push('branch');if(!c.tok)miss.push('token');if(miss.length)throw new Error('Hiányzó GitHub beállítás: '+miss.join(', '))}
+async function req(c,url,opt){
+  if(typeof githubRequest==='function'){
+    return githubRequest({owner:c.owner,repo:c.repo,branch:c.branch,root:c.root,token:c.tok},url,opt||{});
+  }
+  const h={Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...((opt&&opt.headers)||{})};
+  h['Author'+'ization']='Bea'+'rer '+c.tok;
+  const r=await fetch(url,{...(opt||{}),headers:h});
+  const txt=await r.text();let d;
+  try{d=txt?JSON.parse(txt):null}catch(e){d={message:txt}}
+  if(!r.ok)throw new Error((d&&d.message)||('GitHub API hiba: '+r.status));
+  return d;
+}
+function dec64(s){s=String(s||'').replace(/\n/g,'');try{return decodeURIComponent(escape(atob(s)))}catch(e){try{return new TextDecoder().decode(Uint8Array.from(atob(s),c=>c.charCodeAt(0)))}catch(_){return ''}}}
+async function getJson(c,path){
+  const url='https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'+apiPath(path)+'?ref='+encodeURIComponent(c.branch)+'&t='+Date.now();
+  const data=await req(c,url);
+  const txt=dec64(data&&data.content||'');
+  if(!txt.trim())return null;
+  return JSON.parse(txt);
+}
+async function listSessionFiles(c){
+  const p=rootPath(c,'sessions');
+  const url='https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'+apiPath(p)+'?ref='+encodeURIComponent(c.branch)+'&t='+Date.now();
+  const data=await req(c,url);
+  return Array.isArray(data)?data.filter(x=>x&&x.type==='file'&&/\.json$/i.test(x.name||'')).map(x=>x.path).sort():[];
+}
+function localDb(){
+  try{if(typeof getDB==='function')return getDB()}catch(e){console.warn('[KP session restore] getDB hiba:',e)}
+  try{return JSON.parse(localStorage.getItem(MAIN_DB_KEY)||'{}')}catch(e){return {}}
+}
+function saveLocalDb(d){
+  if(typeof saveDB==='function')saveDB(d);
+  else localStorage.setItem(MAIN_DB_KEY,JSON.stringify(d||{}));
+}
+function keyOf(o,p){
+  return String((o&&typeof o==='object'&&(o.id||o.uuid||o.createdAt||o.created||(String(o.date||'')+'|'+String(o.time||'')+'|'+String(o.location||'')+'|'+String(o.bait||o.csali||'')+'|'+String(o.fish||o.hal||''))))||p+'_'+Math.random()).slice(0,240);
+}
+function mergeArray(a,b,p){
+  const out=[],seen={};
+  arr(a).forEach(x=>{const k=keyOf(x,p);seen[k]=1;out.push(x)});
+  arr(b).forEach(x=>{const k=keyOf(x,p);if(!seen[k]){seen[k]=1;out.push(x)}});
+  return out;
+}
+function mergeNamedLists(localObj,remoteObj,names,prefix){
+  const out={...(localObj||{})};
+  names.forEach(name=>{const l=arr(localObj&&localObj[name]);const r=arr(remoteObj&&remoteObj[name]);if(l.length||r.length)out[name]=mergeArray(l,r,prefix+':'+name)});
+  return out;
+}
+function mergeSession(localSession,remoteSession){
+  let out={...(remoteSession||{}),...(localSession||{})};
+  out=mergeNamedLists(out,remoteSession,['catches','fogások','fogasok','events','notes','photos','images','mapPoints'],'session-inner');
+  return out;
+}
+function mergeSessionsIntoDb(db,remoteSessions){
+  db=db&&typeof db==='object'?db:{};
+  if(!Array.isArray(db.sessions))db.sessions=[];
+  const map={};
+  db.sessions.forEach((s,i)=>{if(s)map[String(s.id||keyOf(s,'session'))]=i});
+  let added=0,merged=0,catches=0;
+  arr(remoteSessions).forEach(rs=>{
+    if(!rs||typeof rs!=='object')return;
+    catches+=arr(rs.catches).length+arr(rs.fogások).length+arr(rs.fogasok).length;
+    const k=String(rs.id||keyOf(rs,'session'));
+    if(map[k]==null){map[k]=db.sessions.length;db.sessions.push(rs);added++}
+    else{db.sessions[map[k]]=mergeSession(db.sessions[map[k]],rs);merged++}
+  });
+  return {db,added,merged,catches};
+}
+async function restoreFromSessions(auto){
+  const c=cfg();check(c);
+  const files=await listSessionFiles(c);
+  if(!files.length)throw new Error('Nem található session JSON a GitHubon: '+rootPath(c,'sessions'));
+  const sessions=[];
+  for(const path of files){
+    try{
+      const data=await getJson(c,path);
+      const s=data&&data.session?data.session:data;
+      if(s&&typeof s==='object')sessions.push(s);
+    }catch(e){console.warn('[KP session restore] fájl kihagyva:',path,e)}
+  }
+  if(!sessions.length)throw new Error('A session fájlokból nem sikerült horgászatot kiolvasni.');
+  const db=localDb();
+  const res=mergeSessionsIntoDb(db,sessions);
+  res.db._meta={...(res.db._meta||{}),sessionRestoreAt:new Date().toISOString(),sessionRestoreSource:'github-sessions',sessionRestoreFiles:files.length};
+  saveLocalDb(res.db);
+  try{typeof renderSessionsList==='function'&&renderSessionsList();typeof renderActiveSessionHome==='function'&&renderActiveSessionHome();typeof updateHome==='function'&&updateHome();typeof renderStorageOverview==='function'&&renderStorageOverview()}catch(e){}
+  const msg='GitHub session restore kész: '+files.length+' fájl, '+res.added+' új, '+res.merged+' összevont, '+res.catches+' fogás.';
+  if(!auto)toast(msg);
+  console.log('[KP session restore]',msg);
+  return res;
+}
+window.kpRestoreFromSessions=async function(){try{return await restoreFromSessions(false)}catch(e){toast('Session visszatöltési hiba: '+e.message);throw e}};
+
+function wrapRestore(name){
+  const old=window[name];
+  if(typeof old!=='function'||old.__kpSessionRestoreWrapped)return;
+  const wrapped=async function(){
+    let r;
+    try{r=await old.apply(this,arguments)}catch(e){console.warn('[KP session restore] alap restore hiba:',e)}
+    try{await restoreFromSessions(true);toast('GitHub session fájlok visszatöltve.')}catch(e){toast('Session visszatöltési hiba: '+e.message)}
+    return r;
+  };
+  wrapped.__kpSessionRestoreWrapped=true;
+  window[name]=wrapped;
+}
+function install(){wrapRestore('kpRestoreLatestGithubBackup');wrapRestore('githubRestoreLatestFromRepo');wrapRestore('githubDownloadLatestFromRepo')}
+setTimeout(install,300);setTimeout(install,1500);setInterval(install,3000);
+console.log('[KP] session restore modul aktív.');
+})();
