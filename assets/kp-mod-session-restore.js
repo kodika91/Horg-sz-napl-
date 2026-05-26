@@ -1,5 +1,5 @@
 // kp-mod-session-restore.js — GitHub sessions/*.json visszatöltés
-// v1.12 · saveLocalDb quota retry fishImages nélkül
+// v1.13 · stripBase64PhotosBeforeLocalSave: base64 képek nem kerülnek localStorage-ba
 (function(){
 'use strict';
 if(window.KP_MOD_SESSION_RESTORE_V1)return;
@@ -70,17 +70,53 @@ function patchCatchPhotosFromBackup(db,backup){
 }
 function finalCatchCount(db){return arr(db&&db.sessions).reduce((a,s)=>a+arr(s&&s.catches).length+arr(s&&s.fogások).length+arr(s&&s.fogasok).length,0)}
 function localDb(){try{if(typeof getDB==='function')return getDB()}catch(e){console.warn('[KP session restore] getDB hiba:',e)}try{return JSON.parse(localStorage.getItem(MAIN_DB_KEY)||'{}')}catch(e){return {}}}
+function isBase64Image(v){
+  return typeof v==='string'&&v.indexOf('data:image')===0;
+}
+function stripBase64PhotosBeforeLocalSave(db){
+  if(!db||typeof db!=='object')return db;
+  const clean=obj=>{
+    if(!obj||typeof obj!=='object')return;
+    if(isBase64Image(obj.photo))delete obj.photo;
+  };
+  const cleanArr=arr=>{if(Array.isArray(arr))arr.forEach(clean);};
+  if(Array.isArray(db.sessions)){
+    db.sessions.forEach(s=>{
+      if(!s||typeof s!=='object')return;
+      clean(s);
+      cleanArr(s.catches);
+      cleanArr(s['fogások']);
+      cleanArr(s.fogasok);
+      cleanArr(s.photos);
+      cleanArr(s.images);
+    });
+  }
+  cleanArr(db.catches);
+  cleanArr(db['fogások']);
+  cleanArr(db.fogasok);
+  if(Array.isArray(db.baits))db.baits.forEach(clean);
+  return db;
+}
 function saveLocalDb(d){
-  const isQuota=e=>String(e).toLowerCase().includes('quota')||e.name==='QuotaExceededError';
+  const isQuota=e=>
+    String(e).toLowerCase().includes('quota')||
+    e.name==='QuotaExceededError';
   const rawSave=obj=>{
     if(typeof saveDB==='function')saveDB(obj);
     else localStorage.setItem(MAIN_DB_KEY,JSON.stringify(obj||{}));
   };
+  d=stripBase64PhotosBeforeLocalSave(d);
   try{rawSave(d);}
   catch(e){
     if(isQuota(e)){
-      try{rawSave({...d,fishImages:{}});console.warn('[KP session restore] iOS quota: fishImages törölve mentésből');}
-      catch(e2){throw new Error('Tár megtelt, mentés sikertelen. Szabadíts fel helyet!');}
+      try{
+        const slim=stripBase64PhotosBeforeLocalSave({...d,fishImages:{}});
+        rawSave(slim);
+        console.warn('[KP restore] iOS quota: fishImages + base64 törölve');
+      }
+      catch(e2){
+        throw new Error('Tár megtelt, mentés sikertelen. Szabadíts fel helyet!');
+      }
     }else{throw e;}
   }
 }
