@@ -1,5 +1,5 @@
 // kp-mod-sync.js — KapásPont GitHub szinkron és visszatöltés
-// v39.1 · backup JSON mentési védelem és createOnly javítás
+// v39.3 · getText nagy fájl fix (>1MB: Git blobs API fallback)
 (function(){
 'use strict';
 if(window.KP_MOD_SYNC_V39)return;
@@ -75,7 +75,7 @@ function apiPath(p){return String(p||'').replace(/^\/+/,'').split('/').map(encod
 function fpath(c,p){p=String(p||'').replace(/^\/+/,'');return p.startsWith(c.root+'/')?p:c.root+'/'+p}
 async function gh(c,url,opts){const res=await fetch(url,{...(opts||{}),headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+c.token,'X-GitHub-Api-Version':'2022-11-28',...((opts&&opts.headers)||{})}});const txt=await res.text();let data;try{data=txt?JSON.parse(txt):null}catch(e){data={message:txt}};if(!res.ok)throw new Error((data&&data.message)||('GitHub API hiba: '+res.status));return data}
 async function getSha(c,p){try{const d=await gh(c,'https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'+apiPath(p)+'?ref='+encodeURIComponent(c.branch)+'&t='+Date.now());return d&&d.sha}catch(e){return null}}
-async function getText(c,p){try{const d=await gh(c,'https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'+apiPath(p)+'?ref='+encodeURIComponent(c.branch)+'&t='+Date.now());return dec(d.content||'')}catch(e){return null}}
+async function getText(c,p){try{const d=await gh(c,'https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'+apiPath(p)+'?ref='+encodeURIComponent(c.branch)+'&t='+Date.now());if(d&&d.sha&&(d.encoding==='none'||d.content==='')){const blob=await gh(c,'https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/git/blobs/'+d.sha);return dec(blob&&blob.content||'')}return dec(d.content||'')}catch(e){return null}}
 async function getJson(c,p){const t=await getText(c,p);if(!t||!t.trim())return null;try{return JSON.parse(t)}catch(e){return null}}
 async function putJson(c,p,obj,msg,createOnly){const json=JSON.stringify(obj,null,2)+'\n';if(!json||json.length<100)throw new Error('Túl kicsi JSON mentés, nem írok üres backupot: '+p);const sha=createOnly?null:await getSha(c,p);const body={message:msg||'KapásPont mentés',content:enc(json),branch:c.branch};if(sha)body.sha=sha;return gh(c,'https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'+apiPath(p),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})}
 async function listBackups(c){try{const a=await gh(c,'https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'+apiPath(fpath(c,'backups'))+'?ref='+encodeURIComponent(c.branch)+'&t='+Date.now());return Array.isArray(a)?a.filter(x=>x&&x.name&&x.name.endsWith('.json')).map(x=>x.path).sort().reverse():[]}catch(e){return []}}
