@@ -1,5 +1,5 @@
 // kp-mod-session-restore.js — GitHub sessions/*.json visszatöltés
-// v1.10 · strip csak fishImages remote adatból; user fotók érintetlen
+// v1.11 · mergeListFromBackup foto patch; patchCatchPhotosFromBackup
 (function(){
 'use strict';
 if(window.KP_MOD_SESSION_RESTORE_V1)return;
@@ -39,17 +39,34 @@ async function loadLatestFullBackup(c){
 function mergeListFromBackup(db,backup,key){
   if(!backup||!Array.isArray(backup[key])||!backup[key].length)return 0;
   const local=Array.isArray(db[key])?db[key]:[];
-  const ids=new Set(local.map(x=>x&&x.id).filter(Boolean));
-  const names=new Set(local.map(x=>String((x&&x.name)||'').trim().toLowerCase()).filter(Boolean));
-  const newItems=backup[key].filter(x=>{
-    if(!x||typeof x!=='object')return false;
-    if(x.id&&ids.has(x.id))return false;
-    const n=String(x.name||'').trim().toLowerCase();
-    if(!x.id&&n&&names.has(n))return false;
-    return true;
+  const ids=new Map(),names=new Map();
+  local.forEach((x,i)=>{if(x&&x.id)ids.set(x.id,i);const n=String((x&&x.name)||'').trim().toLowerCase();if(n)names.set(n,i);});
+  const out=[...local];
+  let added=0;
+  backup[key].forEach(x=>{
+    if(!x||typeof x!=='object')return;
+    let idx=-1;
+    if(x.id&&ids.has(x.id))idx=ids.get(x.id);
+    else if(!x.id){const n=String(x.name||'').trim().toLowerCase();if(n&&names.has(n))idx=names.get(n);}
+    if(idx===-1){out.push(x);added++;}
+    else if(!out[idx].photo&&x.photo){out[idx]={...out[idx],photo:x.photo};}
   });
-  db[key]=[...local,...newItems];
-  return newItems.length;
+  db[key]=out;
+  return added;
+}
+function patchCatchPhotosFromBackup(db,backup){
+  if(!backup||!Array.isArray(backup.sessions))return;
+  const bkMap={};
+  backup.sessions.forEach(s=>{if(s&&s.id)bkMap[String(s.id)]=s;});
+  arr(db.sessions).forEach(s=>{
+    if(!s||!s.id)return;
+    const bs=bkMap[String(s.id)];
+    if(!bs)return;
+    const pm={};
+    ['catches','fogások','fogasok'].forEach(k=>arr(bs[k]).forEach(c=>{if(c&&c.id&&c.photo)pm[String(c.id)]=c.photo;}));
+    if(!Object.keys(pm).length)return;
+    ['catches','fogások','fogasok'].forEach(k=>{s[k]=arr(s[k]).map(c=>{if(!c||c.photo||!c.id)return c;const p=pm[String(c.id)];return p?{...c,photo:p}:c;});});
+  });
 }
 function finalCatchCount(db){return arr(db&&db.sessions).reduce((a,s)=>a+arr(s&&s.catches).length+arr(s&&s.fogások).length+arr(s&&s.fogasok).length,0)}
 function localDb(){try{if(typeof getDB==='function')return getDB()}catch(e){console.warn('[KP session restore] getDB hiba:',e)}try{return JSON.parse(localStorage.getItem(MAIN_DB_KEY)||'{}')}catch(e){return {}}}
@@ -59,7 +76,7 @@ function mergeArray(a,b,p){const out=[],seen={};arr(a).forEach(x=>{const k=keyOf
 function mergeNamedLists(localObj,remoteObj,names,prefix){const out={...(localObj||{})};names.forEach(name=>{const l=arr(localObj&&localObj[name]);const r=arr(remoteObj&&remoteObj[name]);if(!(l.length||r.length))return;if(name==='catches'||name==='fogások'||name==='fogasok')out[name]=mergeCatchArray(l,r,prefix+':'+name);else out[name]=mergeArray(l,r,prefix+':'+name)});return out}
 function mergeSession(localSession,remoteSession){let out={...(remoteSession||{}),...(localSession||{})};out=mergeNamedLists(out,remoteSession,['catches','fogások','fogasok','events','notes','photos','images','mapPoints'],'session-inner');out=crossDedupCatches(out);return recalcSession(out)}
 function mergeSessionsIntoDb(db,remoteSessions){db=db&&typeof db==='object'?db:{};if(!Array.isArray(db.sessions))db.sessions=[];const map={};db.sessions.forEach((s,i)=>{if(s)map[String(s.id||keyOf(s,'session'))]=i});let added=0,merged=0,catches=0;arr(remoteSessions).forEach(rs=>{if(!rs||typeof rs!=='object')return;const rsc=crossDedupCatches(rs);recalcSession(rsc);catches+=arr(rsc.catches).length+arr(rsc.fogások).length+arr(rsc.fogasok).length;const k=String(rsc.id||keyOf(rsc,'session'));if(map[k]==null){map[k]=db.sessions.length;db.sessions.push(rsc);added++}else{db.sessions[map[k]]=mergeSession(db.sessions[map[k]],rsc);merged++}});db.sessions=db.sessions.map(s=>crossDedupCatches(recalcSession(s)));return{db,added,merged,catches}}
-async function restoreFromSessions(auto){const c=cfg();check(c);const backup=await loadLatestFullBackup(c).catch(e=>{console.warn('[KP session restore] fő backup nem olvasható:',e);return null});const files=await listSessionFiles(c);if(!files.length)throw new Error('Nem található session JSON a GitHubon: '+rootPath(c,'sessions'));const sessions=[];for(const path of files){try{const data=await getJson(c,path);const raw=data&&data.session?data.session:data;if(raw&&typeof raw==='object')sessions.push(raw)}catch(e){console.warn('[KP session restore] fájl kihagyva:',path,e)}}if(!sessions.length)throw new Error('A session fájlokból nem sikerült horgászatot kiolvasni.');const db=localDb();const baitAdded=mergeListFromBackup(db,backup,'baits');const gearAdded=mergeListFromBackup(db,backup,'gear');const locAdded=mergeListFromBackup(db,backup,'locations');const scoutAdded=mergeListFromBackup(db,backup,'scoutSpots');const res=mergeSessionsIntoDb(db,sessions);res.db._meta={...(res.db._meta||{}),sessionRestoreAt:new Date().toISOString(),sessionRestoreSource:'github-sessions',sessionRestoreFiles:files.length,sessionRestoreBaitsAdded:baitAdded,sessionRestoreGearAdded:gearAdded,sessionRestoreLocAdded:locAdded,sessionRestoreScoutAdded:scoutAdded};const fc=finalCatchCount(res.db);toast('Restore kész: '+fc+' fogás');saveLocalDb(res.db);try{typeof renderSessionsList==='function'&&renderSessionsList();typeof renderActiveSessionHome==='function'&&renderActiveSessionHome();typeof updateHome==='function'&&updateHome();typeof renderStorageOverview==='function'&&renderStorageOverview();typeof renderBaits==='function'&&renderBaits();typeof renderLocations==='function'&&renderLocations();typeof updateDatalists==='function'&&updateDatalists()}catch(e){}const msg='GitHub session restore kész: '+files.length+' fájl, '+res.added+' új, '+res.merged+' összevont, '+res.catches+' fogás, '+baitAdded+' csali, '+gearAdded+' felszerelés, '+locAdded+' hely, '+scoutAdded+' spot.';if(!auto)toast(msg);console.log('[KP session restore]',msg);return res}
+async function restoreFromSessions(auto){const c=cfg();check(c);const backup=await loadLatestFullBackup(c).catch(e=>{console.warn('[KP session restore] fő backup nem olvasható:',e);return null});const files=await listSessionFiles(c);if(!files.length)throw new Error('Nem található session JSON a GitHubon: '+rootPath(c,'sessions'));const sessions=[];for(const path of files){try{const data=await getJson(c,path);const raw=data&&data.session?data.session:data;if(raw&&typeof raw==='object')sessions.push(raw)}catch(e){console.warn('[KP session restore] fájl kihagyva:',path,e)}}if(!sessions.length)throw new Error('A session fájlokból nem sikerült horgászatot kiolvasni.');const db=localDb();const baitAdded=mergeListFromBackup(db,backup,'baits');const gearAdded=mergeListFromBackup(db,backup,'gear');const locAdded=mergeListFromBackup(db,backup,'locations');const scoutAdded=mergeListFromBackup(db,backup,'scoutSpots');const res=mergeSessionsIntoDb(db,sessions);if(backup)patchCatchPhotosFromBackup(res.db,backup);res.db._meta={...(res.db._meta||{}),sessionRestoreAt:new Date().toISOString(),sessionRestoreSource:'github-sessions',sessionRestoreFiles:files.length,sessionRestoreBaitsAdded:baitAdded,sessionRestoreGearAdded:gearAdded,sessionRestoreLocAdded:locAdded,sessionRestoreScoutAdded:scoutAdded};const fc=finalCatchCount(res.db);toast('Restore kész: '+fc+' fogás');saveLocalDb(res.db);try{typeof renderSessionsList==='function'&&renderSessionsList();typeof renderActiveSessionHome==='function'&&renderActiveSessionHome();typeof updateHome==='function'&&updateHome();typeof renderStorageOverview==='function'&&renderStorageOverview();typeof renderBaits==='function'&&renderBaits();typeof renderLocations==='function'&&renderLocations();typeof updateDatalists==='function'&&updateDatalists()}catch(e){}const msg='GitHub session restore kész: '+files.length+' fájl, '+res.added+' új, '+res.merged+' összevont, '+res.catches+' fogás, '+baitAdded+' csali, '+gearAdded+' felszerelés, '+locAdded+' hely, '+scoutAdded+' spot.';if(!auto)toast(msg);console.log('[KP session restore]',msg);return res}
 window.kpRestoreFromSessions=async function(){try{return await restoreFromSessions(false)}catch(e){toast('Session visszatöltési hiba: '+e.message);throw e}};
 function wrapRestore(name){const old=window[name];if(typeof old!=='function'||old.__kpSessionRestoreWrapped)return;const wrapped=async function(){let r;try{r=await old.apply(this,arguments)}catch(e){console.warn('[KP session restore] alap restore hiba:',e)}try{await restoreFromSessions(true);toast('GitHub session fájlok visszatöltve.')}catch(e){toast('Session visszatöltési hiba: '+e.message)}return r};wrapped.__kpSessionRestoreWrapped=true;window[name]=wrapped}
 function install(){wrapRestore('kpRestoreLatestGithubBackup');wrapRestore('githubRestoreLatestFromRepo');wrapRestore('githubDownloadLatestFromRepo')}

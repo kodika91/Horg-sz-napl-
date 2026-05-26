@@ -1,5 +1,5 @@
 // kp-mod-sync.js — KapásPont GitHub szinkron és visszatöltés
-// v39.9 · strip csak fishImages remote adatból; user fotók érintetlen
+// v40.0 · photo patch: meglévő catch/gear/bait fotók visszakerülnek backup-ból
 (function(){
 'use strict';
 if(window.KP_MOD_SYNC_V39)return;
@@ -42,13 +42,19 @@ function counts(d){d=d||{};return{sessions:arr(d.sessions).length,locations:arr(
 function meaningful(d){const c=counts(d);return c.sessions||c.locations||c.scoutSpots||c.catches||c.baits||c.gear}
 function keyOf(o,p){return String((o&&typeof o==='object'&&(o.id||o.uuid||o.createdAt||o.created||(String(o.date||'')+'|'+String(o.time||'')+'|'+String(o.location||'')+'|'+String(o.lat||'')+'|'+String(o.lon||'')+'|'+String(o.bait||o.csali||'')+'|'+String(o.fish||o.hal||''))))||p+'_'+Math.random()).slice(0,240)}
 function mergeArray(a,b,p){const out=[],seen={};arr(a).forEach(x=>{const k=keyOf(x,p);seen[k]=1;out.push(x)});arr(b).forEach(x=>{const k=keyOf(x,p);if(!seen[k]){seen[k]=1;out.push(x)}});return out}
+function mergeCatch(local,remote){const out={...(remote||{})};for(const k of Object.keys(local||{})){const v=local[k];if(v!==null&&v!==undefined&&v!=='')out[k]=v;}return out;}
+function mergeCatchArray(a,b,p){const out=[],map={};arr(a).forEach(x=>{const k=keyOf(x,p);map[k]=out.length;out.push(x)});arr(b).forEach(rc=>{const k=keyOf(rc,p);if(map[k]==null){map[k]=out.length;out.push(rc)}else{out[map[k]]=mergeCatch(out[map[k]],rc);}});return out;}
+function mergeArrayWithPhotoFix(a,b,p){const out=[],map={};arr(a).forEach(x=>{const k=keyOf(x,p);map[k]=out.length;out.push({...x})});arr(b).forEach(x=>{const k=keyOf(x,p);if(map[k]==null){map[k]=out.length;out.push(x)}else if(!out[map[k]].photo&&x.photo){out[map[k]]={...out[map[k]],photo:x.photo};}});return out;}
 function sessionKey(s){return keyOf(s,'session')}
 function mergeNamedLists(localObj,remoteObj,names,prefix){
   const out={...(localObj||{})};
   names.forEach(function(name){
     const l=arr(localObj&&localObj[name]);
     const r=arr(remoteObj&&remoteObj[name]);
-    if(l.length||r.length)out[name]=mergeArray(l,r,prefix+':'+name);
+    if(l.length||r.length){
+      if(name==='catches'||name==='fogások'||name==='fogasok')out[name]=mergeCatchArray(l,r,prefix+':'+name);
+      else out[name]=mergeArray(l,r,prefix+':'+name);
+    }
   });
   return out;
 }
@@ -70,7 +76,7 @@ function mergeSessions(localSessions,remoteSessions){
   });
   return out;
 }
-function mergeDB(local,remote,source){local=local||{};remote=remote||{};return{...local,sessions:mergeSessions(local.sessions,remote.sessions),locations:mergeArray(local.locations,remote.locations,'location'),scoutSpots:mergeArray(local.scoutSpots,remote.scoutSpots,'scout'),baits:mergeArray(local.baits,remote.baits,'bait'),gear:mergeArray(local.gear,remote.gear,'gear'),fishImages:{...(remote.fishImages||{}),...(local.fishImages||{})},activeSessionId:local.activeSessionId||remote.activeSessionId||null,_meta:{app:'KapásPont',restoreMode:'deep-merge',restoredAt:new Date().toISOString(),source:source||''}}}
+function mergeDB(local,remote,source){local=local||{};remote=remote||{};return{...local,sessions:mergeSessions(local.sessions,remote.sessions),locations:mergeArray(local.locations,remote.locations,'location'),scoutSpots:mergeArray(local.scoutSpots,remote.scoutSpots,'scout'),baits:mergeArrayWithPhotoFix(local.baits,remote.baits,'bait'),gear:mergeArrayWithPhotoFix(local.gear,remote.gear,'gear'),fishImages:{...(remote.fishImages||{}),...(local.fishImages||{})},activeSessionId:local.activeSessionId||remote.activeSessionId||null,_meta:{app:'KapásPont',restoreMode:'deep-merge',restoredAt:new Date().toISOString(),source:source||''}}}
 function enc(s){s=String(s||'');try{return btoa(unescape(encodeURIComponent(s)))}catch(e){const b=new TextEncoder().encode(s);let bin='';for(let i=0;i<b.length;i++)bin+=String.fromCharCode(b[i]);return btoa(bin)}}
 function dec(s){s=String(s||'').replace(/\n/g,'');try{return decodeURIComponent(escape(atob(s)))}catch(e){try{return new TextDecoder().decode(Uint8Array.from(atob(s),c=>c.charCodeAt(0)))}catch(_){return ''}}}
 function apiPath(p){return String(p||'').replace(/^\/+/,'').split('/').map(encodeURIComponent).join('/')}
