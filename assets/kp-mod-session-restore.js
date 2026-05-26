@@ -1,5 +1,5 @@
 // kp-mod-session-restore.js — GitHub sessions/*.json visszatöltés
-// v1.7 · strip base64 photos (catches/baits) before localStorage save
+// v1.8 · recursive stripInlinePhotos (minden data: URI mezőből)
 (function(){
 'use strict';
 if(window.KP_MOD_SESSION_RESTORE_V1)return;
@@ -51,8 +51,8 @@ function mergeListFromBackup(db,backup,key){
 }
 function finalCatchCount(db){return arr(db&&db.sessions).reduce((a,s)=>a+arr(s&&s.catches).length+arr(s&&s.fogások).length+arr(s&&s.fogasok).length,0)}
 function localDb(){try{if(typeof getDB==='function')return getDB()}catch(e){console.warn('[KP session restore] getDB hiba:',e)}try{return JSON.parse(localStorage.getItem(MAIN_DB_KEY)||'{}')}catch(e){return {}}}
-function stripInlinePhotos(d){if(!d||typeof d!=='object')return d;const sc=c=>{if(!c||typeof c!=='object')return c;const o={...c};if(typeof o.photo==='string'&&o.photo.startsWith('data:'))delete o.photo;return o};const ss=s=>{if(!s||typeof s!=='object')return s;return{...s,catches:arr(s.catches).map(sc),fogások:arr(s.fogások).map(sc),fogasok:arr(s.fogasok).map(sc)}};const sb=b=>{if(!b||typeof b!=='object')return b;const o={...b};if(typeof o.photo==='string'&&o.photo.startsWith('data:'))delete o.photo;return o};return{...d,sessions:arr(d.sessions).map(ss),baits:arr(d.baits).map(sb)}}
-function saveLocalDb(d){const clean=stripInlinePhotos(d);const trySave=(obj)=>{try{if(typeof saveDB==='function')saveDB(obj);else localStorage.setItem(MAIN_DB_KEY,JSON.stringify(obj||{}));return true}catch(e){if(String(e).includes('quota')||e.name==='QuotaExceededError')return false;throw e}};if(!trySave(clean)){if(!trySave({...clean,fishImages:{}}))throw new Error('Tár megtelt, mentés sikertelen. Szabadíts fel helyet!');toast('Visszatöltve (halképek nélkül — tár megtelt).') }}
+function stripInlinePhotos(obj){if(!obj||typeof obj!=='object')return obj;if(Array.isArray(obj))return obj.map(stripInlinePhotos);const out={};for(const k of Object.keys(obj)){const v=obj[k];if(typeof v==='string'&&v.startsWith('data:'))continue;out[k]=stripInlinePhotos(v)}return out}
+function saveLocalDb(d){const clean=stripInlinePhotos(d);const trySave=(obj)=>{try{if(typeof saveDB==='function')saveDB(obj);else localStorage.setItem(MAIN_DB_KEY,JSON.stringify(obj||{}));return true}catch(e){if(String(e).includes('quota')||e.name==='QuotaExceededError')return false;throw e}};if(!trySave(clean))throw new Error('Tár megtelt, mentés sikertelen. Szabadíts fel helyet!')}
 function keyOf(o,p){return String((o&&typeof o==='object'&&(o.id||o.uuid||o.createdAt||o.created||(String(o.date||'')+'|'+String(o.time||'')+'|'+String(o.location||'')+'|'+String(o.bait||o.csali||'')+'|'+String(o.fish||o.hal||''))))||p+'_'+Math.random()).slice(0,240)}
 function mergeArray(a,b,p){const out=[],seen={};arr(a).forEach(x=>{const k=keyOf(x,p);seen[k]=1;out.push(x)});arr(b).forEach(x=>{const k=keyOf(x,p);if(!seen[k]){seen[k]=1;out.push(x)}});return out}
 function mergeNamedLists(localObj,remoteObj,names,prefix){const out={...(localObj||{})};names.forEach(name=>{const l=arr(localObj&&localObj[name]);const r=arr(remoteObj&&remoteObj[name]);if(!(l.length||r.length))return;if(name==='catches'||name==='fogások'||name==='fogasok')out[name]=mergeCatchArray(l,r,prefix+':'+name);else out[name]=mergeArray(l,r,prefix+':'+name)});return out}
