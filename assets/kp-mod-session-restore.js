@@ -1,5 +1,5 @@
 // kp-mod-session-restore.js — GitHub sessions/*.json visszatöltés
-// v1.11 · mergeListFromBackup foto patch; patchCatchPhotosFromBackup
+// v1.12 · saveLocalDb quota retry fishImages nélkül
 (function(){
 'use strict';
 if(window.KP_MOD_SESSION_RESTORE_V1)return;
@@ -70,7 +70,20 @@ function patchCatchPhotosFromBackup(db,backup){
 }
 function finalCatchCount(db){return arr(db&&db.sessions).reduce((a,s)=>a+arr(s&&s.catches).length+arr(s&&s.fogások).length+arr(s&&s.fogasok).length,0)}
 function localDb(){try{if(typeof getDB==='function')return getDB()}catch(e){console.warn('[KP session restore] getDB hiba:',e)}try{return JSON.parse(localStorage.getItem(MAIN_DB_KEY)||'{}')}catch(e){return {}}}
-function saveLocalDb(d){if(typeof saveDB==='function')saveDB(d);else{try{localStorage.setItem(MAIN_DB_KEY,JSON.stringify(d||{}))}catch(e){throw new Error('Tár megtelt, mentés sikertelen. Szabadíts fel helyet!')}}}
+function saveLocalDb(d){
+  const isQuota=e=>String(e).toLowerCase().includes('quota')||e.name==='QuotaExceededError';
+  const rawSave=obj=>{
+    if(typeof saveDB==='function')saveDB(obj);
+    else localStorage.setItem(MAIN_DB_KEY,JSON.stringify(obj||{}));
+  };
+  try{rawSave(d);}
+  catch(e){
+    if(isQuota(e)){
+      try{rawSave({...d,fishImages:{}});console.warn('[KP session restore] iOS quota: fishImages törölve mentésből');}
+      catch(e2){throw new Error('Tár megtelt, mentés sikertelen. Szabadíts fel helyet!');}
+    }else{throw e;}
+  }
+}
 function keyOf(o,p){return String((o&&typeof o==='object'&&(o.id||o.uuid||o.createdAt||o.created||(String(o.date||'')+'|'+String(o.time||'')+'|'+String(o.location||'')+'|'+String(o.bait||o.csali||'')+'|'+String(o.fish||o.hal||''))))||p+'_'+Math.random()).slice(0,240)}
 function mergeArray(a,b,p){const out=[],seen={};arr(a).forEach(x=>{const k=keyOf(x,p);seen[k]=1;out.push(x)});arr(b).forEach(x=>{const k=keyOf(x,p);if(!seen[k]){seen[k]=1;out.push(x)}});return out}
 function mergeNamedLists(localObj,remoteObj,names,prefix){const out={...(localObj||{})};names.forEach(name=>{const l=arr(localObj&&localObj[name]);const r=arr(remoteObj&&remoteObj[name]);if(!(l.length||r.length))return;if(name==='catches'||name==='fogások'||name==='fogasok')out[name]=mergeCatchArray(l,r,prefix+':'+name);else out[name]=mergeArray(l,r,prefix+':'+name)});return out}

@@ -1,5 +1,5 @@
 // kp-mod-sync.js — KapásPont GitHub szinkron és visszatöltés
-// v40.0 · photo patch: meglévő catch/gear/bait fotók visszakerülnek backup-ból
+// v40.1 · quota retry: fishImages nélkül próbálés iOS limit elérésekor
 (function(){
 'use strict';
 if(window.KP_MOD_SYNC_V39)return;
@@ -35,7 +35,19 @@ function cfg(){
 }
 function check(c){const miss=[];['owner','repo','branch','token'].forEach(k=>{if(!c[k])miss.push(k)});if(miss.length)throw new Error('Hiányzó GitHub beállítás: '+miss.join(', '));}
 function db(){try{return typeof getDB==='function'?getDB():JSON.parse(localStorage.getItem(DB_KEY)||'{}')}catch(e){return {}}}
-function saveDb(d){const json=JSON.stringify(d||{});try{localStorage.setItem(DB_KEY,json)}catch(e){if(String(e).includes('quota')||e.name==='QuotaExceededError'){throw new Error('Tár megtelt, mentés sikertelen. Szabadíts fel helyet!')}else{throw e}}try{if(typeof migrateDB==='function')migrateDB()}catch(e){}refresh();}
+function saveDb(d){
+  const isQuota=e=>String(e).toLowerCase().includes('quota')||e.name==='QuotaExceededError';
+  const trySave=obj=>{const json=JSON.stringify(obj||{});localStorage.setItem(DB_KEY,json);};
+  try{trySave(d);}
+  catch(e){
+    if(isQuota(e)){
+      try{trySave({...d,fishImages:{}});console.warn('[KP sync] iOS quota: fishImages törölve mentésből');}
+      catch(e2){throw new Error('Tár megtelt, mentés sikertelen. Szabadíts fel helyet!');}
+    }else{throw e;}
+  }
+  try{if(typeof migrateDB==='function')migrateDB()}catch(e){}
+  refresh();
+}
 function refresh(){['updateHome','renderSpotFinder','renderSessionsList','renderStorageOverview','renderActiveSessionHome','renderLocations','renderSettings'].forEach(fn=>{try{window[fn]&&window[fn]()}catch(e){}})}
 function stripRemote(obj){if(!obj||typeof obj!=='object')return obj;const out={...obj};if('fishImages' in out)out.fishImages={};return out}
 function counts(d){d=d||{};return{sessions:arr(d.sessions).length,locations:arr(d.locations).length,scoutSpots:arr(d.scoutSpots).length,catches:arr(d.sessions).reduce((a,s)=>a+arr(s&&s.catches).length+arr(s&&s.fogások).length+arr(s&&s.fogasok).length,0),baits:arr(d.baits).length,gear:arr(d.gear).length}}
