@@ -11,163 +11,67 @@
 <style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center}.box{max-width:560px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:24px;box-shadow:0 10px 35px rgba(60,40,10,.12)}.t{font-weight:800;font-size:18px;margin-bottom:8px}.s{color:#6b5840;line-height:1.5}</style>
 </head>
 <body>
-<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v68.14 · setup scroll + felszerelés választó hotfix</div></div>
+<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v68.15 · kényszerített modal-scroll frissítés</div></div>
 <script>
 (function(){
-  if(window.KP_STORAGE_DEBUG_V1)return;
-  window.KP_STORAGE_DEBUG_V1=true;
-  var logs=[];
-  function now(){try{return new Date().toLocaleTimeString('hu-HU')}catch(e){return new Date().toISOString()}}
-  function len(v){try{return String(v==null?'':v).length}catch(e){return -1}}
-  function kb(n){return Math.round((Number(n)||0)/1024)+' KB'}
-  function isQuota(e){return !!e&&(e.name==='QuotaExceededError'||String(e&&e.message||e).toLowerCase().indexOf('quota')>=0||String(e&&e.message||e).toLowerCase().indexOf('tár')>=0)}
-  function safeJsonStats(v){
-    var s=String(v==null?'':v), out={chars:s.length, kb:kb(s.length*2)};
+  function addScript(id,src){var old=document.getElementById(id);if(old)old.remove();var s=document.createElement('script');s.id=id;s.src=src;s.defer=false;document.body.appendChild(s)}
+  window.addEventListener('error',function(e){try{console.error('[KapásPont loader]',e.message,e.filename,e.lineno)}catch(_){} });
+  (async function(){
     try{
-      var o=JSON.parse(s);
-      if(o&&typeof o==='object'){
-        out.keys=Object.keys(o).slice(0,25).join(',');
-        out.sessions=Array.isArray(o.sessions)?o.sessions.length:0;
-        out.baits=Array.isArray(o.baits)?o.baits.length:0;
-        out.gear=Array.isArray(o.gear)?o.gear.length:0;
-        out.scoutSpots=Array.isArray(o.scoutSpots)?o.scoutSpots.length:0;
-        out.locations=Array.isArray(o.locations)?o.locations.length:0;
-        out.fishImages=o.fishImages&&typeof o.fishImages==='object'?Object.keys(o.fishImages).length:0;
-        var photoChars=0,photoCount=0;
-        function scan(x,depth){
-          if(!x||depth>8)return;
-          if(typeof x==='string'){if(x.indexOf('data:image')===0){photoCount++;photoChars+=x.length;}return;}
-          if(Array.isArray(x)){for(var i=0;i<Math.min(x.length,500);i++)scan(x[i],depth+1);return;}
-          if(typeof x==='object'){Object.keys(x).slice(0,120).forEach(function(k){scan(x[k],depth+1);});}
-        }
-        scan(o,0);out.photoCount=photoCount;out.photoKB=kb(photoChars*2);
-      }
-    }catch(e){}
-    return out;
-  }
-  function totalLocalStorage(){
-    var total=0, items=[];
-    try{
-      for(var i=0;i<localStorage.length;i++){
-        var k=localStorage.key(i), v=localStorage.getItem(k), n=(len(k)+len(v))*2;
-        total+=n;items.push({key:k,bytes:n});
-      }
-      items.sort(function(a,b){return b.bytes-a.bytes});
-    }catch(e){}
-    return {totalBytes:total,totalKB:kb(total),items:items.slice(0,12)};
-  }
-  function add(type,msg,data){
-    var row={time:now(),type:type,msg:msg,data:data||null};
-    logs.push(row);if(logs.length>120)logs.shift();
-    try{console[type==='ERR'?'error':type==='WARN'?'warn':'log']('[KP STORAGE]',msg,data||'');}catch(e){}
-    render(false);
-  }
-  function render(open){
-    try{
-      var id='kp-storage-debug-panel',btn=document.getElementById('kp-storage-debug-btn'),p=document.getElementById(id);
-      if(!btn){
-        btn=document.createElement('button');btn.id='kp-storage-debug-btn';btn.textContent='🧪 Tárhely log';
-        btn.style.cssText='position:fixed;left:10px;bottom:10px;z-index:2147483647;border:0;border-radius:999px;background:#2f6f73;color:#fff;padding:9px 12px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.25)';
-        btn.onclick=function(){render(true)};document.body.appendChild(btn);
-      }
-      if(!p){
-        p=document.createElement('div');p.id=id;
-        p.style.cssText='display:none;position:fixed;left:8px;right:8px;bottom:58px;z-index:2147483647;max-height:58vh;overflow:auto;background:#111;color:#f5f5f5;border-radius:14px;padding:10px;font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;box-shadow:0 8px 30px rgba(0,0,0,.45)';
-        document.body.appendChild(p);
-      }
-      if(open)p.style.display=p.style.display==='none'?'block':'none';
-      var st=totalLocalStorage();
-      var html='<div style="display:flex;gap:8px;align-items:center;justify-content:space-between"><b>KapásPont tárhely diagnosztika</b><button id="kp-storage-copy" style="border:0;border-radius:8px;padding:5px 8px">Másolás</button></div>';
-      html+='<div>localStorage becsült méret: <b>'+st.totalKB+'</b></div>';
-      html+='<div>Legnagyobb kulcsok: '+st.items.map(function(x){return x.key+'='+kb(x.bytes)}).join(' | ')+'</div><hr>';
-      html+=logs.slice().reverse().map(function(r){return '<div style="border-bottom:1px solid #333;padding:4px 0"><b>'+r.time+' '+r.type+'</b> '+String(r.msg).replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]})+'<br><span style="color:#bbb;white-space:pre-wrap">'+String(JSON.stringify(r.data||{},null,2)).replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]})+'</span></div>';}).join('');
-      p.innerHTML=html;
-      var c=document.getElementById('kp-storage-copy');
-      if(c)c.onclick=function(){var txt='KapásPont storage debug\n'+JSON.stringify({storage:totalLocalStorage(),logs:logs},null,2);try{navigator.clipboard.writeText(txt)}catch(e){} add('INFO','Diagnosztikai log másolás kérve',{chars:txt.length});};
-    }catch(e){}
-  }
-  window.KP_STORAGE_DEBUG={log:add,summary:totalLocalStorage,getLogs:function(){return logs.slice()},jsonStats:safeJsonStats};
-  try{
-    var orig=Storage.prototype.setItem;
-    if(!Storage.prototype.setItem.__kpDebug){
-      Storage.prototype.setItem=function(k,v){
-        var key=String(k), size=len(v)*2, before=totalLocalStorage();
+      const appUrl='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/22233b8c04acdd3ad868a9b78ed71514c0d58365/assets/app.html?v=20260527-setup-scroll-force';
+      const res=await fetch(appUrl,{cache:'reload'});
+      if(!res.ok) throw new Error('app.html fetch failed: '+res.status);
+      let html=await res.text();
+      html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v68.15 kényszerített modal-scroll frissítés');
+      html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants.\n\n\n// CSALI ADATBÁZIS');
+      html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
+      html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
+      html=html.replace("let fishFilter='all',fishSearch='';","var fishFilter='all',fishSearch='';");
+      html=html.replace('const HU_PROTECTED_OR_NOT_KEEPABLE_IDS=new Set(','var HU_PROTECTED_OR_NOT_KEEPABLE_IDS=new Set(');
+      html=html.replace('const HU_POND_OR_DECORATIVE_IDS=new Set','var HU_POND_OR_DECORATIVE_IDS=new Set');
+      document.open();document.write(html);document.close();
+      setTimeout(function(){
         try{
-          var r=orig.call(this,k,v);
-          if(key==='horgaszpro_v0230'||key.indexOf('backup')>=0||size>200000){add('INFO','setItem OK: '+key,{valueKB:kb(size),beforeKB:before.totalKB,afterKB:totalLocalStorage().totalKB,stats:safeJsonStats(v)});}
-          return r;
-        }catch(e){
-          add(isQuota(e)?'ERR':'WARN','setItem HIBA: '+key,{errorName:e&&e.name,errorMessage:String(e&&e.message||e),isQuota:isQuota(e),valueKB:kb(size),beforeKB:before.totalKB,largestKeys:before.items,stats:safeJsonStats(v)});
-          throw e;
-        }
-      };
-      Storage.prototype.setItem.__kpDebug=true;
+          var l=document.createElement('link');
+          l.id='v18-image-manager-css';
+          l.rel='stylesheet';
+          l.href='assets/v1-image-manager-v18.css?v=20260523-679-self-test';
+          document.head.appendChild(l);
+          addScript('v18-image-manager-script','assets/v1-image-manager-v18.js?v=20260523-679-self-test');
+          addScript('kp-v27-original','https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/94e999c02fdeb1834c317e434fe2dd5083d78080/assets/kp-v27-durable-image-archive.js?v=20260523-679-self-test');
+          addScript('kp-mod-photo-idb','assets/kp-mod-photo-idb.js?v=20260526-4-all-data-image-idb');
+          addScript('kp-mod-sync','assets/kp-mod-sync.js?v=20260526-11');
+          addScript('kp-mod-github-restore-button-fix','assets/kp-mod-github-restore-button-fix.js?v=20260523-679-self-test');
+          addScript('kp-mod-mobile-layout-center-fix','assets/kp-mod-mobile-layout-center-fix.js?v=20260523-679-self-test');
+          addScript('kp-mod-weather','assets/kp-mod-weather.js?v=20260523-679-self-test');
+          addScript('kp-mod-fish','assets/kp-mod-fish.js?v=20260523-679-self-test');
+          addScript('kp-mod-ui','assets/kp-mod-ui.js?v=20260523-679-self-test');
+          addScript('kp-mod-session','assets/kp-mod-session.js?v=20260523-679-self-test');
+          addScript('kp-mod-spotfinder','assets/kp-mod-spotfinder.js?v=20260523-679-self-test');
+          addScript('kp-mod-spotfinder-photo-backup','assets/kp-mod-spotfinder-photo-backup.js?v=20260523-679-self-test');
+          addScript('kp-mod-spotfinder-nav','assets/kp-mod-spotfinder-nav.js?v=20260523-679-self-test');
+          addScript('kp-mod-spotfinder-map-nav-button','assets/kp-mod-spotfinder-map-nav-button.js?v=20260523-679-self-test');
+          addScript('kp-mod-spotfinder-nav-pagehide','assets/kp-mod-spotfinder-nav-pagehide.js?v=20260523-679-self-test');
+          addScript('kp-mod-mobile-modal-scroll-fix','assets/kp-mod-mobile-modal-scroll-fix.js?v=20260523-679-self-test');
+          addScript('kp-mod-bait-form-scroll-fix','assets/kp-mod-bait-form-scroll-fix.js?v=20260523-679-self-test');
+          addScript('kp-mod-bait-form-image-upload-fix','assets/kp-mod-bait-form-image-upload-fix.js?v=20260523-679-self-test');
+          addScript('kp-mod-catch-bait-combo','assets/kp-mod-catch-bait-combo.js?v=20260523-679-self-test');
+          addScript('kp-mod-session-catch-late-save-fix','assets/kp-mod-session-catch-late-save-fix.js?v=20260523-679-self-test');
+          addScript('kp-mod-fish-detail-scroll-fix','assets/kp-mod-fish-detail-scroll-fix.js?v=20260523-679-self-test');
+          addScript('kp-mod-self-test','assets/kp-mod-self-test.js?v=20260523-679-self-test');
+          addScript('kp-mod-settings-simple','assets/kp-mod-settings-simple.js?v=20260523-679-self-test');
+          addScript('kp-mod-force-hide-settings','assets/kp-mod-force-hide-settings.js?v=20260523-679-self-test');
+          addScript('kp-mod-sync-db-fallback-fix','assets/kp-mod-sync-db-fallback-fix.js?v=20260526-1');
+          addScript('kp-mod-session-restore','assets/kp-mod-session-restore.js?v=20260526-12');
+          addScript('kp-mod-resize-image-fix','assets/kp-mod-resize-image-fix.js?v=20260526-1');
+          addScript('kp-mod-setup-scroll-gear-select-fix','assets/kp-mod-setup-scroll-gear-select-fix.js?v=20260527-2-force');
+        }catch(e){console.warn('[KapásPont] modul betöltési hiba:',e);}
+      },250);
+    }catch(err){
+      console.error(err);
+      document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';
     }
-  }catch(e){add('ERR','Storage.prototype.setItem patch hiba',{error:String(e)})}
-  window.addEventListener('error',function(e){add('ERR','window error',{message:e.message,source:e.filename,line:e.lineno,col:e.colno,error:String(e.error||'')});});
-  window.addEventListener('unhandledrejection',function(e){add('ERR','unhandled rejection',{reason:String(e.reason&&e.reason.message||e.reason||'')});});
-  setTimeout(function(){add('INFO','diagnosztika aktív',{storage:totalLocalStorage(),ua:navigator.userAgent});render(false);},500);
-})();
-
-(async function(){
-  try{
-    const appUrl='https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/22233b8c04acdd3ad868a9b78ed71514c0d58365/assets/app.html?v=20260523-679-self-test';
-    const res=await fetch(appUrl,{cache:'reload'});
-    if(!res.ok) throw new Error('app.html fetch failed: '+res.status);
-    let html=await res.text();
-
-    html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v68.14 setup scroll + felszerelés választó hotfix');
-    html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants.\n\n\n// CSALI ADATBÁZIS');
-    html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
-    html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
-    html=html.replace("let fishFilter='all',fishSearch='';","var fishFilter='all',fishSearch='';");
-    html=html.replace('const HU_PROTECTED_OR_NOT_KEEPABLE_IDS=new Set(','var HU_PROTECTED_OR_NOT_KEEPABLE_IDS=new Set(');
-    html=html.replace('const HU_POND_OR_DECORATIVE_IDS=new Set','var HU_POND_OR_DECORATIVE_IDS=new Set');
-    document.open();document.write(html);document.close();
-
-    setTimeout(function(){
-      try{
-        function addScript(id,src){var old=document.getElementById(id);if(old)old.remove();var s=document.createElement('script');s.id=id;s.src=src;s.defer=false;document.body.appendChild(s)}
-        var l=document.createElement('link');
-        l.id='v18-image-manager-css';
-        l.rel='stylesheet';
-        l.href='assets/v1-image-manager-v18.css?v=20260523-679-self-test';
-        document.head.appendChild(l);
-
-        addScript('v18-image-manager-script','assets/v1-image-manager-v18.js?v=20260523-679-self-test');
-        addScript('kp-v27-original','https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/94e999c02fdeb1834c317e434fe2dd5083d78080/assets/kp-v27-durable-image-archive.js?v=20260523-679-self-test');
-        addScript('kp-mod-photo-idb','assets/kp-mod-photo-idb.js?v=20260526-4-all-data-image-idb');
-        addScript('kp-mod-sync','assets/kp-mod-sync.js?v=20260526-11');
-        addScript('kp-mod-github-restore-button-fix','assets/kp-mod-github-restore-button-fix.js?v=20260523-679-self-test');
-        addScript('kp-mod-mobile-layout-center-fix','assets/kp-mod-mobile-layout-center-fix.js?v=20260523-679-self-test');
-        addScript('kp-mod-weather','assets/kp-mod-weather.js?v=20260523-679-self-test');
-        addScript('kp-mod-fish','assets/kp-mod-fish.js?v=20260523-679-self-test');
-        addScript('kp-mod-ui','assets/kp-mod-ui.js?v=20260523-679-self-test');
-        addScript('kp-mod-session','assets/kp-mod-session.js?v=20260523-679-self-test');
-        addScript('kp-mod-spotfinder','assets/kp-mod-spotfinder.js?v=20260523-679-self-test');
-        addScript('kp-mod-spotfinder-photo-backup','assets/kp-mod-spotfinder-photo-backup.js?v=20260523-679-self-test');
-        addScript('kp-mod-spotfinder-nav','assets/kp-mod-spotfinder-nav.js?v=20260523-679-self-test');
-        addScript('kp-mod-spotfinder-map-nav-button','assets/kp-mod-spotfinder-map-nav-button.js?v=20260523-679-self-test');
-        addScript('kp-mod-spotfinder-nav-pagehide','assets/kp-mod-spotfinder-nav-pagehide.js?v=20260523-679-self-test');
-        addScript('kp-mod-mobile-modal-scroll-fix','assets/kp-mod-mobile-modal-scroll-fix.js?v=20260523-679-self-test');
-        addScript('kp-mod-bait-form-scroll-fix','assets/kp-mod-bait-form-scroll-fix.js?v=20260523-679-self-test');
-        addScript('kp-mod-bait-form-image-upload-fix','assets/kp-mod-bait-form-image-upload-fix.js?v=20260523-679-self-test');
-        addScript('kp-mod-catch-bait-combo','assets/kp-mod-catch-bait-combo.js?v=20260523-679-self-test');
-        addScript('kp-mod-session-catch-late-save-fix','assets/kp-mod-session-catch-late-save-fix.js?v=20260523-679-self-test');
-        addScript('kp-mod-fish-detail-scroll-fix','assets/kp-mod-fish-detail-scroll-fix.js?v=20260523-679-self-test');
-        addScript('kp-mod-self-test','assets/kp-mod-self-test.js?v=20260523-679-self-test');
-        addScript('kp-mod-settings-simple','assets/kp-mod-settings-simple.js?v=20260523-679-self-test');
-        addScript('kp-mod-force-hide-settings','assets/kp-mod-force-hide-settings.js?v=20260523-679-self-test');
-        addScript('kp-mod-sync-db-fallback-fix','assets/kp-mod-sync-db-fallback-fix.js?v=20260526-1');
-        addScript('kp-mod-session-restore','assets/kp-mod-session-restore.js?v=20260526-12');
-        addScript('kp-mod-resize-image-fix','assets/kp-mod-resize-image-fix.js?v=20260526-1');
-        addScript('kp-mod-setup-scroll-gear-select-fix','assets/kp-mod-setup-scroll-gear-select-fix.js?v=20260527-1');
-      }catch(e){console.warn('[KapásPont] modul betöltési hiba:',e);}
-    },250);
-  }catch(err){
-    console.error(err);
-    document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';
-  }
+  })();
 })();
 </script>
 </body>
