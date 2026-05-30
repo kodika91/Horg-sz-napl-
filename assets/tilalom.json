@@ -1,0 +1,12 @@
+[
+  { "nev": "Ponty",             "id": "ponty",       "kep": ["assets/fish/ponty.jpg"],           "tol": "05-04", "ig": "05-29" },
+  { "nev": "Compó",             "id": "compó",       "kep": ["assets/fish/compo.jpg"],           "tol": "05-04", "ig": "06-13" },
+  { "nev": "Szilvaorrú keszeg", "id": "szilvaorru",  "kep": ["assets/fish/szilvaorru_keszeg.jpg"], "tol": "04-15", "ig": "05-29" },
+  { "nev": "Paduc",             "id": "paduc",       "kep": ["assets/fish/paduc.jpg"],           "tol": "04-15", "ig": "05-29" },
+  { "nev": "Márna",             "id": "marna",       "kep": ["assets/fish/marna.jpg"],           "tol": "04-15", "ig": "05-29" },
+  { "nev": "Jászkeszeg",        "id": "jászkeszeg",  "kep": ["assets/fish/jaszkeszeg.jpg"],      "tol": "04-15", "ig": "05-29" },
+  { "nev": "Fejes domolykó",    "id": "domolyko",    "kep": ["assets/fish/domolyko.jpg"],        "tol": "04-15", "ig": "05-29" },
+  { "nev": "Domolykó",          "id": "domolyko",    "kep": ["assets/fish/domolyko.jpg"],        "tol": "04-15", "ig": "05-29" },
+  { "nev": "Kősüllő",           "id": "kosullo",     "kep": ["assets/fish/kosullo.jpg"],         "tol": "03-01", "ig": "06-30" },
+  { "nev": "Harcsa",            "id": "harcsa",      "kep": ["assets/fish/harcsa.jpg"],          "tol": "05-04", "ig": "06-13" }
+]
