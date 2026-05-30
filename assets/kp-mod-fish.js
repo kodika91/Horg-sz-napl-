@@ -1,5 +1,5 @@
 // kp-mod-fish.js — halfaj kártyák, tilalmi időszak
-// Tartalom: v31-fish-card-cleanup · v33-CSS · v35-home-ban-render
+// Tartalom: v31-fish-card-cleanup · v33-CSS · v35-home-ban-render · v36-img-crop
 
 (function(){
   if(window.KP_V31_FISH_CARD_CLEANUP)return;
@@ -59,7 +59,7 @@
     '@media(max-width:640px){.weather-card{border-radius:26px!important;clip-path:inset(0 round 26px)!important}}'+
     '#page-baits .item-list-card .item-icon,#page-gear .item-list-card .item-icon{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;overflow:hidden!important;flex-shrink:0!important}'+
     '#page-baits .item-list-card .item-icon img,#page-gear .item-list-card .item-icon img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}'+
-    '#page-fish .fish-img-wrap img.v18-managed-img{object-fit:contain!important;}';
+    '#page-fish .fish-img-wrap img.v18-managed-img{object-fit:cover!important;}';
   document.head.appendChild(s);
 })();
 
@@ -193,4 +193,39 @@
   }
   run();
   setInterval(run,1600);
+})();
+
+(function(){
+  if(window.KP_V36_FISH_IMG_CROP)return;
+  window.KP_V36_FISH_IMG_CROP=true;
+
+  // card image area: height 136px - 2*6px padding = 124px, width ~208px
+  var RATIO=208/124;
+
+  function crop(img){
+    if(img.dataset.kpCrop)return;
+    if(!img.complete||!img.naturalWidth||!img.naturalHeight)return;
+    var nw=img.naturalWidth,nh=img.naturalHeight,r=nw/nh;
+    var sx,sy,sw,sh;
+    if(r>RATIO){sw=Math.round(nh*RATIO);sh=nh;sx=Math.round((nw-sw)/2);sy=0;}
+    else{sw=nw;sh=Math.round(nw/RATIO);sx=0;sy=Math.round((nh-sh)/2);}
+    try{
+      var c=document.createElement('canvas');
+      c.width=416;c.height=248;
+      c.getContext('2d').drawImage(img,sx,sy,sw,sh,0,0,416,248);
+      img.dataset.kpCrop='1';
+      img.src=c.toDataURL('image/jpeg',0.88);
+    }catch(e){img.dataset.kpCrop='err';}
+  }
+
+  function run(){
+    var pg=document.getElementById('page-fish');
+    if(!pg)return;
+    pg.querySelectorAll('.fish-img-wrap img.v18-managed-img:not([data-kp-crop])').forEach(function(img){
+      if(img.complete&&img.naturalWidth){crop(img);}
+      else{img.addEventListener('load',function(){crop(img);},{once:true});}
+    });
+  }
+
+  setInterval(run,800);
 })();
