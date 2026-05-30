@@ -58,7 +58,8 @@
     '.weather-card::before,.weather-card::after{border-radius:inherit!important;overflow:hidden!important}'+
     '@media(max-width:640px){.weather-card{border-radius:26px!important;clip-path:inset(0 round 26px)!important}}'+
     '#page-baits .item-list-card .item-icon,#page-gear .item-list-card .item-icon{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;overflow:hidden!important;flex-shrink:0!important}'+
-    '#page-baits .item-list-card .item-icon img,#page-gear .item-list-card .item-icon img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}';
+    '#page-baits .item-list-card .item-icon img,#page-gear .item-list-card .item-icon img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}'+
+    '#page-fish .fish-img-wrap img.v18-managed-img{object-fit:contain!important;}';
   document.head.appendChild(s);
 })();
 
