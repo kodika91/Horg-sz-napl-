@@ -2,6 +2,7 @@
 (function(){
 if(window.KP_BAN_ENGINE)return;window.KP_BAN_ENGINE=true;
 var old=window.currentBanState;
+var checkedOnce=false;
 var M={jan:1,januar:1,feb:2,februar:2,mar:3,marcius:3,apr:4,aprilis:4,maj:5,majus:5,jun:6,junius:6,jul:7,julius:7,aug:8,augusztus:8,sze:9,szept:9,szeptember:9,okt:10,oktober:10,nov:11,november:11,dec:12,december:12};
 var R={i:1,ii:2,iii:3,iv:4,v:5,vi:6,vii:7,viii:8,ix:9,x:10,xi:11,xii:12};
 function n(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\./g,'').trim();}
@@ -33,9 +34,9 @@ function fixHome(){
  var al=document.getElementById('ban-alert');if(al&&cards.length&&v===0)al.style.display='none';
 }
 function run(){
- try{if(typeof checkBans==='function')checkBans();}catch(e){}
+ if(!checkedOnce){checkedOnce=true;try{if(typeof checkBans==='function')checkBans();}catch(e){}}
  setTimeout(fixHome,100);setTimeout(fixHome,500);
 }
-setTimeout(run,300);setTimeout(run,1200);setInterval(run,3000);
+setTimeout(run,300);setTimeout(run,1200);setInterval(fixHome,30000);
 window.kpBanEngineDebug=function(){try{return (typeof FISH_DB!=='undefined'?FISH_DB:[]).filter(window.currentBanState).map(function(f){return f.name+' | '+f.ban;});}catch(e){return String(e.message||e);}};
 })();
