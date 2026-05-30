@@ -1,9 +1,9 @@
 // kp-mod-photo-idb.js — base64 képek IndexedDB-ben, localStorage slim
-// v1.3 · minden beágyazott data:image kiszedése IndexedDB-be
+// v1.4 · ismételt getDB fotó-injektálás logolásának és felesleges zajának csökkentése
 (function(){
 'use strict';
-if(window.KP_MOD_PHOTO_IDB_V13)return;
-window.KP_MOD_PHOTO_IDB_V13=true;
+if(window.KP_MOD_PHOTO_IDB_V14)return;
+window.KP_MOD_PHOTO_IDB_V14=true;
 
 const IDB_NAME='kp_photos';
 const IDB_STORE='photos';
@@ -11,10 +11,18 @@ const MAIN_DB_KEY='horgaszpro_v0230';
 const MARKER='__kpPhotoIdbKey';
 let _idb=null;
 const _cache=Object.create(null);
+let _lastInjectLogAt=0,_lastInjectSig='';
 
 function dbg(type,msg,data){
   try{if(window.KP_STORAGE_DEBUG&&typeof window.KP_STORAGE_DEBUG.log==='function')window.KP_STORAGE_DEBUG.log(type,msg,data||{});}catch(e){}
   try{console[type==='ERR'?'error':type==='WARN'?'warn':'log']('[KP photo IDB]',msg,data||'');}catch(e){}
+}
+function dbgInject(msg,data){
+  const sig=String(data&&data.injected||0)+'|'+Object.keys(_cache).length;
+  const now=Date.now();
+  if(sig===_lastInjectSig && now-_lastInjectLogAt<30000)return;
+  _lastInjectSig=sig;_lastInjectLogAt=now;
+  dbg('INFO',msg,data||{});
 }
 function strLen(v){try{return String(v==null?'':v).length}catch(e){return -1}}
 function kb(chars){return Math.round(((Number(chars)||0)*2)/1024)+' KB'}
@@ -103,8 +111,6 @@ function extractAllDataImages(orig,slim,path,stats,seen){
         const key=existingKey||genKey();
         if(k==='photo'&&!orig.photoIdbKey)orig.photoIdbKey=key;
         _cache[key]=v;
-        // Régi kompatibilitás: photo mezőnél marad a photoIdbKey + photo törlés.
-        // Minden más beágyazott képnél marker objektum kerül a JSON-ba.
         if(k==='photo'){
           slim.photoIdbKey=key;
           delete slim.photo;
@@ -145,13 +151,12 @@ function injectPhotos(db){
     }
     if(Array.isArray(obj)){for(let i=0;i<obj.length;i++)walk(obj[i],obj,i,depth+1);return;}
     if(typeof obj==='object'){
-      // Régi photo/photoIdbKey forma visszatöltése
       if(!obj.photo&&obj.photoIdbKey&&_cache[obj.photoIdbKey]){obj.photo=_cache[obj.photoIdbKey];injected++;}
       Object.keys(obj).forEach(k=>walk(obj[k],obj,k,depth+1));
     }
   };
   walk(db,null,null,0);
-  if(injected)dbg('INFO','fotók visszatöltve memóriába',{injected:injected});
+  if(injected)dbgInject('fotók visszatöltve memóriába',{injected:injected});
 }
 
 async function loadCache(){
@@ -161,7 +166,7 @@ async function loadCache(){
 function rerender(){['renderSessionsList','renderActiveSessionHome','updateHome','renderStorageOverview'].forEach(fn=>{try{window[fn]&&window[fn]();}catch(e){dbg('WARN','rerender hiba',{fn:fn,error:String(e&&e.message||e)})}});}
 
 function installIntercepts(){
-  if(typeof window.saveDB==='function'&&!window.saveDB.__kpPhotoIdbV13){
+  if(typeof window.saveDB==='function'&&!window.saveDB.__kpPhotoIdbV14){
     const orig=window.saveDB;
     window.saveDB=function(db){
       dbg('INFO','saveDB intercept hívva',{incoming:jsonInfo(db)});
@@ -170,15 +175,15 @@ function installIntercepts(){
       return orig.call(this,slim);
     };
     window.saveDB.__kpPhotoIdb=true;
-    window.saveDB.__kpPhotoIdbV13=true;
-    dbg('INFO','saveDB intercept telepítve',{version:'v1.3'});
+    window.saveDB.__kpPhotoIdbV14=true;
+    dbg('INFO','saveDB intercept telepítve',{version:'v1.4'});
   }
-  if(typeof window.getDB==='function'&&!window.getDB.__kpPhotoIdbV13){
+  if(typeof window.getDB==='function'&&!window.getDB.__kpPhotoIdbV14){
     const orig=window.getDB;
     window.getDB=function(){const db=orig.call(this);injectPhotos(db);return db;};
     window.getDB.__kpPhotoIdb=true;
-    window.getDB.__kpPhotoIdbV13=true;
-    dbg('INFO','getDB intercept telepítve',{version:'v1.3'});
+    window.getDB.__kpPhotoIdbV14=true;
+    dbg('INFO','getDB intercept telepítve',{version:'v1.4'});
   }
 }
 
@@ -208,5 +213,5 @@ loadCache().then(()=>{installIntercepts();cleanupExistingLocalStorageDb();setTim
 setTimeout(installIntercepts,400);
 setTimeout(installIntercepts,1200);
 setTimeout(()=>{installIntercepts();cleanupExistingLocalStorageDb();},3000);
-dbg('INFO','kp-mod-photo-idb betöltve',{version:'v1.3-all-data-image-to-idb'});
+dbg('INFO','kp-mod-photo-idb betöltve',{version:'v1.4-all-data-image-to-idb-throttled-inject-log'});
 })();
