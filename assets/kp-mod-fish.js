@@ -59,18 +59,27 @@
   if(window.KP_V35_HOME_BAN_RENDER_TEXT)return;
   window.KP_V35_HOME_BAN_RENDER_TEXT=true;
 
-  var data={
-    'Ponty':['ponty',['assets/fish/ponty.jpg'],'Máj. 4 – Máj. 29'],
-    'Compó':['compó',['assets/fish/compo.jpg'],'Máj. 4 – Jún. 13'],
-    'Szilvaorrú keszeg':['szilvaorru',['assets/fish/szilvaorru.jpg','assets/fish/szilvaorrú.jpg'],'Ápr. 15 – Máj. 29'],
-    'Paduc':['paduc',['assets/fish/paduc.jpg'],'Ápr. 15 – Máj. 29'],
-    'Márna':['marna',['assets/fish/marna.jpg','assets/fish/márna.jpg'],'Ápr. 15 – Máj. 29'],
-    'Jászkeszeg':['jászkeszeg',['assets/fish/jászkeszeg.jpg','assets/fish/jaszkeszeg.jpg'],'Ápr. 15 – Máj. 29'],
-    'Fejes domolykó':['domolyko',['assets/fish/domolyko.jpg','assets/fish/domolykó.jpg'],'Ápr. 15 – Máj. 29'],
-    'Domolykó':['domolyko',['assets/fish/domolyko.jpg','assets/fish/domolykó.jpg'],'Ápr. 15 – Máj. 29'],
-    'Kősüllő':['kosullo',['assets/fish/kosullo.jpg','assets/fish/kősüllő.jpg'],'Már. 1 – Jún. 30'],
-    'Harcsa':['harcsa',['assets/fish/harcsa.jpg'],'Máj. 4 – Jún. 13']
-  };
+  var MONTHS_HU=['Jan.','Febr.','Már.','Ápr.','Máj.','Jún.','Júl.','Aug.','Szept.','Okt.','Nov.','Dec.'];
+  var _cache=null;
+
+  function formatRange(tol,ig){
+    var a=tol.split('-'),b=ig.split('-');
+    return MONTHS_HU[+a[0]-1]+' '+(+a[1])+' – '+MONTHS_HU[+b[0]-1]+' '+(+b[1]);
+  }
+
+  function isActive(tol,ig){
+    var n=new Date(),md=(n.getMonth()+1)*100+n.getDate();
+    var a=tol.split('-'),b=ig.split('-');
+    return md>=(+a[0]*100+(+a[1]))&&md<=(+b[0]*100+(+b[1]));
+  }
+
+  function loadTilalom(cb){
+    if(_cache){cb(_cache);return;}
+    fetch('assets/tilalom.json')
+      .then(function(r){return r.json();})
+      .then(function(d){_cache=d;cb(d);})
+      .catch(function(){cb([]);});
+  }
 
   function addStyle(){
     if(document.getElementById('kp-v35-home-ban-style'))return;
@@ -84,8 +93,8 @@
     t=String(t||'');
     var a=t.indexOf('alatt:');
     var b=t.indexOf('. A helyi');
-    if(a<0||b<0||b<=a)return [];
-    return t.slice(a+6,b).split(',').map(function(x){return x.trim()}).filter(Boolean);
+    if(a<0||b<0||b<=a)return[];
+    return t.slice(a+6,b).split(',').map(function(x){return x.trim();}).filter(Boolean);
   }
 
   function setFallbackImage(img,list,idx,box){
@@ -94,32 +103,23 @@
     img.onerror=function(){setFallbackImage(img,list,idx+1,box);};
   }
 
-  function resolveImages(name,d){
-    var list=[];
-    try{
-      if(typeof window.getFishImage==='function'){
-        var fake={id:d[0],name:name,img:(Array.isArray(d[1])&&d[1][0])?d[1][0]:''};
-        var fi=window.getFishImage(fake);
-        if(fi&&fi.src)list.push(fi.src);
-        if(fi&&Array.isArray(fi.fallbacks))fi.fallbacks.forEach(function(x){if(x)list.push(x);});
-      }
-    }catch(e){}
-    (Array.isArray(d[1])?d[1]:(d[1]?[d[1]]:[])).forEach(function(x){if(x)list.push(x);});
-    return Array.from(new Set(list));
-  }
-
-  function card(name){
-    var d=data[name]||['','','Aktív tilalom'];
+  function card(entry){
+    var images=Array.isArray(entry.kep)?entry.kep:(entry.kep?[entry.kep]:[]);
     var btn=document.createElement('button');
     btn.type='button';btn.className='kp-v35-card';
     var imgbox=document.createElement('div');imgbox.className='kp-v35-img';
-    var images=resolveImages(name,d);
-    if(images.length){var im=document.createElement('img');im.alt=name;imgbox.appendChild(im);setFallbackImage(im,images,0,imgbox);}else{imgbox.textContent='🐟';}
+    if(images.length){
+      var im=document.createElement('img');im.alt=entry.nev;
+      imgbox.appendChild(im);setFallbackImage(im,images,0,imgbox);
+    }else{imgbox.textContent='🐟';}
     var body=document.createElement('div');body.className='kp-v35-body';
-    var n=document.createElement('div');n.className='kp-v35-name';n.textContent=name;
-    var r=document.createElement('div');r.className='kp-v35-rule';r.textContent=d[2];
-    body.appendChild(n);body.appendChild(r);btn.appendChild(imgbox);btn.appendChild(body);
-    btn.addEventListener('click',function(){if(d[0]&&typeof window.openFishDetail==='function')window.openFishDetail(d[0]);});
+    var n=document.createElement('div');n.className='kp-v35-name';n.textContent=entry.nev;
+    var r=document.createElement('div');r.className='kp-v35-rule';r.textContent=formatRange(entry.tol,entry.ig);
+    body.appendChild(n);body.appendChild(r);
+    btn.appendChild(imgbox);btn.appendChild(body);
+    btn.addEventListener('click',function(){
+      if(entry.id&&typeof window.openFishDetail==='function')window.openFishDetail(entry.id);
+    });
     return btn;
   }
 
@@ -130,34 +130,62 @@
       var page=document.getElementById('page-fish');
       if(page){
         page.querySelectorAll('.ftab').forEach(function(x){x.classList.remove('active');});
-        var bannedBtn=Array.from(page.querySelectorAll('.ftab')).find(function(x){return (x.textContent||'').toLowerCase().indexOf('tilalomban')>-1;});
+        var bannedBtn=Array.from(page.querySelectorAll('.ftab')).find(function(x){
+          return(x.textContent||'').toLowerCase().indexOf('tilalomban')>-1;
+        });
         if(bannedBtn)bannedBtn.classList.add('active');
       }
       if(typeof window.renderFishGrid==='function')window.renderFishGrid();
     },350);
   }
 
-  function render(){
+  function render(tilalomList){
     var alert=document.getElementById('ban-alert');
     var el=document.getElementById('ban-text');
     if(!alert||!el)return;
     if(el.querySelector('.kp-v35-box'))return;
-    var list=namesFromText(el.textContent);
-    if(!list.length)return;
+
+    // Elsőként az eredeti app DOM-szövegéből olvassuk a neveket
+    var domNames=namesFromText(el.textContent);
+    var displayList;
+    if(domNames.length){
+      // Eredeti app által jelzett halak, JSON-ból keresve
+      displayList=domNames.map(function(n){
+        return tilalomList.find(function(f){return f.nev===n;});
+      }).filter(Boolean);
+    }else{
+      // Ha nincs DOM-szöveg, saját dátumszámítással
+      displayList=tilalomList.filter(function(f){return isActive(f.tol,f.ig);});
+    }
+    if(!displayList.length)return;
+
     addStyle();
     alert.classList.add('kp-v35-wrap');
     el.textContent='';
     var box=document.createElement('div');box.className='kp-v35-box';
     var title=document.createElement('div');title.className='kp-v35-title';title.textContent='⚠️ Aktív tilalmi időszak!';
-    var sub=document.createElement('div');sub.className='kp-v35-sub';sub.textContent='Jelenleg '+list.length+' halfaj érintett. Koppints a halfajra a részletekhez. A helyi horgászrend eltérhet.';
+    var sub=document.createElement('div');sub.className='kp-v35-sub';
+    sub.textContent='Jelenleg '+displayList.length+' halfaj érintett. Koppints a halfajra a részletekhez. A helyi horgászrend eltérhet.';
     var grid=document.createElement('div');grid.className='kp-v35-grid';
-    list.slice(0,6).forEach(function(n){grid.appendChild(card(n));});
+    displayList.slice(0,6).forEach(function(f){grid.appendChild(card(f));});
     box.appendChild(title);box.appendChild(sub);box.appendChild(grid);
-    if(list.length>6){var more=document.createElement('button');more.type='button';more.className='kp-v35-more';more.textContent='Összes tilalmi hal megnyitása';more.addEventListener('click',openBannedFishPage);box.appendChild(more);}
+    if(displayList.length>6){
+      var more=document.createElement('button');
+      more.type='button';more.className='kp-v35-more';
+      more.textContent='Összes tilalmi hal megnyitása';
+      more.addEventListener('click',openBannedFishPage);
+      box.appendChild(more);
+    }
     el.appendChild(box);
   }
 
-  function run(){render();setTimeout(render,300);setTimeout(render,900);}
+  function run(){
+    loadTilalom(function(list){
+      render(list);
+      setTimeout(function(){render(list);},300);
+      setTimeout(function(){render(list);},900);
+    });
+  }
   run();
   setInterval(run,1600);
 })();
