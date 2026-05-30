@@ -1,5 +1,35 @@
 // kp-mod-fish.js — halfaj kártyák, tilalmi időszak
-// Tartalom: v31-fish-card-cleanup · v33-CSS · v35-home-ban-render · v36-img-crop
+// Tartalom: v31-fish-card-cleanup · v33-CSS · v35-home-ban-render · v36-img-crop · v37-img-remap
+
+(function(){
+  if(window.KP_V37_IMG_REMAP)return;
+  window.KP_V37_IMG_REMAP=true;
+  var MAP={
+    'szilvaorru.jpg':'szilvaorru_keszeg.jpg',
+    'szivarvanyos.jpg':'szivarvanyos_okle.jpg',
+    'szivarvanyosokle.jpg':'szivarvanyos_okle.jpg',
+    'fejes_domolyko.jpg':'domolyko.jpg',
+    'lenaiktok.jpg':'lenai_tok.jpg',
+    'koi.jpg':'koi_ponty.jpg',
+    'magyarbuco.jpg':'magyar_buco.jpg',
+    'nemetbuco.jpg':'nemet_buco.jpg',
+    'vagocsik.jpg':'vago_csik.jpg',
+    'vagodurbincs.jpg':'vago_durbincs.png',
+    'vago_durbincs.jpg':'vago_durbincs.png',
+    'vagotok.jpg':'vagotok.png'
+  };
+  document.addEventListener('error',function(e){
+    var img=e.target;
+    if(!img||img.tagName!=='IMG'||img.dataset.kpRemap)return;
+    var src=String(img.src||'');
+    var file=src.split('/').pop().split('?')[0];
+    var fix=MAP[file];
+    if(fix){
+      img.dataset.kpRemap='1';
+      img.src=src.slice(0,src.lastIndexOf('/')+1)+fix;
+    }
+  },true);
+})();
 
 (function(){
   if(window.KP_V31_FISH_CARD_CLEANUP)return;
@@ -199,7 +229,6 @@
   if(window.KP_V36_FISH_IMG_CROP)return;
   window.KP_V36_FISH_IMG_CROP=true;
 
-  // card image area: height 136px - 2*6px padding = 124px, width ~208px
   var RATIO=208/124;
 
   function crop(img){
