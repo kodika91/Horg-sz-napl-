@@ -11,7 +11,7 @@
 <style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center}.box{max-width:560px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:24px;box-shadow:0 10px 35px rgba(60,40,10,.12)}.t{font-weight:800;font-size:18px;margin-bottom:8px}.s{color:#6b5840;line-height:1.5}</style>
 </head>
 <body>
-<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v68.17 · kategóriahelyes felszerelés választók</div></div>
+<div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v68.18 · tilalmi idő frissítés javítás</div></div>
 <script>
 (function(){
   function addScript(id,src){var old=document.getElementById(id);if(old)old.remove();var s=document.createElement('script');s.id=id;s.src=src;s.defer=false;document.body.appendChild(s)}
@@ -22,8 +22,8 @@
       const res=await fetch(appUrl,{cache:'reload'});
       if(!res.ok) throw new Error('app.html fetch failed: '+res.status);
       let html=await res.text();
-      html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v68.17 kategóriahelyes felszerelés választók');
-      html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants.\n\n\n// CSALI ADATBÁZIS');
+      html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v68.18 tilalmi idő frissítés javítás');
+      html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants. kp-mod-ban-refresh-fix.js futtatja betöltés után.\n\n\n// CSALI ADATBÁZIS');
       html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
       html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
       html=html.replace("let fishFilter='all',fishSearch='';","var fishFilter='all',fishSearch='';");
@@ -45,6 +45,7 @@
           addScript('kp-mod-mobile-layout-center-fix','assets/kp-mod-mobile-layout-center-fix.js?v=20260523-679-self-test');
           addScript('kp-mod-weather','assets/kp-mod-weather.js?v=20260523-679-self-test');
           addScript('kp-mod-fish','assets/kp-mod-fish.js?v=20260523-679-self-test');
+          addScript('kp-mod-ban-refresh-fix','assets/kp-mod-ban-refresh-fix.js?v=20260530-1');
           addScript('kp-mod-ui','assets/kp-mod-ui.js?v=20260523-679-self-test');
           addScript('kp-mod-session','assets/kp-mod-session.js?v=20260523-679-self-test');
           addScript('kp-mod-spotfinder','assets/kp-mod-spotfinder.js?v=20260523-679-self-test');
