@@ -61,7 +61,7 @@
 
   var data={
     'Ponty':['ponty',['assets/fish/ponty.jpg'],'Máj. 4 – Máj. 29'],
-    'Compó':['compó',['assets/fish/compó.jpg','assets/fish/compo.jpg'],'Máj. 4 – Jún. 13'],
+    'Compó':['compó',['assets/fish/compo.jpg'],'Máj. 4 – Jún. 13'],
     'Szilvaorrú keszeg':['szilvaorru',['assets/fish/szilvaorru.jpg','assets/fish/szilvaorrú.jpg'],'Ápr. 15 – Máj. 29'],
     'Paduc':['paduc',['assets/fish/paduc.jpg'],'Ápr. 15 – Máj. 29'],
     'Márna':['marna',['assets/fish/marna.jpg','assets/fish/márna.jpg'],'Ápr. 15 – Máj. 29'],
