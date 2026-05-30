@@ -32,7 +32,10 @@ function fixHome(){
  var sub=root.getElementsByClassName('kp-v35-sub')[0];if(sub&&v)sub.textContent='Jelenleg '+v+' halfaj érintett. Koppints a halfajra a részletekhez. A helyi horgászrend eltérhet.';
  var al=document.getElementById('ban-alert');if(al&&cards.length&&v===0)al.style.display='none';
 }
-function run(){try{if(typeof checkBans==='function')checkBans();}catch(e){}setTimeout(fixHome,100);setTimeout(fixHome,500);try{if(typeof renderFishGrid==='function')renderFishGrid();}catch(e){}}
+function run(){
+ try{if(typeof checkBans==='function')checkBans();}catch(e){}
+ setTimeout(fixHome,100);setTimeout(fixHome,500);
+}
 setTimeout(run,300);setTimeout(run,1200);setInterval(run,3000);
 window.kpBanEngineDebug=function(){try{return (typeof FISH_DB!=='undefined'?FISH_DB:[]).filter(window.currentBanState).map(function(f){return f.name+' | '+f.ban;});}catch(e){return String(e.message||e);}};
 })();
