@@ -1,25 +1,21 @@
-// kp-mod-ban-refresh-fix.js — minimal datum sorrend javitas
+// kp-mod-ban-refresh-fix.js
 (function(){
-  if(window.KP_BAN_REFRESH_FIX_MIN)return;
-  window.KP_BAN_REFRESH_FIX_MIN=true;
-  var previous=window.currentBanState;
-  function todayAfter(month,day){
-    var n=new Date();
-    var today=new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime();
-    var limit=new Date(n.getFullYear(),month-1,day).getTime();
-    return today>limit;
+  if(window.KP_BAN_FIX_HOME_2)return;
+  window.KP_BAN_FIX_HOME_2=true;
+  var old=window.currentBanState;
+  function after(m,d){var n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate())>new Date(n.getFullYear(),m-1,d);}
+  function expired(s){s=String(s||'').toLowerCase();return ((s.indexOf('máj. 29')>-1||s.indexOf('maj. 29')>-1)&&after(5,29))||((s.indexOf('ápr. 30')>-1||s.indexOf('apr. 30')>-1)&&after(4,30));}
+  window.currentBanState=function(f){if(expired(f&&f.ban))return false;return old?old(f):false;};
+  function home(){
+    var root=document.getElementById('ban-text');
+    if(!root)return;
+    var cards=root.getElementsByClassName('kp-v35-card');
+    for(var i=cards.length-1;i>=0;i--){if(expired(cards[i].textContent))cards[i].style.display='none';}
+    var visible=0;for(var j=0;j<cards.length;j++){if(cards[j].style.display!=='none')visible++;}
+    var sub=root.getElementsByClassName('kp-v35-sub')[0];
+    if(sub&&visible)sub.textContent='Jelenleg '+visible+' halfaj érintett. Koppints a halfajra a részletekhez. A helyi horgászrend eltérhet.';
+    var al=document.getElementById('ban-alert');if(al&&cards.length&&visible===0)al.style.display='none';
   }
-  window.currentBanState=function(f){
-    var text=String(f&&f.ban||'').toLowerCase();
-    if((text.indexOf('máj. 29')>-1||text.indexOf('maj. 29')>-1||text.indexOf('v. 29')>-1)&&todayAfter(5,29))return false;
-    if((text.indexOf('ápr. 30')>-1||text.indexOf('apr. 30')>-1||text.indexOf('iv. 30')>-1)&&todayAfter(4,30))return false;
-    return previous?previous(f):false;
-  };
-  function refresh(){
-    try{if(typeof checkBans==='function')checkBans();}catch(e){}
-    try{if(typeof renderFishGrid==='function')renderFishGrid();}catch(e){}
-  }
-  setTimeout(refresh,300);
-  setTimeout(refresh,1200);
-  setInterval(refresh,60000);
+  function run(){try{if(typeof checkBans==='function')checkBans();}catch(e){}setTimeout(home,100);setTimeout(home,500);}
+  setTimeout(run,300);setTimeout(run,1200);setInterval(run,3000);
 })();
