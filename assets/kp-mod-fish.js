@@ -60,9 +60,7 @@
     '#page-baits .item-list-card .item-icon,#page-gear .item-list-card .item-icon{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;overflow:hidden!important;flex-shrink:0!important}'+
     '#page-baits .item-list-card .item-icon img,#page-gear .item-list-card .item-icon img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}'+
     '#page-fish .fish-img-wrap{overflow:hidden!important;}'+
-    '#page-fish .fish-img-wrap img{object-fit:cover!important;}'+
-    'img[src*="karasz_hibrid"],img[src*="soregtok"],img[src*="selymes_durbincs"],img[src*="lenai_tok"],img[src*="szivarvanyos_okle"],img[src*="szeles_durbincs"],img[src*="reti_csik"],img[src*="kovi_csik"],img[src*="nemet_buco"],img[src*="koi_ponty"],img[src*="razbora"],img[src*="vago_csik"],img[src*="tarka_geb"],img[src*="vagotok"],img[src*="vago_durbincs"],img[src*="magyar_buco"],img[src*="kurta_baing"]{transform:scale(1.4);transform-origin:center center;}'+
-    'img[src*="garda"],img[src*="szilvaorru_keszeg"],img[src*="paduc"],img[src*="szivarvanyos_pisztrang"],img[src*="sebes_pisztrang"]{transform:scale(1.25);transform-origin:center center;}';
+    '#page-fish .fish-img-wrap img{object-fit:cover!important;}';
   document.head.appendChild(s);
 })();
 
