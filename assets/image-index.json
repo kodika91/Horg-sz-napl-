@@ -16,7 +16,14 @@
     "compo": "assets/fish/compo.jpg",
     "jaszkeszeg": "assets/fish/jaszkeszeg.jpg",
     "sullo": "assets/fish/fogassullo.jpg",
-    "ko_pisztrang": "assets/fish/sebespisztrang.jpg"
+    "ko_pisztrang": "assets/fish/sebespisztrang.jpg",
+    "szilvaorru_keszeg": "assets/fish/szilvaorru_keszeg.jpg",
+    "fejes_domolyko": "assets/fish/domolyko.jpg",
+    "koi_ponty": "assets/fish/koi_ponty.jpg",
+    "lenai_tok": "assets/fish/lenai_tok.jpg",
+    "magyar_buco": "assets/fish/magyar_buco.jpg",
+    "nemet_buco": "assets/fish/nemet_buco.jpg",
+    "vago_csik": "assets/fish/vago_csik.jpg"
   },
   "gear": {},
   "bait": {
@@ -138,6 +145,41 @@
       "updatedAt": "2026-05-31T00:00:00.000Z"
     },
     "fish:ko_pisztrang": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-31T00:00:00.000Z"
+    },
+    "fish:szilvaorru_keszeg": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-31T00:00:00.000Z"
+    },
+    "fish:fejes_domolyko": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-31T00:00:00.000Z"
+    },
+    "fish:koi_ponty": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-31T00:00:00.000Z"
+    },
+    "fish:lenai_tok": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-31T00:00:00.000Z"
+    },
+    "fish:magyar_buco": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-31T00:00:00.000Z"
+    },
+    "fish:nemet_buco": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-31T00:00:00.000Z"
+    },
+    "fish:vago_csik": {
       "subcategory": "general",
       "subcategoryLabel": "Halfaj",
       "updatedAt": "2026-05-31T00:00:00.000Z"

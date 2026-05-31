@@ -33,6 +33,20 @@
       img.src=src.slice(0,src.lastIndexOf('/')+1)+fix;
     }
   },true);
+  function scanAndRemap(){
+    document.querySelectorAll('img:not([data-kp-remap])').forEach(function(img){
+      var src=String(img.src||'');
+      var file=src.split('/').pop().split('?')[0];
+      var fix=MAP[file];
+      if(fix){
+        img.dataset.kpRemap='1';
+        img.src=src.slice(0,src.lastIndexOf('/')+1)+fix;
+      }
+    });
+  }
+  setTimeout(scanAndRemap,200);
+  setTimeout(scanAndRemap,800);
+  setTimeout(scanAndRemap,2500);
 })();
 
 (function(){
