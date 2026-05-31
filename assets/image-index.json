@@ -12,7 +12,11 @@
     "szivarvanyos_okle": "assets/fish/szivarvanyos_okle.jpg",
     "szeles_durbincs": "assets/fish/szeles_durbincs.jpg",
     "vago_durbincs": "assets/fish/vago_durbincs.png",
-    "vagotok": "assets/fish/vagotok.png"
+    "vagotok": "assets/fish/vagotok.png",
+    "compo": "assets/fish/compo.jpg",
+    "jaszkeszeg": "assets/fish/jaszkeszeg.jpg",
+    "sullo": "assets/fish/fogassullo.jpg",
+    "ko_pisztrang": "assets/fish/sebespisztrang.jpg"
   },
   "gear": {},
   "bait": {
@@ -86,7 +90,7 @@
     "bait:kukorica": {
       "subcategory": "bait",
       "subcategoryLabel": "Csali",
-      "updatedAt": "2026-05-22T09:54:24.056Z"
+      "updatedAt": "2026-05-22T09:54:24.066Z"
     },
     "bait:pinki": {
       "subcategory": "bait",
@@ -96,29 +100,49 @@
     "bait:pop_up_bojli": {
       "subcategory": "bait",
       "subcategoryLabel": "Csali",
-      "updatedAt": "2026-05-22T09:58:23.053Z"
+      "updatedAt": "2026-05-22T09:58:23.066Z"
     },
     "bait:wafter": {
       "subcategory": "bait",
       "subcategoryLabel": "Csali",
-      "updatedAt": "2026-05-22T09:59:57.407Z"
+      "updatedAt": "2026-05-22T09:59:57.066Z"
     },
     "bait:gumikukorica": {
       "subcategory": "bait",
       "subcategoryLabel": "Csali",
-      "updatedAt": "2026-05-25T13:39:52.476Z"
+      "updatedAt": "2026-05-25T13:39:52.455Z"
     },
     "bait:tigrismogyoro": {
       "subcategory": "bait",
       "subcategoryLabel": "Csali",
-      "updatedAt": "2026-05-26T12:56:09.537Z"
+      "updatedAt": "2026-05-26T12:56:09.683Z"
     },
     "bait:kodika91": {
       "subcategory": "bait",
       "subcategoryLabel": "Csali",
       "updatedAt": "2026-05-26T13:52:54.883Z"
+    },
+    "fish:compo": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-31T00:00:00.000Z"
+    },
+    "fish:jaszkeszeg": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-31T00:00:00.000Z"
+    },
+    "fish:sullo": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-31T00:00:00.000Z"
+    },
+    "fish:ko_pisztrang": {
+      "subcategory": "general",
+      "subcategoryLabel": "Halfaj",
+      "updatedAt": "2026-05-31T00:00:00.000Z"
     }
   },
-  "updatedAt": "2026-05-26T13:52:54.883Z",
+  "updatedAt": "2026-05-31T00:00:00.000Z",
   "__sha": "3eba0ccce2de1227d84fe33fa515fdfcbed2c805"
 }

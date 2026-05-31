@@ -16,7 +16,11 @@
     'vagocsik.jpg':'vago_csik.jpg',
     'vagodurbincs.jpg':'vago_durbincs.png',
     'vago_durbincs.jpg':'vago_durbincs.png',
-    'vagotok.jpg':'vagotok.png'
+    'vagotok.jpg':'vagotok.png',
+    'comp%C3%B3.jpg':'compo.jpg',
+    'j%C3%A1szkeszeg.jpg':'jaszkeszeg.jpg',
+    'sullo.jpg':'fogassullo.jpg',
+    'ko_pisztrang.jpg':'sebespisztrang.jpg'
   };
   document.addEventListener('error',function(e){
     var img=e.target;
