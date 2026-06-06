@@ -26,6 +26,12 @@
   css += '.sidebar-brand,.top-bar{background:color-mix(in srgb,var(--bg) 88%,white 12%)!important}.brand-logo,.new-session-btn-side,.tb-btn.primary{background:linear-gradient(135deg,var(--water),var(--water2))!important}.nav-item-side.active{background:var(--season-soft)!important;border-color:color-mix(in srgb,var(--season-accent) 45%,transparent)!important;color:var(--water)!important}.stat-icon,.loc-icon,.item-icon{background:linear-gradient(135deg,var(--season-soft),rgba(255,255,255,.45))!important}';
   css += '.weather-card{border:0!important;border-radius:28px!important;background:linear-gradient(160deg,#68b8ff 0%,#4a98f0 48%,#2f73d2 100%)!important;color:#fff!important;box-shadow:0 18px 45px rgba(36,100,170,.25)!important;overflow:hidden!important;position:relative!important}.weather-card::before{content:""!important;position:absolute!important;inset:0!important;background:radial-gradient(circle at 18% 12%,rgba(255,255,255,.55),transparent 30%),radial-gradient(circle at 78% 6%,rgba(255,255,255,.22),transparent 24%)!important;opacity:1!important;pointer-events:none!important}.weather-card::after{content:""!important;position:absolute!important;right:-42px!important;top:-38px!important;width:150px!important;height:150px!important;border-radius:50%!important;background:radial-gradient(circle,#fff7aa 0%,#ffd65a 38%,rgba(255,214,90,.08) 70%,transparent 72%)!important;filter:blur(.1px)!important;opacity:.95!important}.weather-card *{position:relative;z-index:1}.weather-card .section-label,.weather-card .weather-desc,.weather-card .weather-loc,.weather-card .wd-lbl,.weather-card .forecast-title,.weather-card .forecast-sub,.weather-card .forecast-meta{color:rgba(255,255,255,.84)!important}.weather-card .weather-temp,.weather-card .wd-val,.weather-card .forecast-temp,.weather-card .forecast-hour{color:#fff!important}.weather-icon-big{background:rgba(255,255,255,.18)!important;border-color:rgba(255,255,255,.24)!important;color:#fff!important;backdrop-filter:blur(16px)!important}.forecast-item,.weather-card .w-btn,.weather-card .mini-btn{background:rgba(255,255,255,.16)!important;border:1px solid rgba(255,255,255,.24)!important;color:#fff!important;backdrop-filter:blur(16px)!important}.forecast-wrap{border-top:1px solid rgba(255,255,255,.20)!important}.weather-details>div,.weather-detail,.wd-card{background:rgba(255,255,255,.14)!important;border-color:rgba(255,255,255,.22)!important;border-radius:18px!important;backdrop-filter:blur(14px)!important}';
   css += '.weather-card.theme-clear-night{background:linear-gradient(160deg,#101b38 0%,#1d3565 48%,#315a91 100%)!important}.weather-card.theme-cloudy{background:linear-gradient(160deg,#7f93aa 0%,#667f9a 52%,#4d6d8f 100%)!important}.weather-card.theme-rain{background:linear-gradient(160deg,#526f90 0%,#3f607e 52%,#2c506e 100%)!important}.weather-card.theme-storm{background:linear-gradient(160deg,#23283a 0%,#394358 50%,#596274 100%)!important}.weather-card.theme-mist{background:linear-gradient(160deg,#a9b7c2 0%,#8ea1ae 50%,#718a9a 100%)!important}.weather-card.theme-snow{background:linear-gradient(160deg,#dfefff 0%,#bddcf4 50%,#8eb8df 100%)!important}.weather-card.theme-snow .weather-temp,.weather-card.theme-snow .wd-val,.weather-card.theme-snow .forecast-temp,.weather-card.theme-snow .forecast-hour{color:#1e3a56!important}.weather-card.theme-snow .section-label,.weather-card.theme-snow .weather-desc,.weather-card.theme-snow .weather-loc,.weather-card.theme-snow .wd-lbl,.weather-card.theme-snow .forecast-title,.weather-card.theme-snow .forecast-sub,.weather-card.theme-snow .forecast-meta{color:rgba(30,58,86,.72)!important}';
+
+  css += '.kp-pres-trend{display:inline-block;font-size:13px;font-weight:800;margin-left:2px;line-height:1;vertical-align:middle}.kp-pres-rising{color:#4ade80!important}.kp-pres-falling{color:#fb923c!important}.kp-pres-stable{color:rgba(255,255,255,.6)!important}';
+  css += '#kp-pressure-summary{margin-top:14px;padding:11px 15px;border-radius:16px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);color:#fff;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}';
+  css += '#kp-pressure-summary .kp-ps-icon{font-size:20px;line-height:1;flex-shrink:0}';
+  css += '#kp-pressure-summary .kp-ps-delta{margin-left:auto;font-size:11px;font-weight:500;opacity:.78;white-space:nowrap}';
+
   css += '@media(max-width:640px){.weather-card{border-radius:24px!important}.forecast-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.weather-icon-big{width:68px!important;height:68px!important;border-radius:20px!important}}';
 
   var st=document.createElement('style');
@@ -40,6 +46,95 @@
       if(t&&!t.dataset.kpApple){t.dataset.kpApple='1';t.style.fontSize='clamp(46px,9vw,82px)';t.style.fontWeight='800';t.style.letterSpacing='-.06em';t.style.lineHeight='.9';}
     });
   }
+
+  function pressureTrend(prev,curr){
+    if(prev==null||curr==null)return 'stable';
+    var d=curr-prev;
+    if(d>0.5)return 'rising';
+    if(d<-0.5)return 'falling';
+    return 'stable';
+  }
+  function trendArrow(t){return t==='rising'?'↑':t==='falling'?'↓':'→';}
+  function trendClass(t){return t==='rising'?'kp-pres-rising':t==='falling'?'kp-pres-falling':'kp-pres-stable';}
+  function trendLabel(t){return t==='rising'?'emelkedik':t==='falling'?'csökken':'stabil';}
+  function fishingHint(trend,delta){
+    if(trend==='rising'&&delta>3)return 'Erősen emelkedő nyomás – aktív halak, kiváló horgászkörülmények';
+    if(trend==='rising')return 'Emelkedő légnyomás – jó horgászkörülmények várhatók';
+    if(trend==='falling'&&delta<-3)return 'Erősen csökkenő nyomás – halak mélyebbre húzódnak, nehezebb fogás';
+    if(trend==='falling')return 'Csökkenő légnyomás – a halak kevésbé aktívak';
+    return 'Stabil légnyomás – kiegyensúlyozott horgászkörülmények';
+  }
+
+  function overrideRenderForecast24(){
+    if(window.__kpPressureTrendPatched)return;
+    if(typeof window.renderForecast24!=='function')return;
+    window.__kpPressureTrendPatched=true;
+    var origFormatHour=window.formatHour;
+    var origWIcon=window.wIcon;
+    window.renderForecast24=function(){
+      var el=document.getElementById('forecast-grid');
+      if(!el)return;
+      var cache=window.forecast24Cache||[];
+      if(!cache.length){
+        el.innerHTML='<div class="empty-state" style="grid-column:1/-1;padding:14px"><div class="empty-sub">Nincs előrejelzési adat.</div></div>';
+        return;
+      }
+      var items=cache.map(function(f,i){
+        var trend='stable',trendVal=0;
+        if(i>0&&cache[i-1].pressure!=null&&f.pressure!=null){
+          trendVal=f.pressure-cache[i-1].pressure;
+          trend=pressureTrend(cache[i-1].pressure,f.pressure);
+        }
+        return{time:f.time,temp:f.temp,code:f.code,wind:f.wind,pressure:f.pressure,trend:trend,trendVal:trendVal};
+      });
+      el.innerHTML=items.map(function(f){
+        var pres=f.pressure!=null?Math.round(f.pressure)+' hPa':'— hPa';
+        var arrow=trendArrow(f.trend);
+        var cls=trendClass(f.trend);
+        var label=trendLabel(f.trend);
+        var fmtHour=typeof origFormatHour==='function'?origFormatHour(f.time):formatHour(f.time);
+        var icon=typeof origWIcon==='function'?origWIcon(f.code,new Date(f.time)):wIcon(f.code,new Date(f.time));
+        return '<div class="forecast-item">'+
+          '<div class="forecast-hour">'+fmtHour+'</div>'+
+          '<div class="forecast-icon">'+icon+'</div>'+
+          '<div class="forecast-temp">'+Math.round(f.temp)+'°</div>'+
+          '<div class="forecast-meta">'+
+            Math.round(f.wind)+' km/h<br>'+
+            '<span title="'+label+'" style="white-space:nowrap">'+
+              pres+
+              '<span class="kp-pres-trend '+cls+'">'+arrow+'</span>'+
+            '</span>'+
+          '</div>'+
+        '</div>';
+      }).join('');
+      var withPres=items.filter(function(x){return x.pressure!=null;});
+      var summaryTrend='stable',summaryDelta=0;
+      if(withPres.length>=2){
+        summaryDelta=withPres[withPres.length-1].pressure-withPres[0].pressure;
+        if(summaryDelta>1.5)summaryTrend='rising';
+        else if(summaryDelta<-1.5)summaryTrend='falling';
+      }
+      var strip=document.getElementById('kp-pressure-summary');
+      var wrap=el.closest?el.closest('.forecast-wrap'):null;
+      if(!wrap)wrap=el.parentElement;
+      if(!strip&&wrap){strip=document.createElement('div');strip.id='kp-pressure-summary';wrap.appendChild(strip);}
+      if(strip){
+        var hint=fishingHint(summaryTrend,summaryDelta);
+        var sIcon=trendArrow(summaryTrend);
+        var deltaStr=summaryDelta!==0?(summaryDelta>0?'+':'')+summaryDelta.toFixed(1)+' hPa / 24h':'';
+        strip.innerHTML='<span class="kp-ps-icon">'+sIcon+'</span><span>'+hint+'</span>'+(deltaStr?'<span class="kp-ps-delta">'+deltaStr+'</span>':'');
+      }
+    };
+  }
+
+  overrideRenderForecast24();
+  var patchTries=0;
+  var patchInterval=setInterval(function(){
+    overrideRenderForecast24();
+    patchTries++;
+    if(window.__kpPressureTrendPatched||patchTries>40)clearInterval(patchInterval);
+  },120);
+
   applySeason();
   enhanceWeather();
   setInterval(function(){applySeason();enhanceWeather();},2500);
