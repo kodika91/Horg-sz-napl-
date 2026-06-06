@@ -127,13 +127,22 @@
     };
   }
 
-  overrideRenderForecast24();
+  function applyPatchAndRerender(){
+    overrideRenderForecast24();
+    if(window.__kpPressureTrendPatched){
+      if(window.forecast24Cache&&window.forecast24Cache.length&&!document.getElementById('kp-pressure-summary')){
+        try{window.renderForecast24();}catch(e){}
+      }
+    }
+  }
+
+  applyPatchAndRerender();
   var patchTries=0;
   var patchInterval=setInterval(function(){
-    overrideRenderForecast24();
+    applyPatchAndRerender();
     patchTries++;
-    if(window.__kpPressureTrendPatched||patchTries>40)clearInterval(patchInterval);
-  },120);
+    if(document.getElementById('kp-pressure-summary')||patchTries>80)clearInterval(patchInterval);
+  },150);
 
   applySeason();
   enhanceWeather();
