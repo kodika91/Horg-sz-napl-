@@ -1,2 +1,6 @@
 GitHub Pages deployment retry marker.
 Updated to trigger a fresh Pages deployment after duplicate github-pages artifact error.
+
+Re-trigger 2026-06-10: az előző deploy 401-gyel elszállt (átmeneti GitHub auth hiba).
+A main minden frissítése (Vízparti Napló rebrand, iOS időjárás, scroll-fix) fent van;
+ez a commit egy tiszta újra-publikálást indít.
