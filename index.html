@@ -27,7 +27,7 @@
       const res=await fetch(appUrl,{cache:'reload'});
       if(!res.ok) throw new Error('app.html fetch failed: '+res.status);
       let html=await res.text();
-      html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v72.28 stability v2');
+      html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v72.29 cleaned modern shell');
       html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants. kp-mod-ban-refresh-fix.js futtatja betöltés után.\n\n\n// CSALI ADATBÁZIS');
       html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
       html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
@@ -47,7 +47,6 @@
         addScript('kp-mod-github-restore-button-fix','assets/kp-mod-github-restore-button-fix.js?v=20260523-679-self-test');
         addScript('kp-mod-mobile-layout-center-fix','assets/kp-mod-mobile-layout-center-fix.js?v=20260523-679-self-test');
         addScript('kp-mod-weather','assets/kp-mod-weather.js?v=20260606-pressure-trend');
-        addScript('kp-mod-weather-ios','assets/kp-mod-weather-ios.js?v=20260610-3');
         addScript('kp-mod-fish','assets/kp-mod-fish.js?v=20260523-679-self-test');
         addScript('kp-mod-ban-refresh-fix','assets/kp-mod-ban-refresh-fix.js?v=20260530-1');
         addScript('kp-mod-ui','assets/kp-mod-ui.js?v=20260523-679-self-test');
@@ -75,9 +74,7 @@
         addScript('kp-mod-baits-modern','assets/kp-mod-baits-modern.js?v=20260610-1');
         addScript('kp-mod-home-modern','assets/kp-mod-home-modern.js?v=20260610-1');
         addScript('kp-mod-home-layout-fix','assets/kp-mod-home-layout-fix.js?v=20260610-1');
-        addScript('kp-mod-home-api-fix','assets/kp-mod-home-api-fix.js?v=20260610-1');
-        addScript('kp-mod-final-style-polish','assets/kp-mod-final-style-polish.js?v=20260610-1');
-        addScript('kp-mod-stability-v2','assets/kp-mod-stability-v2.js?v=20260610-1');
+        addScript('kp-mod-stability-v2','assets/kp-mod-stability-v2.js?v=20260610-2');
       }catch(e){console.warn('[Vízparti Napló] modul betöltési hiba:',e);}},250);
     }catch(err){console.error(err);document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';}
   })();
