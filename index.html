@@ -15,16 +15,10 @@
 <style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f0e8;color:#2a2018;min-height:100vh;display:flex;align-items:center;justify-content:center}.box{max-width:560px;background:#faf8f4;border:1px solid rgba(120,100,70,.18);border-radius:18px;padding:28px 24px;box-shadow:0 10px 35px rgba(60,40,10,.12);text-align:center}.logo{width:76px;height:76px;margin:0 auto 14px;border-radius:18px;overflow:hidden;box-shadow:0 8px 22px rgba(44,110,122,.30)}.logo svg{display:block;width:100%;height:100%}.t{font-weight:800;font-size:20px;margin-bottom:6px}.s{color:#6b5840;line-height:1.5}</style>
 </head>
 <body>
-<div class="box">
-<div class="logo"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="sSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6cc0cf"/><stop offset=".55" stop-color="#2c6e7a"/><stop offset="1" stop-color="#1f5560"/></linearGradient><linearGradient id="sHb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5e9b62"/><stop offset="1" stop-color="#345a40"/></linearGradient><linearGradient id="sHf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a7c59"/><stop offset="1" stop-color="#2e5038"/></linearGradient><radialGradient id="sSun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffeeb0"/><stop offset="1" stop-color="#f4c25a"/></radialGradient><clipPath id="sR"><rect width="512" height="512" rx="112"/></clipPath></defs><g clip-path="url(#sR)"><rect width="512" height="512" fill="url(#sSky)"/><circle cx="350" cy="156" r="60" fill="url(#sSun)"/><circle cx="350" cy="156" r="86" fill="#ffeeb0" opacity=".14"/><path d="M0 300 Q150 224 300 288 T512 276 V512 H0 Z" fill="url(#sHb)"/><path d="M0 366 Q176 296 344 352 T512 344 V512 H0 Z" fill="url(#sHf)"/><rect y="404" width="512" height="108" fill="#1b4a55"/><rect x="334" y="404" width="34" height="108" fill="#ffeeb0" opacity=".16"/><g stroke="#cdeaef" stroke-width="6" stroke-linecap="round" fill="none" opacity=".5"><path d="M64 442 q24 -12 48 0 t48 0"/><path d="M300 472 q24 -12 48 0 t48 0"/><path d="M150 490 q24 -12 48 0 t48 0"/></g></g></svg></div>
-<div class="t">Vízparti Napló</div>
-<div class="s">Betöltés…</div>
-</div>
+<div class="box"><div class="logo"><svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="sSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6cc0cf"/><stop offset=".55" stop-color="#2c6e7a"/><stop offset="1" stop-color="#1f5560"/></linearGradient><linearGradient id="sHb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5e9b62"/><stop offset="1" stop-color="#345a40"/></linearGradient><linearGradient id="sHf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a7c59"/><stop offset="1" stop-color="#2e5038"/></linearGradient><radialGradient id="sSun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffeeb0"/><stop offset="1" stop-color="#f4c25a"/></radialGradient><clipPath id="sR"><rect width="512" height="512" rx="112"/></clipPath></defs><g clip-path="url(#sR)"><rect width="512" height="512" fill="url(#sSky)"/><circle cx="350" cy="156" r="60" fill="url(#sSun)"/><circle cx="350" cy="156" r="86" fill="#ffeeb0" opacity=".14"/><path d="M0 300 Q150 224 300 288 T512 276 V512 H0 Z" fill="url(#sHb)"/><path d="M0 366 Q176 296 344 352 T512 344 V512 H0 Z" fill="url(#sHf)"/><rect y="404" width="512" height="108" fill="#1b4a55"/><rect x="334" y="404" width="34" height="108" fill="#ffeeb0" opacity=".16"/><g stroke="#cdeaef" stroke-width="6" stroke-linecap="round" fill="none" opacity=".5"><path d="M64 442 q24 -12 48 0 t48 0"/><path d="M300 472 q24 -12 48 0 t48 0"/><path d="M150 490 q24 -12 48 0 t48 0"/></g></g></svg></div><div class="t">Vízparti Napló</div><div class="s">Betöltés…</div></div>
 <script>
 (function(){
-  if('serviceWorker' in navigator){
-    try{navigator.serviceWorker.register('sw.js',{updateViaCache:'none'});}catch(e){console.warn('[Vízparti Napló] SW reg hiba:',e);}
-  }
+  if('serviceWorker' in navigator){try{navigator.serviceWorker.register('sw.js',{updateViaCache:'none'});}catch(e){console.warn('[Vízparti Napló] SW reg hiba:',e);}}
   function addScript(id,src){var old=document.getElementById(id);if(old)old.remove();var s=document.createElement('script');s.id=id;s.src=src;s.defer=false;document.body.appendChild(s)}
   window.addEventListener('error',function(e){try{console.error('[Vízparti Napló loader]',e.message,e.filename,e.lineno)}catch(_){} });
   (async function(){
@@ -33,7 +27,7 @@
       const res=await fetch(appUrl,{cache:'reload'});
       if(!res.ok) throw new Error('app.html fetch failed: '+res.status);
       let html=await res.text();
-      html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v70.21 modern statisztika + felszerelés');
+      html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v71.22 modern UI');
       html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants. kp-mod-ban-refresh-fix.js futtatja betöltés után.\n\n\n// CSALI ADATBÁZIS');
       html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
       html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
@@ -41,58 +35,46 @@
       html=html.replace('const HU_PROTECTED_OR_NOT_KEEPABLE_IDS=new Set(','var HU_PROTECTED_OR_NOT_KEEPABLE_IDS=new Set(');
       html=html.replace('const HU_POND_OR_DECORATIVE_IDS=new Set','var HU_POND_OR_DECORATIVE_IDS=new Set');
       document.open();document.write(html);document.close();
-      setTimeout(function(){
-        try{
-          var l=document.createElement('link');
-          l.id='v18-image-manager-css';
-          l.rel='stylesheet';
-          l.href='assets/v1-image-manager-v18.css?v=20260523-679-self-test';
-          document.head.appendChild(l);
-          var pl=document.createElement('link');
-          pl.id='kp-premium-ui-css';
-          pl.rel='stylesheet';
-          pl.href='assets/kp-premium-ui.css?v=20260610-2';
-          document.head.appendChild(pl);
-          addScript('kp-mod-theme','assets/kp-mod-theme.js?v=20260606-1');
-          addScript('kp-mod-brand','assets/kp-mod-brand.js?v=20260610-4');
-          addScript('v18-image-manager-script','assets/v1-image-manager-v18.js?v=20260523-679-self-test');
-          addScript('kp-v27-original','https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/94e999c02fdeb1834c317e434fe2dd5083d78080/assets/kp-v27-durable-image-archive.js?v=20260523-679-self-test');
-          addScript('kp-mod-photo-idb','assets/kp-mod-photo-idb.js?v=20260526-4-all-data-image-idb');
-          addScript('kp-mod-sync','assets/kp-mod-sync.js?v=20260610-merge-v41');
-          addScript('kp-mod-github-restore-button-fix','assets/kp-mod-github-restore-button-fix.js?v=20260523-679-self-test');
-          addScript('kp-mod-mobile-layout-center-fix','assets/kp-mod-mobile-layout-center-fix.js?v=20260523-679-self-test');
-          addScript('kp-mod-weather','assets/kp-mod-weather.js?v=20260606-pressure-trend');
-          addScript('kp-mod-weather-ios','assets/kp-mod-weather-ios.js?v=20260610-3');
-          addScript('kp-mod-fish','assets/kp-mod-fish.js?v=20260523-679-self-test');
-          addScript('kp-mod-ban-refresh-fix','assets/kp-mod-ban-refresh-fix.js?v=20260530-1');
-          addScript('kp-mod-ui','assets/kp-mod-ui.js?v=20260523-679-self-test');
-          addScript('kp-mod-session','assets/kp-mod-session.js?v=20260523-679-self-test');
-          addScript('kp-mod-spotfinder','assets/kp-mod-spotfinder.js?v=20260523-679-self-test');
-          addScript('kp-mod-spotfinder-photo-backup','assets/kp-mod-spotfinder-photo-backup.js?v=20260523-679-self-test');
-          addScript('kp-mod-spotfinder-nav','assets/kp-mod-spotfinder-nav.js?v=20260523-679-self-test');
-          addScript('kp-mod-spotfinder-map-nav-button','assets/kp-mod-spotfinder-map-nav-button.js?v=20260523-679-self-test');
-          addScript('kp-mod-spotfinder-nav-pagehide','assets/kp-mod-spotfinder-nav-pagehide.js?v=20260523-679-self-test');
-          addScript('kp-mod-mobile-modal-scroll-fix','assets/kp-mod-mobile-modal-scroll-fix.js?v=20260523-679-self-test');
-          addScript('kp-mod-bait-form-scroll-fix','assets/kp-mod-bait-form-scroll-fix.js?v=20260523-679-self-test');
-          addScript('kp-mod-bait-form-image-upload-fix','assets/kp-mod-bait-form-image-upload-fix.js?v=20260523-679-self-test');
-          addScript('kp-mod-catch-bait-combo','assets/kp-mod-catch-bait-combo.js?v=20260523-679-self-test');
-          addScript('kp-mod-session-catch-late-save-fix','assets/kp-mod-session-catch-late-save-fix.js?v=20260523-679-self-test');
-          addScript('kp-mod-fish-detail-scroll-fix','assets/kp-mod-fish-detail-scroll-fix.js?v=20260523-679-self-test');
-          addScript('kp-mod-self-test','assets/kp-mod-self-test.js?v=20260523-679-self-test');
-          addScript('kp-mod-settings-simple','assets/kp-mod-settings-simple.js?v=20260523-679-self-test');
-          addScript('kp-mod-force-hide-settings','assets/kp-mod-force-hide-settings.js?v=20260523-679-self-test');
-          addScript('kp-mod-sync-db-fallback-fix','assets/kp-mod-sync-db-fallback-fix.js?v=20260526-1');
-          addScript('kp-mod-session-restore','assets/kp-mod-session-restore.js?v=20260526-12');
-          addScript('kp-mod-resize-image-fix','assets/kp-mod-resize-image-fix.js?v=20260526-1');
-          addScript('kp-mod-setup-scroll-gear-select-fix','assets/kp-mod-setup-scroll-gear-select-fix.js?v=20260527-4-v13');
-          addScript('kp-mod-statistics-modern','assets/kp-mod-statistics-modern.js?v=20260610-1');
-          addScript('kp-mod-gear-modern','assets/kp-mod-gear-modern.js?v=20260610-1');
-        }catch(e){console.warn('[Vízparti Napló] modul betöltési hiba:',e);}
-      },250);
-    }catch(err){
-      console.error(err);
-      document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';
-    }
+      setTimeout(function(){try{
+        var l=document.createElement('link');l.id='v18-image-manager-css';l.rel='stylesheet';l.href='assets/v1-image-manager-v18.css?v=20260523-679-self-test';document.head.appendChild(l);
+        var pl=document.createElement('link');pl.id='kp-premium-ui-css';pl.rel='stylesheet';pl.href='assets/kp-premium-ui.css?v=20260610-2';document.head.appendChild(pl);
+        addScript('kp-mod-theme','assets/kp-mod-theme.js?v=20260606-1');
+        addScript('kp-mod-brand','assets/kp-mod-brand.js?v=20260610-4');
+        addScript('v18-image-manager-script','assets/v1-image-manager-v18.js?v=20260523-679-self-test');
+        addScript('kp-v27-original','https://raw.githubusercontent.com/kodika91/Horg-sz-napl-/94e999c02fdeb1834c317e434fe2dd5083d78080/assets/kp-v27-durable-image-archive.js?v=20260523-679-self-test');
+        addScript('kp-mod-photo-idb','assets/kp-mod-photo-idb.js?v=20260526-4-all-data-image-idb');
+        addScript('kp-mod-sync','assets/kp-mod-sync.js?v=20260610-merge-v41');
+        addScript('kp-mod-github-restore-button-fix','assets/kp-mod-github-restore-button-fix.js?v=20260523-679-self-test');
+        addScript('kp-mod-mobile-layout-center-fix','assets/kp-mod-mobile-layout-center-fix.js?v=20260523-679-self-test');
+        addScript('kp-mod-weather','assets/kp-mod-weather.js?v=20260606-pressure-trend');
+        addScript('kp-mod-weather-ios','assets/kp-mod-weather-ios.js?v=20260610-3');
+        addScript('kp-mod-fish','assets/kp-mod-fish.js?v=20260523-679-self-test');
+        addScript('kp-mod-ban-refresh-fix','assets/kp-mod-ban-refresh-fix.js?v=20260530-1');
+        addScript('kp-mod-ui','assets/kp-mod-ui.js?v=20260523-679-self-test');
+        addScript('kp-mod-session','assets/kp-mod-session.js?v=20260523-679-self-test');
+        addScript('kp-mod-spotfinder','assets/kp-mod-spotfinder.js?v=20260523-679-self-test');
+        addScript('kp-mod-spotfinder-photo-backup','assets/kp-mod-spotfinder-photo-backup.js?v=20260523-679-self-test');
+        addScript('kp-mod-spotfinder-nav','assets/kp-mod-spotfinder-nav.js?v=20260523-679-self-test');
+        addScript('kp-mod-spotfinder-map-nav-button','assets/kp-mod-spotfinder-map-nav-button.js?v=20260523-679-self-test');
+        addScript('kp-mod-spotfinder-nav-pagehide','assets/kp-mod-spotfinder-nav-pagehide.js?v=20260523-679-self-test');
+        addScript('kp-mod-mobile-modal-scroll-fix','assets/kp-mod-mobile-modal-scroll-fix.js?v=20260523-679-self-test');
+        addScript('kp-mod-bait-form-scroll-fix','assets/kp-mod-bait-form-scroll-fix.js?v=20260523-679-self-test');
+        addScript('kp-mod-bait-form-image-upload-fix','assets/kp-mod-bait-form-image-upload-fix.js?v=20260523-679-self-test');
+        addScript('kp-mod-catch-bait-combo','assets/kp-mod-catch-bait-combo.js?v=20260523-679-self-test');
+        addScript('kp-mod-session-catch-late-save-fix','assets/kp-mod-session-catch-late-save-fix.js?v=20260523-679-self-test');
+        addScript('kp-mod-fish-detail-scroll-fix','assets/kp-mod-fish-detail-scroll-fix.js?v=20260523-679-self-test');
+        addScript('kp-mod-self-test','assets/kp-mod-self-test.js?v=20260523-679-self-test');
+        addScript('kp-mod-settings-simple','assets/kp-mod-settings-simple.js?v=20260523-679-self-test');
+        addScript('kp-mod-force-hide-settings','assets/kp-mod-force-hide-settings.js?v=20260523-679-self-test');
+        addScript('kp-mod-sync-db-fallback-fix','assets/kp-mod-sync-db-fallback-fix.js?v=20260526-1');
+        addScript('kp-mod-session-restore','assets/kp-mod-session-restore.js?v=20260526-12');
+        addScript('kp-mod-resize-image-fix','assets/kp-mod-resize-image-fix.js?v=20260526-1');
+        addScript('kp-mod-setup-scroll-gear-select-fix','assets/kp-mod-setup-scroll-gear-select-fix.js?v=20260527-4-v13');
+        addScript('kp-mod-statistics-modern','assets/kp-mod-statistics-modern.js?v=20260610-1');
+        addScript('kp-mod-gear-modern','assets/kp-mod-gear-modern.js?v=20260610-1');
+        addScript('kp-mod-baits-modern','assets/kp-mod-baits-modern.js?v=20260610-1');
+      }catch(e){console.warn('[Vízparti Napló] modul betöltési hiba:',e);}},250);
+    }catch(err){console.error(err);document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';}
   })();
 })();
 </script>
