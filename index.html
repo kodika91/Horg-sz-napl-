@@ -27,7 +27,7 @@
       const res=await fetch(appUrl,{cache:'reload'});
       if(!res.ok) throw new Error('app.html fetch failed: '+res.status);
       let html=await res.text();
-      html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v71.22 modern UI');
+      html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v72.24 modern home UI');
       html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants. kp-mod-ban-refresh-fix.js futtatja betöltés után.\n\n\n// CSALI ADATBÁZIS');
       html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
       html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
@@ -73,6 +73,7 @@
         addScript('kp-mod-statistics-modern','assets/kp-mod-statistics-modern.js?v=20260610-1');
         addScript('kp-mod-gear-modern','assets/kp-mod-gear-modern.js?v=20260610-1');
         addScript('kp-mod-baits-modern','assets/kp-mod-baits-modern.js?v=20260610-1');
+        addScript('kp-mod-home-modern','assets/kp-mod-home-modern.js?v=20260610-1');
       }catch(e){console.warn('[Vízparti Napló] modul betöltési hiba:',e);}},250);
     }catch(err){console.error(err);document.body.innerHTML='<div class="box"><div class="t">Betöltési hiba</div><div class="s">'+err.message+'</div></div>';}
   })();
