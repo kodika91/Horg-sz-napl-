@@ -1,5 +1,5 @@
 // kp-mod-sync.js — KapásPont GitHub szinkron és visszatöltés
-// v40.2 · saveDb: kpSlimDbForStorage hívás IDB photo strip-hez
+// v41 · mezőszintű "újabb nyer" merge (mergeCatch/mergeSession) adatvesztés ellen
 (function(){
 'use strict';
 if(window.KP_MOD_SYNC_V39)return;
@@ -55,7 +55,16 @@ function counts(d){d=d||{};return{sessions:arr(d.sessions).length,locations:arr(
 function meaningful(d){const c=counts(d);return c.sessions||c.locations||c.scoutSpots||c.catches||c.baits||c.gear}
 function keyOf(o,p){return String((o&&typeof o==='object'&&(o.id||o.uuid||o.createdAt||o.created||(String(o.date||'')+'|'+String(o.time||'')+'|'+String(o.location||'')+'|'+String(o.lat||'')+'|'+String(o.lon||'')+'|'+String(o.bait||o.csali||'')+'|'+String(o.fish||o.hal||''))))||p+'_'+Math.random()).slice(0,240)}
 function mergeArray(a,b,p){const out=[],seen={};arr(a).forEach(x=>{const k=keyOf(x,p);seen[k]=1;out.push(x)});arr(b).forEach(x=>{const k=keyOf(x,p);if(!seen[k]){seen[k]=1;out.push(x)}});return out}
-function mergeCatch(local,remote){const out={...(remote||{})};for(const k of Object.keys(local||{})){const v=local[k];if(v!==null&&v!==undefined&&v!=='')out[k]=v;}return out;}
+function pickTime(o){return String((o&&(o.updatedAt||o.modifiedAt||o.time||o.createdAt))||'');}
+function mergeCatch(local,remote){
+  local=local||{};remote=remote||{};
+  const lt=pickTime(local),rt=pickTime(remote);
+  const remoteNewer=rt&&lt&&rt>lt;          // csak ha mindkettő érvényes ÉS a távoli újabb
+  const winner=remoteNewer?remote:local;    // egyébként a régi viselkedés: local nyer
+  const out={...(remoteNewer?local:remote)};
+  for(const k of Object.keys(winner)){const v=winner[k];if(v!==null&&v!==undefined&&v!=='')out[k]=v;}
+  return out;
+}
 function mergeCatchArray(a,b,p){const out=[],map={};arr(a).forEach(x=>{const k=keyOf(x,p);map[k]=out.length;out.push(x)});arr(b).forEach(rc=>{const k=keyOf(rc,p);if(map[k]==null){map[k]=out.length;out.push(rc)}else{out[map[k]]=mergeCatch(out[map[k]],rc);}});return out;}
 function mergeArrayWithPhotoFix(a,b,p){const out=[],map={};arr(a).forEach(x=>{const k=keyOf(x,p);map[k]=out.length;out.push({...x})});arr(b).forEach(x=>{const k=keyOf(x,p);if(map[k]==null){map[k]=out.length;out.push(x)}else if(!out[map[k]].photo&&x.photo){out[map[k]]={...out[map[k]],photo:x.photo};}});return out;}
 function sessionKey(s){return keyOf(s,'session')}
@@ -72,11 +81,19 @@ function mergeNamedLists(localObj,remoteObj,names,prefix){
   return out;
 }
 function mergeSession(localSession,remoteSession){
-  let out={...(remoteSession||{}),...(localSession||{})};
-  out=mergeNamedLists(out,remoteSession,['catches','fogások','fogasok','events','notes','photos','images'],'session-inner');
-  const lu=String(localSession&&localSession.updatedAt||localSession&&localSession.modifiedAt||'');
-  const ru=String(remoteSession&&remoteSession.updatedAt||remoteSession&&remoteSession.modifiedAt||'');
-  if(ru>lu)out={...out,updatedAt:remoteSession.updatedAt||out.updatedAt,modifiedAt:remoteSession.modifiedAt||out.modifiedAt};
+  const ls=localSession||{},rs=remoteSession||{};
+  const lt=pickTime(ls),rt=pickTime(rs);
+  const remoteNewer=rt&&lt&&rt>lt;          // skalár mezők: újabb nyer, egyébként local
+  const winner=remoteNewer?rs:ls;
+  let out={...(remoteNewer?ls:rs)};
+  for(const k of Object.keys(winner)){const v=winner[k];if(v!==null&&v!==undefined&&v!=='')out[k]=v;}
+  ['catches','fogások','fogasok','events','notes','photos','images'].forEach(function(name){
+    const l=arr(ls[name]),r=arr(rs[name]);   // belső listák MINDIG uniózva (semmi nem vész el)
+    if(l.length||r.length){
+      if(name==='catches'||name==='fogások'||name==='fogasok')out[name]=mergeCatchArray(l,r,'session-inner:'+name);
+      else out[name]=mergeArray(l,r,'session-inner:'+name);
+    }
+  });
   return out;
 }
 function mergeSessions(localSessions,remoteSessions){
