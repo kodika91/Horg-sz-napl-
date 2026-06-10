@@ -1,5 +1,5 @@
-// kp-mod-brand.js — "Vízparti Napló" név + természet logó a fejlécben
-// Biztonságos: csak látható szöveget cserél, kódhoz/kulcsokhoz nem nyúl.
+// kp-mod-brand.js — "Vízparti Napló" név + természet logó + főoldali fejléc-banner
+// Biztonságos: csak látható szöveget cserél és CSS-t ad; kódhoz/kulcsokhoz nem nyúl.
 (function(){
   if(window.KP_MOD_BRAND_V1)return;
   window.KP_MOD_BRAND_V1=true;
@@ -26,15 +26,29 @@
     '<path d="M64 442 q24 -12 48 0 t48 0"/><path d="M300 472 q24 -12 48 0 t48 0"/><path d="M150 490 q24 -12 48 0 t48 0"/>'+
     '</g></g></svg>';
 
+  // Domb-sziluett a banner aljára (URL-kódolt SVG)
+  var HILLS="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201200%20200'%20preserveAspectRatio='none'%3E%3Cpath%20d='M0%20150%20Q300%2095%20600%20135%20T1200%20125%20V200%20H0%20Z'%20fill='%234a7c59'/%3E%3Cpath%20d='M0%20172%20Q350%20128%20700%20162%20T1200%20152%20V200%20H0%20Z'%20fill='%232e5038'/%3E%3C/svg%3E";
+
   function injectStyle(){
     if(document.getElementById('kp-brand-style'))return;
     var s=document.createElement('style');
     s.id='kp-brand-style';
     s.textContent=
-      '.sidebar-brand{background:linear-gradient(135deg,var(--season-soft,rgba(44,110,122,.10)),transparent)!important}'+
+      /* --- Oldalsáv márka-panel + logó --- */
+      '.sidebar-brand{background:linear-gradient(135deg,var(--season-soft,rgba(44,110,122,.14)),transparent)!important}'+
       '.brand-logo{padding:0!important;overflow:hidden!important;border-radius:12px!important;box-shadow:0 4px 12px var(--shadow,rgba(60,40,10,.18))!important}'+
       '.brand-logo>.kp-logo-mark,.brand-logo>svg:not(.kp-nature),.brand-logo>i,.brand-logo>span{display:none!important}'+
-      '.brand-logo>.kp-nature{display:block!important;width:100%!important;height:100%!important}';
+      '.brand-logo>.kp-nature{display:block!important;width:100%!important;height:100%!important}'+
+      /* --- Főoldali fejléc-banner: természet háttér --- */
+      '.main-area:has(#page-home.active) .top-bar.compact{'+
+        'background:'+
+          'url("'+HILLS+'") center bottom / 100% 58px no-repeat,'+
+          'radial-gradient(circle at 82% 22%, rgba(255,238,176,.55), transparent 36%),'+
+          'linear-gradient(135deg, #6cc0cf 0%, #2c6e7a 52%, #1f5560 100%)'+
+        '!important;'+
+      '}'+
+      '.main-area:has(#page-home.active) .top-bar.compact .top-bar-title{color:#fff!important;text-shadow:0 2px 16px rgba(0,0,0,.32)!important}'+
+      '.main-area:has(#page-home.active) .top-bar.compact .top-bar-title *{color:#fff!important}';
     document.head.appendChild(s);
   }
 
