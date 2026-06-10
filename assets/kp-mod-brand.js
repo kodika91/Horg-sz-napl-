@@ -1,4 +1,4 @@
-// kp-mod-brand.js — "Vízparti Napló" név + természet logó + főoldali fejléc-banner
+// kp-mod-brand.js — "Vízparti Napló" név + természet logó + évszakkövető fotó-banner
 // Biztonságos: csak látható szöveget cserél és CSS-t ad; kódhoz/kulcsokhoz nem nyúl.
 (function(){
   if(window.KP_MOD_BRAND_V1)return;
@@ -26,8 +26,13 @@
     '<path d="M64 442 q24 -12 48 0 t48 0"/><path d="M300 472 q24 -12 48 0 t48 0"/><path d="M150 490 q24 -12 48 0 t48 0"/>'+
     '</g></g></svg>';
 
-  // Domb-sziluett a banner aljára (URL-kódolt SVG)
-  var HILLS="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201200%20200'%20preserveAspectRatio='none'%3E%3Cpath%20d='M0%20150%20Q300%2095%20600%20135%20T1200%20125%20V200%20H0%20Z'%20fill='%234a7c59'/%3E%3Cpath%20d='M0%20172%20Q350%20128%20700%20162%20T1200%20152%20V200%20H0%20Z'%20fill='%232e5038'/%3E%3C/svg%3E";
+  // Évszakkövető tájfotók (Unsplash, szabad felhasználás). Tartalék: gradiens.
+  var SPRING='https://images.unsplash.com/photo-1588676509970-63fe490c3712?w=1280&q=70&auto=format&fit=crop';
+  var SUMMER='https://images.unsplash.com/photo-1596003903067-bf5762ad5c19?w=1280&q=70&auto=format&fit=crop';
+  var AUTUMN='https://images.unsplash.com/photo-1496060169243-453fde45943b?w=1280&q=70&auto=format&fit=crop';
+  var WINTER='https://images.unsplash.com/photo-1511489731872-324afc650052?w=1280&q=70&auto=format&fit=crop';
+  var FALLBACK='linear-gradient(135deg, #6cc0cf 0%, #2c6e7a 52%, #1f5560 100%)';
+  var OVERLAY='linear-gradient(180deg, rgba(18,46,55,.28) 0%, rgba(18,46,55,.60) 100%)';
 
   function injectStyle(){
     if(document.getElementById('kp-brand-style'))return;
@@ -39,15 +44,21 @@
       '.brand-logo{padding:0!important;overflow:hidden!important;border-radius:12px!important;box-shadow:0 4px 12px var(--shadow,rgba(60,40,10,.18))!important}'+
       '.brand-logo>.kp-logo-mark,.brand-logo>svg:not(.kp-nature),.brand-logo>i,.brand-logo>span{display:none!important}'+
       '.brand-logo>.kp-nature{display:block!important;width:100%!important;height:100%!important}'+
-      /* --- Főoldali fejléc-banner: természet háttér --- */
+      /* --- Évszakos fotó-változó --- */
+      ':root[data-season="spring"]{--kp-banner:url("'+SPRING+'")}'+
+      ':root[data-season="summer"]{--kp-banner:url("'+SUMMER+'")}'+
+      ':root[data-season="autumn"]{--kp-banner:url("'+AUTUMN+'")}'+
+      ':root[data-season="winter"]{--kp-banner:url("'+WINTER+'")}'+
+      /* --- Főoldali fejléc-banner: évszakkövető valódi fotó (tartalék gradiens) --- */
       '.main-area:has(#page-home.active) .top-bar.compact{'+
         'background:'+
-          'url("'+HILLS+'") center bottom / 100% 58px no-repeat,'+
-          'radial-gradient(circle at 82% 22%, rgba(255,238,176,.55), transparent 36%),'+
-          'linear-gradient(135deg, #6cc0cf 0%, #2c6e7a 52%, #1f5560 100%)'+
+          OVERLAY+','+
+          'var(--kp-banner, '+FALLBACK+') center / cover no-repeat,'+
+          FALLBACK+
         '!important;'+
+        'background-color:#1f5560!important;'+
       '}'+
-      '.main-area:has(#page-home.active) .top-bar.compact .top-bar-title{color:#fff!important;text-shadow:0 2px 16px rgba(0,0,0,.32)!important}'+
+      '.main-area:has(#page-home.active) .top-bar.compact .top-bar-title{color:#fff!important;text-shadow:0 2px 16px rgba(0,0,0,.45)!important}'+
       '.main-area:has(#page-home.active) .top-bar.compact .top-bar-title *{color:#fff!important}';
     document.head.appendChild(s);
   }
