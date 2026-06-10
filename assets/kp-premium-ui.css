@@ -99,9 +99,6 @@ input:focus,textarea:focus,select:focus{
 /* ============ FELSŐ SÁV: finom üveg ============ */
 .top-bar{ -webkit-backdrop-filter:var(--kp-glass) !important; backdrop-filter:var(--kp-glass) !important; }
 
-/* ============ GÖRDÜLÉS ============ */
-html{ scroll-behavior:smooth; }
-
 /* ============ MOZGÁSCSÖKKENTÉS TISZTELETE ============ */
 @media (prefers-reduced-motion: reduce){
   *{ transition:none !important; }
