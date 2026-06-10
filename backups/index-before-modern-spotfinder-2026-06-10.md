@@ -1,0 +1,1 @@
+Modern Helykereso elotti mentes. index.html SHA: 2f2b03abc98c9d4ef474e2b2d06d90a02cc99e4b. Uj modul: assets/kp-mod-spotfinder-modern.js. A regi scoutSpots es locations adatok megmaradnak.
