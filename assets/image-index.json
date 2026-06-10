@@ -35,7 +35,8 @@
     "wafter": "assets/bait/bait/wafter.png",
     "gumikukorica": "assets/bait/bait/gumikukorica.png",
     "tigrismogyoro": "assets/bait/bait/tigrismogyoro.png",
-    "kodika91": "assets/bait/bait/kodika91.jpg"
+    "kodika91": "assets/bait/bait/kodika91.jpg",
+    "sajat": "assets/bait/bait/sajat.jpg"
   },
   "places": {},
   "meta": {
@@ -183,8 +184,13 @@
       "subcategory": "general",
       "subcategoryLabel": "Halfaj",
       "updatedAt": "2026-05-31T00:00:00.000Z"
+    },
+    "bait:sajat": {
+      "subcategory": "bait",
+      "subcategoryLabel": "Csali",
+      "updatedAt": "2026-06-10T17:27:37.926Z"
     }
   },
-  "updatedAt": "2026-06-10T17:25:25.485Z",
-  "__sha": "bab613ea608e62a2ff40d20a7ec783671294f2a5"
+  "updatedAt": "2026-06-10T17:27:37.926Z",
+  "__sha": "1658a5a21c0147816672886a7cf3c9ed3c4080e9"
 }
