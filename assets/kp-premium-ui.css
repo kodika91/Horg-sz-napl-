@@ -1,0 +1,109 @@
+/* kp-premium-ui.css — KapásPont prémium vizuális réteg (v1)
+ * ADDITÍV overlay az app.html fölött. A meglévő dizájn-tokenekre
+ * (--card, --water, --shadow, --r ...) és az évszak-változókra
+ * (--season-soft, --season-accent) épít.
+ * Kikapcsolás: töröld a 'kp-premium-ui-css' <link>-et az index.html-ből.
+ * Flicker-safe: nincs belépő-animáció (az app gyakran újrarenderel). */
+
+:root{
+  --kp-elev-1: 0 1px 2px var(--shadow), 0 6px 18px var(--shadow);
+  --kp-elev-2: 0 6px 16px var(--shadow2), 0 16px 40px var(--shadow2);
+  --kp-glass: saturate(160%) blur(14px);
+  --kp-ease: cubic-bezier(.22,.61,.36,1);
+}
+
+/* ============ KÁRTYÁK: lágy gradiens + réteges árnyék + hover-emelés ============ */
+.stat-card,.fish-card,.loc-card,.session-item,.insight-card,.detail-box{
+  background:linear-gradient(158deg, var(--card) 0%, var(--card2) 100%) !important;
+  border:1px solid var(--border) !important;
+  border-radius:var(--r) !important;
+  box-shadow:var(--kp-elev-1) !important;
+  transition:transform .25s var(--kp-ease), box-shadow .25s var(--kp-ease), border-color .25s var(--kp-ease);
+}
+.stat-card:hover,.fish-card:hover,.loc-card:hover,.session-item:hover,.insight-card:hover{
+  transform:translateY(-3px) !important;
+  box-shadow:var(--kp-elev-2) !important;
+  border-color:var(--water-b) !important;
+}
+/* lista-elem koppintás visszajelzés (mobil) */
+.session-item:active,.fish-card:active,.loc-card:active{ transform:scale(.992) !important; }
+
+/* ============ IKON-BUBORÉKOK (csak árnyék/forma – a hátteret a weather-mod adja) ============ */
+.stat-icon,.loc-icon,.item-icon,.cta-icon{
+  border-radius:14px !important;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,.55), 0 4px 12px var(--shadow) !important;
+}
+
+/* ============ STATISZTIKA ÉRTÉK ============ */
+.stat-value{ font-weight:800 !important; letter-spacing:-.02em !important; }
+.section-label{ letter-spacing:.05em !important; text-transform:uppercase !important; font-weight:800 !important; color:var(--text2) !important; }
+
+/* ============ ELSŐDLEGES GOMBOK (hátteret a weather-mod adja – itt csak mélység/visszajelzés) ============ */
+.tb-btn.primary,.session-btn,.new-session-btn-side{
+  box-shadow:0 6px 18px var(--water-b) !important;
+  transition:transform .14s var(--kp-ease), box-shadow .25s var(--kp-ease), filter .2s;
+}
+.tb-btn.primary:hover,.session-btn:hover,.new-session-btn-side:hover{
+  filter:brightness(1.05) !important; box-shadow:0 10px 26px var(--water-b) !important;
+}
+.tb-btn.primary:active,.session-btn:active,.new-session-btn-side:active{ transform:translateY(1px) scale(.99) !important; }
+
+/* ============ MÁSODLAGOS GOMBOK: üveg ============ */
+.tb-btn:not(.primary){
+  background:rgba(255,255,255,.55) !important;
+  -webkit-backdrop-filter:var(--kp-glass) !important; backdrop-filter:var(--kp-glass) !important;
+  border:1px solid var(--border2) !important;
+  border-radius:999px !important;
+  transition:background .2s, border-color .2s, transform .14s var(--kp-ease);
+}
+.tb-btn:not(.primary):hover{ background:rgba(255,255,255,.82) !important; border-color:var(--water-b) !important; }
+.tb-btn:not(.primary):active{ transform:scale(.98) !important; }
+
+/* ============ TÖRLÉS / VESZÉLY GOMB ============ */
+.delete-btn{ transition:background .2s, color .2s, transform .14s var(--kp-ease); }
+.delete-btn:hover{ background:var(--danger-bg) !important; color:var(--danger) !important; }
+.delete-btn:active{ transform:scale(.95) !important; }
+
+/* ============ ŰRLAP MEZŐK: tiszta keret + fókuszgyűrű ============ */
+.form-input,
+input[type=text],input[type=number],input[type=date],input[type=time],input[type=search],input[list],textarea,select{
+  border-radius:var(--r-sm) !important;
+  border:1px solid var(--border2) !important;
+  background:var(--input) !important;
+  transition:border-color .2s, box-shadow .2s, background .2s;
+}
+.form-input:focus,
+input:focus,textarea:focus,select:focus{
+  outline:0 !important;
+  border-color:var(--water) !important;
+  box-shadow:0 0 0 3px var(--water-bg) !important;
+  background:var(--card) !important;
+}
+
+/* ============ OLDALSÁV NAV ============ */
+.nav-item{ border-radius:12px !important; transition:background .2s, color .2s, transform .14s var(--kp-ease); }
+.nav-item:hover{ background:var(--season-soft, var(--water-bg)) !important; }
+
+/* ============ BADGE-EK / CHIPEK ============ */
+.id-pill,.mini-chip{
+  border-radius:999px !important;
+  border:1px solid var(--border) !important;
+  background:var(--season-soft, var(--water-bg)) !important;
+}
+
+/* ============ KÉPEK ============ */
+.img-wrap{ border-radius:var(--r-sm) !important; overflow:hidden !important; }
+.img-wrap img{ transition:transform .35s var(--kp-ease); }
+.fish-card:hover .img-wrap img{ transform:scale(1.04); }
+
+/* ============ FELSŐ SÁV: finom üveg ============ */
+.top-bar{ -webkit-backdrop-filter:var(--kp-glass) !important; backdrop-filter:var(--kp-glass) !important; }
+
+/* ============ GÖRDÜLÉS ============ */
+html{ scroll-behavior:smooth; }
+
+/* ============ MOZGÁSCSÖKKENTÉS TISZTELETE ============ */
+@media (prefers-reduced-motion: reduce){
+  *{ transition:none !important; }
+  .fish-card:hover .img-wrap img{ transform:none; }
+}
