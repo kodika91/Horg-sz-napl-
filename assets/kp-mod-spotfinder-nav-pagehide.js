@@ -1,5 +1,5 @@
 /* kp-mod-spotfinder-nav-pagehide.js — Visszatalálás sáv eltüntetése menüváltáskor
- * v1.1 · Nem nyúl a helymentéshez. Betölti a modern Helykereső UI modult is.
+ * v1.2 · Modern Helykereső UI + térkép javító betöltése.
  */
 (function(){
 'use strict';
@@ -55,13 +55,17 @@ function wrapShowPage(){
   window.showPage=nw;
   return true;
 }
-function loadModernSpotfinder(){
-  if(document.getElementById('kp-mod-spotfinder-modern'))return;
+function loadScriptOnce(id,src){
+  if(document.getElementById(id))return;
   var s=document.createElement('script');
-  s.id='kp-mod-spotfinder-modern';
-  s.src='assets/kp-mod-spotfinder-modern.js?v=20260610-1';
+  s.id=id;
+  s.src=src;
   s.defer=false;
   document.body.appendChild(s);
+}
+function loadModernSpotfinder(){
+  loadScriptOnce('kp-mod-spotfinder-modern','assets/kp-mod-spotfinder-modern.js?v=20260610-1');
+  loadScriptOnce('kp-mod-spotfinder-map-fix','assets/kp-mod-spotfinder-map-fix.js?v=20260610-1');
 }
 function watch(){
   wrapShowPage();
@@ -71,8 +75,9 @@ function watch(){
 setTimeout(wrapShowPage,300);
 setTimeout(wrapShowPage,1200);
 setTimeout(loadModernSpotfinder,500);
+setTimeout(loadModernSpotfinder,1600);
 setInterval(watch,900);
 document.addEventListener('click',function(){setTimeout(watch,120);},true);
 window.addEventListener('hashchange',function(){setTimeout(watch,60);});
-console.log('[spot-nav-pagehide] aktív: modern Helykereső loaderrel.');
+console.log('[spot-nav-pagehide] aktív: modern Helykereső + térkép fix loader.');
 })();
