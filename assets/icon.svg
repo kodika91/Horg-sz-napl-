@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Természet ikon">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6cc0cf"/>
+      <stop offset=".55" stop-color="#2c6e7a"/>
+      <stop offset="1" stop-color="#1f5560"/>
+    </linearGradient>
+    <linearGradient id="hillBack" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5e9b62"/>
+      <stop offset="1" stop-color="#345a40"/>
+    </linearGradient>
+    <linearGradient id="hillFront" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a7c59"/>
+      <stop offset="1" stop-color="#2e5038"/>
+    </linearGradient>
+    <radialGradient id="sun" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#ffeeb0"/>
+      <stop offset="1" stop-color="#f4c25a"/>
+    </radialGradient>
+    <clipPath id="round"><rect width="512" height="512" rx="112"/></clipPath>
+  </defs>
+  <g clip-path="url(#round)">
+    <rect width="512" height="512" fill="url(#sky)"/>
+    <circle cx="350" cy="156" r="60" fill="url(#sun)"/>
+    <circle cx="350" cy="156" r="86" fill="#ffeeb0" opacity=".14"/>
+    <path d="M0 300 Q150 224 300 288 T512 276 V512 H0 Z" fill="url(#hillBack)"/>
+    <path d="M0 366 Q176 296 344 352 T512 344 V512 H0 Z" fill="url(#hillFront)"/>
+    <rect y="404" width="512" height="108" fill="#1b4a55"/>
+    <rect x="334" y="404" width="34" height="108" fill="#ffeeb0" opacity=".16"/>
+    <g stroke="#cdeaef" stroke-width="6" stroke-linecap="round" fill="none" opacity=".5">
+      <path d="M64 442 q24 -12 48 0 t48 0"/>
+      <path d="M300 472 q24 -12 48 0 t48 0"/>
+      <path d="M150 490 q24 -12 48 0 t48 0"/>
+    </g>
+  </g>
+</svg>
