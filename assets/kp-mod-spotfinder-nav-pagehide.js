@@ -1,5 +1,5 @@
 /* kp-mod-spotfinder-nav-pagehide.js — Visszatalálás sáv eltüntetése menüváltáskor
- * v1.0 · Nem nyúl a helymentéshez. Csak a fixed Követés/Leállítás sávot kezeli.
+ * v1.1 · Nem nyúl a helymentéshez. Betölti a modern Helykereső UI modult is.
  */
 (function(){
 'use strict';
@@ -27,7 +27,6 @@ function hardHideOverlay(){
   }
 }
 function stopNavSilent(){
-  /* Saját csendes leállítás: ne dobjon toastot, ne szóljon bele a helymentésbe. */
   hardHideOverlay();
   try{
     if(window.kpSpotStopNavigation){
@@ -56,14 +55,24 @@ function wrapShowPage(){
   window.showPage=nw;
   return true;
 }
+function loadModernSpotfinder(){
+  if(document.getElementById('kp-mod-spotfinder-modern'))return;
+  var s=document.createElement('script');
+  s.id='kp-mod-spotfinder-modern';
+  s.src='assets/kp-mod-spotfinder-modern.js?v=20260610-1';
+  s.defer=false;
+  document.body.appendChild(s);
+}
 function watch(){
   wrapShowPage();
+  loadModernSpotfinder();
   if(!isSpotfinderActive())hardHideOverlay();
 }
 setTimeout(wrapShowPage,300);
 setTimeout(wrapShowPage,1200);
+setTimeout(loadModernSpotfinder,500);
 setInterval(watch,900);
 document.addEventListener('click',function(){setTimeout(watch,120);},true);
 window.addEventListener('hashchange',function(){setTimeout(watch,60);});
-console.log('[spot-nav-pagehide] aktív: menüváltáskor eltűnik a követés sáv.');
+console.log('[spot-nav-pagehide] aktív: modern Helykereső loaderrel.');
 })();
