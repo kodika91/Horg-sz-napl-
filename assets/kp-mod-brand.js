@@ -1,4 +1,4 @@
-// kp-mod-brand.js — "Vízparti Napló" név + természet logó + évszakkövető fotó-banner
+// kp-mod-brand.js — "Vízparti Napló" név + természet logó + évszakkövető magyar víz-fotó + sidebar fejléc
 // Biztonságos: csak látható szöveget cserél és CSS-t ad; kódhoz/kulcsokhoz nem nyúl.
 (function(){
   if(window.KP_MOD_BRAND_V1)return;
@@ -26,11 +26,11 @@
     '<path d="M64 442 q24 -12 48 0 t48 0"/><path d="M300 472 q24 -12 48 0 t48 0"/><path d="M150 490 q24 -12 48 0 t48 0"/>'+
     '</g></g></svg>';
 
-  // Évszakkövető tájfotók (Unsplash, szabad felhasználás). Tartalék: gradiens.
-  var SPRING='https://images.unsplash.com/photo-1588676509970-63fe490c3712?w=1280&q=70&auto=format&fit=crop';
-  var SUMMER='https://images.unsplash.com/photo-1596003903067-bf5762ad5c19?w=1280&q=70&auto=format&fit=crop';
-  var AUTUMN='https://images.unsplash.com/photo-1496060169243-453fde45943b?w=1280&q=70&auto=format&fit=crop';
-  var WINTER='https://images.unsplash.com/photo-1511489731872-324afc650052?w=1280&q=70&auto=format&fit=crop';
+  // Évszakkövető magyar víz-fotók (Unsplash, szabad felhasználás). Tartalék: gradiens.
+  var SPRING='https://images.unsplash.com/photo-1693242285155-e8d3793e92b9?w=1280&q=70&auto=format&fit=crop'; // Balaton, zöld part
+  var SUMMER='https://images.unsplash.com/photo-1777833021034-c5e230d8ded3?w=1280&q=70&auto=format&fit=crop'; // Tisza-tó, türkiz
+  var AUTUMN='https://images.unsplash.com/photo-1530656409552-a0c542bb3dc9?w=1280&q=70&auto=format&fit=crop'; // Tisza, őszi
+  var WINTER='https://images.unsplash.com/photo-1720814687735-e5a6b53311ad?w=1280&q=70&auto=format&fit=crop'; // havas folyópart
   var FALLBACK='linear-gradient(135deg, #6cc0cf 0%, #2c6e7a 52%, #1f5560 100%)';
   var OVERLAY='linear-gradient(180deg, rgba(18,46,55,.28) 0%, rgba(18,46,55,.60) 100%)';
 
@@ -39,17 +39,20 @@
     var s=document.createElement('style');
     s.id='kp-brand-style';
     s.textContent=
-      /* --- Oldalsáv márka-panel + logó --- */
-      '.sidebar-brand{background:linear-gradient(135deg,var(--season-soft,rgba(44,110,122,.14)),transparent)!important}'+
-      '.brand-logo{padding:0!important;overflow:hidden!important;border-radius:12px!important;box-shadow:0 4px 12px var(--shadow,rgba(60,40,10,.18))!important}'+
+      /* --- Sidebar márka-sarok: háttér + vízcsík + logó-keret --- */
+      '.sidebar-brand{background:linear-gradient(135deg, rgba(44,110,122,.18) 0%, rgba(74,124,89,.12) 55%, transparent 100%)!important;border-bottom:1px solid var(--border)!important;position:relative!important;padding-bottom:18px!important}'+
+      '.sidebar-brand::after{content:""!important;position:absolute!important;left:18px!important;right:18px!important;bottom:0!important;height:2px!important;background:linear-gradient(90deg,transparent,var(--water2,#3a8a99),transparent)!important;opacity:.45!important}'+
+      '.brand-logo{width:46px!important;height:46px!important;padding:0!important;overflow:hidden!important;border-radius:13px!important;box-shadow:0 6px 16px rgba(44,110,122,.32)!important}'+
       '.brand-logo>.kp-logo-mark,.brand-logo>svg:not(.kp-nature),.brand-logo>i,.brand-logo>span{display:none!important}'+
       '.brand-logo>.kp-nature{display:block!important;width:100%!important;height:100%!important}'+
+      '.brand-text .name{color:var(--water,#2c6e7a)!important;letter-spacing:.01em!important}'+
+      '.brand-text .sub{color:var(--text3,#a08060)!important}'+
       /* --- Évszakos fotó-változó --- */
       ':root[data-season="spring"]{--kp-banner:url("'+SPRING+'")}'+
       ':root[data-season="summer"]{--kp-banner:url("'+SUMMER+'")}'+
       ':root[data-season="autumn"]{--kp-banner:url("'+AUTUMN+'")}'+
       ':root[data-season="winter"]{--kp-banner:url("'+WINTER+'")}'+
-      /* --- Főoldali fejléc-banner: évszakkövető valódi fotó (tartalék gradiens) --- */
+      /* --- Főoldali fejléc-banner: évszakkövető magyar víz-fotó (tartalék gradiens) --- */
       '.main-area:has(#page-home.active) .top-bar.compact{'+
         'background:'+
           OVERLAY+','+
