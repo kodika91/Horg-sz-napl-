@@ -33,7 +33,7 @@
       const res=await fetch(appUrl,{cache:'reload'});
       if(!res.ok) throw new Error('app.html fetch failed: '+res.status);
       let html=await res.text();
-      html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v68.19 vizuális frissítés + légnyomás trend');
+      html=html.replace('v26.19.1.5 Halfaj betöltés hotfix','v69.20 modern statisztika');
       html=html.replace('\napplyHuV2();\n\n\n// CSALI ADATBÁZIS','\n// applyHuV2 moved after helper constants. kp-mod-ban-refresh-fix.js futtatja betöltés után.\n\n\n// CSALI ADATBÁZIS');
       html=html.replace('const PAGE_TITLES=','var PAGE_TITLES=');
       html=html.replace('let lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];','var lat=null,lon=null,weatherCache=null,placeCache=null,forecast24Cache=[];');
@@ -85,6 +85,7 @@
           addScript('kp-mod-session-restore','assets/kp-mod-session-restore.js?v=20260526-12');
           addScript('kp-mod-resize-image-fix','assets/kp-mod-resize-image-fix.js?v=20260526-1');
           addScript('kp-mod-setup-scroll-gear-select-fix','assets/kp-mod-setup-scroll-gear-select-fix.js?v=20260527-4-v13');
+          addScript('kp-mod-statistics-modern','assets/kp-mod-statistics-modern.js?v=20260610-1');
         }catch(e){console.warn('[Vízparti Napló] modul betöltési hiba:',e);}
       },250);
     }catch(err){
