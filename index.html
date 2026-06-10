@@ -14,6 +14,9 @@
 <div class="box"><div class="t">KapásPont betöltése…</div><div class="s">v68.19 · vizuális frissítés + légnyomás trend</div></div>
 <script>
 (function(){
+  if('serviceWorker' in navigator){
+    try{navigator.serviceWorker.register('sw.js',{updateViaCache:'none'});}catch(e){console.warn('[KapásPont] SW reg hiba:',e);}
+  }
   function addScript(id,src){var old=document.getElementById(id);if(old)old.remove();var s=document.createElement('script');s.id=id;s.src=src;s.defer=false;document.body.appendChild(s)}
   window.addEventListener('error',function(e){try{console.error('[KapásPont loader]',e.message,e.filename,e.lineno)}catch(_){} });
   (async function(){
