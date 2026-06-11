@@ -3,7 +3,7 @@
 // KILL-SWITCH: ha valami elromlik, állítsd KILL=true-ra és commitold -> a SW
 // minden eszközön törli a cache-t és leszereli önmagát a következő megnyitáskor.
 const KILL = false;
-const VERSION = 'kp-sw-v1';
+const VERSION = 'kp-sw-v2';
 const RUNTIME = 'kp-runtime-' + VERSION;
 const SHELL   = 'kp-shell-'   + VERSION;
 const PRECACHE = ['./', './index.html'];
@@ -37,25 +37,25 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (KILL) return;                       // mindent a hálózatra enged
+  if (KILL) return;
   const req = e.request;
-  if (req.method !== 'GET') return;       // csak GET-et kezelünk (API írás nem)
+  if (req.method !== 'GET') return;
 
   e.respondWith((async () => {
     try {
-      const fresh = await fetch(req);     // NETWORK-FIRST: online mindig friss
+      const fresh = await fetch(req);
       try {
         const url = new URL(req.url);
         const sameOrigin = url.origin === self.location.origin;
         const isRaw = url.hostname === 'raw.githubusercontent.com';
-        if ((sameOrigin && fresh.ok) || isRaw) {     // api.github.com-ot NEM cache-eljük
+        if ((sameOrigin && fresh.ok) || isRaw) {
           const copy = fresh.clone();
           const cache = await caches.open(RUNTIME);
           cache.put(req, copy);
         }
       } catch (_) {}
       return fresh;
-    } catch (err) {                       // offline -> tartalék a cache-ből
+    } catch (err) {
       const cached = await caches.match(req);
       if (cached) return cached;
       if (req.mode === 'navigate') {
