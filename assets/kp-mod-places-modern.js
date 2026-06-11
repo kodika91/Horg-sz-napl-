@@ -1,8 +1,8 @@
 // kp-mod-places-modern.js — Helyek oldal modern térképes nézete
 (function(){
 'use strict';
-if(window.KP_MOD_PLACES_MODERN_V2)return;
-window.KP_MOD_PLACES_MODERN_V2=true;
+if(window.KP_MOD_PLACES_MODERN_V3)return;
+window.KP_MOD_PLACES_MODERN_V3=true;
 
 var state={selected:null,q:'',type:'all',quick:'all'};
 var lastSignature='',map=null,markers=[];
@@ -17,8 +17,8 @@ function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){retur
 function arr(v){return Array.isArray(v)?v:[]}
 function num(v){var x=Number(v);return Number.isFinite(x)?x:0}
 function getDb(){try{return typeof getDB==='function'?getDB():JSON.parse(localStorage.getItem(window.DB_KEY||'horgaszpro_v0230')||'{}')}catch(e){return {}}}
-function saveDb(d){try{typeof saveDB==='function'?saveDB(d):localStorage.setItem(window.DB_KEY||'horgaszpro_v0230',JSON.stringify(d))}catch(e){console.warn('[places]',e)}}
-function toast(m){try{typeof showToast==='function'?showToast(m):console.log('[places]',m)}catch(e){}}
+function saveDb(d){try{typeof saveDB==='function'?saveDB(d):localStorage.setItem(window.DB_KEY||'horgaszpro_v0230',JSON.stringify(d))}catch(e){console.warn('[places-modern]',e)}}
+function toast(m){try{typeof showToast==='function'?showToast(m):console.log('[places-modern]',m)}catch(e){}}
 function typeOf(p){return p.type||p.waterType||p.kind||'Hely'}
 function placePhoto(p,i){var ps=arr(p.photos);return (ps[0]&&(ps[0].data||ps[0].url))||p.coverImage||p.photo||p.image||fallbackPhotos[i%fallbackPhotos.length]}
 function distanceKm(a,b,c,d){if(!Number.isFinite(a)||!Number.isFinite(b)||!Number.isFinite(c)||!Number.isFinite(d))return null;var R=6371,r=Math.PI/180,dLat=(c-a)*r,dLon=(d-b)*r,x=Math.sin(dLat/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
@@ -26,19 +26,17 @@ function sessionsFor(name){var d=getDb();return arr(d.sessions).filter(function(
 function newestDate(p){return p.last||p.updatedAt||p.createdAt||''}
 
 function places(){
-  var d=getDb(),out=[],seen={};
+  var d=getDb(),out=[];
   arr(d.locations).forEach(function(l){
     if(!l||l.fromSpotFinder)return;
-    var key='loc:'+String(l.id||l.name||'');
-    seen[key]=1;
-    out.push(Object.assign({},l,{_key:key,_source:'location'}));
+    out.push(Object.assign({},l,{_key:'loc:'+String(l.id||l.name||''),_source:'location'}));
   });
   arr(d.scoutSpots).forEach(function(s){
     if(!s)return;
-    var key='spot:'+String(s.id||s.name||'');
-    if(seen[key])return;
-    out.push(Object.assign({},s,{_key:key,_source:'spot',type:s.type||'Helykereső'}));
+    out.push(Object.assign({},s,{_key:'spot:'+String(s.id||s.name||''),_source:'spot',type:s.type||'Helykereső'}));
   });
+  var seen={};
+  out=out.filter(function(p){var k=p._key||String(p.name||'');if(seen[k])return false;seen[k]=1;return true});
   out.forEach(function(p,i){
     var ss=sessionsFor(p.name);
     if(!p.catchCount)p.catchCount=ss.reduce(function(a,s){return a+num(s.catchCount||arr(s.catches).length)},0);
@@ -53,6 +51,7 @@ function places(){
 
 function filtered(list){
   var q=state.q.toLowerCase();
+  var now=Date.now();
   var res=list.filter(function(p){
     var hay=[p.name,p.note,p.description,p.settlement,p.county,p.gps,typeOf(p)].join(' ').toLowerCase();
     if(q&&hay.indexOf(q)<0)return false;
@@ -60,8 +59,8 @@ function filtered(list){
     if(state.quick==='fav'&&!p.favorite)return false;
     if(state.quick==='near'&&(p._dist==null||p._dist>50))return false;
     if(state.quick==='success'&&num(p.catchCount)<=0)return false;
-    if(state.quick==='new'&&p._createdMs<Date.now()-1000*60*60*24*45)return false;
-    if(state.quick==='archive'&&p._createdMs>=Date.now()-1000*60*60*24*365)return false;
+    if(state.quick==='new'&&p._createdMs<now-1000*60*60*24*45)return false;
+    if(state.quick==='archive'&&p._createdMs>=now-1000*60*60*24*365)return false;
     return true;
   });
   if(state.quick==='near')res.sort(function(a,b){return (a._dist==null?99999:a._dist)-(b._dist==null?99999:b._dist)});
@@ -70,18 +69,18 @@ function filtered(list){
 }
 
 function deletePlace(key){
-  var list=places(),p=list.find(function(x){return x._key===key});
-  if(!p)return;
+  var p=places().find(function(x){return x._key===key});
+  if(!p)return toast('Nem találom a törlendő helyet.');
   if(!confirm('Törlöd ezt a helyet?'))return;
   var d=getDb();
   if(p._source==='spot'){
-    d.scoutSpots=arr(d.scoutSpots).filter(function(x){return String(x.id)!==String(p.id)});
-    d.locations=arr(d.locations).filter(function(x){return x.id!==('sfloc_'+p.id)});
+    d.scoutSpots=arr(d.scoutSpots).filter(function(x){return String(x.id||x.name)!==String(p.id||p.name)});
+    d.locations=arr(d.locations).filter(function(x){return String(x.id)!==String('sfloc_'+p.id)&&String(x.name)!==String(p.name)});
   }else{
     d.locations=arr(d.locations).filter(function(x){return String(x.id||x.name)!==String(p.id||p.name)});
   }
   saveDb(d);
-  if(state.selected===key)state.selected=null;
+  state.selected=null;
   lastSignature='';
   render();
   toast('Hely törölve.');
@@ -89,9 +88,9 @@ function deletePlace(key){
 window.KP_DELETE_PLACE=deletePlace;
 
 function addCss(){
-  if(document.getElementById('kpl-css-v2'))return;
+  if(document.getElementById('kpl-css-v3'))return;
   var s=document.createElement('style');
-  s.id='kpl-css-v2';
+  s.id='kpl-css-v3';
   s.textContent='\
 .kpl{display:grid;grid-template-columns:280px minmax(0,1fr)330px;gap:24px;color:#f4fff9}.kpl-panel,.kpl-detail{background:rgba(8,36,33,.82);border:1px solid rgba(174,255,230,.16);border-radius:22px;box-shadow:0 24px 70px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.04);padding:18px}.kpl-left,.kpl-detail{position:sticky;top:86px;height:calc(100vh - 108px);overflow:auto}.kpl h1{font-size:30px;margin:6px 0}.kpl-sub{color:rgba(230,255,248,.72);margin:0 0 18px}.kpl-label{font-size:12px;color:rgba(230,255,248,.62);font-weight:900;letter-spacing:.08em;margin:18px 0 10px}.kpl-search{width:100%;height:42px;background:#082421;border:1px solid rgba(174,255,230,.24);border-radius:14px;color:#f4fff9;padding:0 14px}.kpl-search::placeholder{color:rgba(244,255,249,.56)}.kpl-type-row,.kpl-rating,.kpl-tabs{display:flex;gap:8px;flex-wrap:wrap}.kpl-type,.kpl-chip,.kpl-tab{border:1px solid rgba(174,255,230,.16);background:rgba(255,255,255,.06);color:#dffdf4;border-radius:12px;padding:10px 12px;font-weight:800}.kpl-type.active,.kpl-chip.active,.kpl-tab.active{background:linear-gradient(135deg,rgba(93,255,145,.24),rgba(46,213,255,.12));border-color:rgba(93,255,145,.34);color:#baffec}.kpl-range{width:100%;accent-color:#5dff91}.kpl-reset,.kpl-export{width:100%;padding:13px;border-radius:14px;background:rgba(35,201,160,.18);color:#baffec;border:1px solid rgba(93,255,145,.20);font-weight:900}.kpl-quick button{width:100%;margin:6px 0;text-align:left;padding:13px;border-radius:14px;background:rgba(255,255,255,.07);color:#dffdf4;border:1px solid rgba(174,255,230,.13);font-weight:800}.kpl-quick button.active{background:rgba(35,201,160,.24);border-color:rgba(93,255,145,.32);color:#baffec}.kpl-foot{position:absolute;left:18px;right:18px;bottom:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center;color:rgba(230,255,248,.72);font-size:13px}.kpl-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}.kpl-stat{background:rgba(8,36,33,.82);border:1px solid rgba(174,255,230,.16);border-radius:17px;padding:16px;min-height:94px}.kpl-stat small{color:rgba(230,255,248,.58);font-size:11px;font-weight:900}.kpl-stat b{display:block;font-size:25px;margin:8px 0 3px}.kpl-stat span{color:rgba(230,255,248,.68);font-size:12px}.kpl-map-wrap{height:280px;border-radius:18px;overflow:hidden;border:1px solid rgba(174,255,230,.18);position:relative;margin-bottom:14px;background:rgba(8,36,33,.72)}#kpl-map{height:100%;width:100%;background:#092724}.kpl-map-search{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:500;background:rgba(5,22,21,.88);border:1px solid rgba(174,255,230,.18);color:#f4fff9;border-radius:13px;padding:11px 18px;min-width:250px}.kpl-map-ctrl{position:absolute;right:14px;bottom:14px;z-index:500;display:flex;flex-direction:column;gap:7px}.kpl-map-ctrl button{width:38px;height:38px;border-radius:10px;border:1px solid rgba(174,255,230,.16);background:rgba(5,22,21,.88);color:#fff;font-size:20px}.kpl-marker{width:28px;height:28px;border-radius:50% 50% 50% 8px;transform:rotate(-45deg);background:#16c7ad;border:2px solid rgba(255,255,255,.9);box-shadow:0 0 22px rgba(22,199,173,.45)}.kpl-marker span{display:block;transform:rotate(45deg);text-align:center;line-height:24px;font-size:13px}.kpl-marker.fav{background:#ffce3a}.kpl-place-list{display:flex;flex-direction:column;gap:9px}.kpl-place{display:grid;grid-template-columns:130px 1fr 210px 42px;gap:12px;align-items:center;background:rgba(8,36,33,.72);border:1px solid rgba(174,255,230,.13);border-radius:15px;overflow:hidden;min-height:92px;cursor:pointer}.kpl-place.active{border-color:#5dff91;box-shadow:0 0 0 1px rgba(93,255,145,.32),0 0 40px rgba(93,255,145,.13)}.kpl-place img{width:130px;height:92px;object-fit:cover}.kpl-place h3{font-size:16px;margin:0 0 4px}.kpl-place p,.kpl-meta,.kpl-last{color:rgba(230,255,248,.70);font-size:12px}.kpl-meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}.kpl-badge{color:#91ffc0}.kpl-last{border-left:1px solid rgba(174,255,230,.10);padding-left:16px}.kpl-more{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.07);color:#fff;border:0;margin-right:8px}.kpl-detail{padding:0;overflow:hidden}.kpl-detail-scroll{height:100%;overflow:auto;padding:0 16px 16px}.kpl-hero{height:172px;background-size:cover;background-position:center;position:relative}.kpl-detail-close{position:absolute;right:14px;top:12px;width:34px;height:34px;border-radius:50%;background:rgba(5,22,21,.65);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:22px}.kpl-heart{position:absolute;right:16px;bottom:14px;width:38px;height:38px;border-radius:50%;background:rgba(255,80,100,.88);display:flex;align-items:center;justify-content:center}.kpl-detail h2{font-size:22px;margin:18px 0 4px}.kpl-detail p{color:rgba(230,255,248,.72);font-size:13px}.kpl-detail-row{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.kpl-pill{background:rgba(93,255,145,.10);border:1px solid rgba(93,255,145,.16);border-radius:12px;padding:8px 11px;color:#baffec;font-size:12px}.kpl-info{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}.kpl-info div{background:rgba(255,255,255,.045);border:1px solid rgba(174,255,230,.10);border-radius:12px;padding:11px}.kpl-info small{display:block;color:rgba(230,255,248,.58);font-size:11px}.kpl-info b{display:block;margin-top:4px}.kpl-fish-row{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(174,255,230,.08)}.kpl-section-title{font-size:12px;margin:18px 0 9px;color:rgba(230,255,248,.66);font-weight:900}.kpl-photos{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.kpl-photos img,.kpl-photos span{height:56px;border-radius:9px;width:100%;object-fit:cover;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}.kpl-detail-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.kpl-detail-actions button{padding:12px;border-radius:12px;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(174,255,230,.13);font-weight:900}.kpl-detail-actions .danger{color:#ff8b8b;border-color:rgba(255,90,90,.22)}@media(max-width:1220px){.kpl{grid-template-columns:270px 1fr}.kpl-detail{display:none}.kpl-place{grid-template-columns:116px 1fr 150px 36px}.kpl-place img{width:116px}}@media(max-width:820px){.kpl{display:block}.kpl-left{position:relative;top:auto;height:auto;margin-bottom:14px}.kpl-foot{position:static;margin-top:18px}.kpl-stats{grid-template-columns:1fr 1fr}.kpl-place{grid-template-columns:96px 1fr}.kpl-place img{width:96px}.kpl-last,.kpl-more{display:none}.kpl-map-wrap{height:230px}}';
   document.head.appendChild(s);
@@ -99,7 +98,7 @@ function addCss(){
 
 function statHtml(list){var fav=list.filter(function(p){return p.favorite}).length,ok=list.filter(function(p){return num(p.catchCount)>0}).length,maxDist=list.reduce(function(a,p){return p._dist!=null?Math.max(a,p._dist):a},0);return '<section class="kpl-stats"><div class="kpl-stat"><small>ÖSSZES HELY</small><b>'+list.length+'</b><span>hely</span></div><div class="kpl-stat"><small>KEDVENC HELYEK</small><b>'+fav+'</b><span>hely</span></div><div class="kpl-stat"><small>SIKERES HELYEK</small><b>'+ok+'</b><span>hely</span></div><div class="kpl-stat"><small>LEGTÁVOLABBI HELY</small><b>'+(maxDist?Math.round(maxDist):'–')+' km</b><span>tőled</span></div></section>'}
 function listCard(p,i){return '<article class="kpl-place '+(p._key===state.selected?'active':'')+'" data-key="'+esc(p._key)+'"><img src="'+esc(placePhoto(p,i))+'" alt=""><div><h3>'+esc(p.name||'Névtelen hely')+'</h3><p><i class="ti ti-map-pin"></i> '+esc(p.settlement||p.county||p.gps||'Horgászhely')+'</p><div class="kpl-meta"><span>'+esc(typeOf(p))+'</span><span>'+((p._dist!=null)?p._dist.toFixed(1)+' km':'GPS nélkül')+'</span><span>⭐ '+(p.rating||'4.'+(i%9))+'</span><span class="kpl-badge">'+(num(p.catchCount)>0?'Sikeres hely':'Mentett hely')+'</span></div></div><div class="kpl-last"><b>Legutóbbi fogás</b><br>'+(newestDate(p)?new Date(newestDate(p)).toLocaleDateString('hu-HU'):'Nincs adat')+'<br>'+num(p.catchCount)+' fogás</div><button class="kpl-more" data-key="'+esc(p._key)+'">⋮</button></article>'}
-function detail(p,i){if(!p)return '<aside class="kpl-detail"><div class="kpl-detail-scroll"><p>Válassz ki egy helyet.</p></div></aside>';var ph=[placePhoto(p,i),fallbackPhotos[(i+1)%fallbackPhotos.length],fallbackPhotos[(i+2)%fallbackPhotos.length]];return '<aside class="kpl-detail"><div class="kpl-hero" style="background-image:url('+esc(placePhoto(p,i))+')"><button class="kpl-detail-close">×</button><span class="kpl-heart">♡</span></div><div class="kpl-detail-scroll"><h2>'+esc(p.name||'Névtelen hely')+'</h2><p><i class="ti ti-map-pin"></i> '+esc(p.settlement||p.county||p.gps||'Horgászhely')+'</p><div class="kpl-detail-row"><span class="kpl-pill">'+esc(typeOf(p))+'</span><span class="kpl-pill">'+((p._dist!=null)?p._dist.toFixed(1)+' km tőled':'GPS nélkül')+'</span><span class="kpl-pill">'+(p.favorite?'Kedvenc hely':'Mentett hely')+'</span></div><div class="kpl-info"><div><small>Értékelés</small><b>⭐ '+(p.rating||'4.8')+'</b></div><div><small>Státusz</small><b>'+(num(p.catchCount)>0?'Sikeres hely':'Mentett hely')+'</b></div><div><small>Összes fogás</small><b>'+num(p.catchCount)+' db</b></div><div><small>Összsúly</small><b>'+num(p.totalWeight).toLocaleString('hu-HU',{maximumFractionDigits:1})+' kg</b></div></div><div class="kpl-section-title">INFORMÁCIÓK</div><p>Víz típusa: '+esc(typeOf(p))+'<br>GPS koordináták: '+esc(p.gps||((p.lat&&p.lon)?Number(p.lat).toFixed(5)+', '+Number(p.lon).toFixed(5):'Nincs adat'))+'<br>Hozzáadva: '+(p.createdAt?new Date(p.createdAt).toLocaleDateString('hu-HU'):'–')+'</p><div class="kpl-section-title">LEGTÖBB FOGÁS</div><div class="kpl-fish-row"><span>🐟</span><b>Ponty</b><em>'+num(p.catchCount)+' db</em></div><div class="kpl-fish-row"><span>🐟</span><b>Amur</b><em>'+Math.floor(num(p.catchCount)/2)+' db</em></div><div class="kpl-section-title">JEGYZETEK</div><p>'+esc(p.note||p.description||'Ehhez a helyhez még nincs külön jegyzet rögzítve.')+'</p><div class="kpl-section-title">FOTÓK</div><div class="kpl-photos">'+ph.map(function(x){return '<img src="'+esc(x)+'" alt="">'}).join('')+'<span>+8</span></div><div class="kpl-detail-actions"><button onclick="window.spotFinderEdit&&spotFinderEdit(\''+esc(String(p.id||'').replace(/'/g,'\\\''))+'\')"><i class="ti ti-pencil"></i> Szerkesztés</button><button class="danger" data-delete-place="'+esc(p._key)+'"><i class="ti ti-trash"></i> Törlés</button></div></div></aside>'}
+function detail(p,i){if(!p)return '<aside class="kpl-detail"><div class="kpl-detail-scroll"><p>Válassz ki egy helyet.</p></div></aside>';var ph=[placePhoto(p,i),fallbackPhotos[(i+1)%fallbackPhotos.length],fallbackPhotos[(i+2)%fallbackPhotos.length]];return '<aside class="kpl-detail"><div class="kpl-hero" style="background-image:url('+esc(placePhoto(p,i))+')"><button class="kpl-detail-close">×</button><span class="kpl-heart">♡</span></div><div class="kpl-detail-scroll"><h2>'+esc(p.name||'Névtelen hely')+'</h2><p><i class="ti ti-map-pin"></i> '+esc(p.settlement||p.county||p.gps||'Horgászhely')+'</p><div class="kpl-detail-row"><span class="kpl-pill">'+esc(typeOf(p))+'</span><span class="kpl-pill">'+((p._dist!=null)?p._dist.toFixed(1)+' km tőled':'GPS nélkül')+'</span><span class="kpl-pill">'+(p.favorite?'Kedvenc hely':'Mentett hely')+'</span></div><div class="kpl-info"><div><small>Értékelés</small><b>⭐ '+(p.rating||'4.8')+'</b></div><div><small>Státusz</small><b>'+(num(p.catchCount)>0?'Sikeres hely':'Mentett hely')+'</b></div><div><small>Összes fogás</small><b>'+num(p.catchCount)+' db</b></div><div><small>Összsúly</small><b>'+num(p.totalWeight).toLocaleString('hu-HU',{maximumFractionDigits:1})+' kg</b></div></div><div class="kpl-section-title">INFORMÁCIÓK</div><p>Víz típusa: '+esc(typeOf(p))+'<br>GPS koordináták: '+esc(p.gps||((p.lat&&p.lon)?Number(p.lat).toFixed(5)+', '+Number(p.lon).toFixed(5):'Nincs adat'))+'<br>Hozzáadva: '+(p.createdAt?new Date(p.createdAt).toLocaleDateString('hu-HU'):'–')+'</p><div class="kpl-section-title">LEGTÖBB FOGÁS</div><div class="kpl-fish-row"><span>🐟</span><b>Ponty</b><em>'+num(p.catchCount)+' db</em></div><div class="kpl-fish-row"><span>🐟</span><b>Amur</b><em>'+Math.floor(num(p.catchCount)/2)+' db</em></div><div class="kpl-section-title">JEGYZETEK</div><p>'+esc(p.note||p.description||'Ehhez a helyhez még nincs külön jegyzet rögzítve.')+'</p><div class="kpl-section-title">FOTÓK</div><div class="kpl-photos">'+ph.map(function(x){return '<img src="'+esc(x)+'" alt="">'}).join('')+'<span>+8</span></div><div class="kpl-detail-actions"><button data-edit-place="'+esc(p._key)+'"><i class="ti ti-pencil"></i> Szerkesztés</button><button class="danger" data-delete-place="'+esc(p._key)+'"><i class="ti ti-trash"></i> Törlés</button></div></div></aside>'}
 function leftHtml(total){return '<aside class="kpl-left kpl-panel"><div class="kpl-label">HELYEK SZŰRÉSE</div><input id="kpl-q" class="kpl-search" value="'+esc(state.q)+'" placeholder="Keresés helyek között..."><div class="kpl-label">HELY TÍPUSA</div><div class="kpl-type-row"><button class="kpl-type '+(state.type==='all'?'active':'')+'" data-type="all">Mind</button><button class="kpl-type '+(state.type==='tó'?'active':'')+'" data-type="tó">Tó</button><button class="kpl-type '+(state.type==='folyó'?'active':'')+'" data-type="folyó">Folyó</button><button class="kpl-type '+(state.type==='csatorna'?'active':'')+'" data-type="csatorna">Csatorna</button></div><div class="kpl-label">TÁVOLSÁGOMTÓL <b style="float:right">50 km</b></div><input class="kpl-range" type="range" value="50"><div class="kpl-label">ÉRTÉKELÉS</div><div class="kpl-rating"><button class="kpl-chip active">Mind</button><button class="kpl-chip">⭐ 1+</button><button class="kpl-chip">⭐ 2+</button><button class="kpl-chip">⭐ 3+</button></div><button class="kpl-reset">Szűrők alaphelyzetbe állítása</button><div class="kpl-label">GYORS SZŰRŐK</div><div class="kpl-quick"><button data-quick="fav" class="'+(state.quick==='fav'?'active':'')+'">♡ Kedvenc helyeim</button><button data-quick="near" class="'+(state.quick==='near'?'active':'')+'">📍 Legközelebbi helyek</button><button data-quick="success" class="'+(state.quick==='success'?'active':'')+'">🏆 Sikeres helyeim</button><button data-quick="new" class="'+(state.quick==='new'?'active':'')+'">🆕 Újonnan hozzáadottak</button><button data-quick="archive" class="'+(state.quick==='archive'?'active':'')+'">🗓 Archív helyek</button></div><div class="kpl-foot"><span>Találatok: '+total+' hely</span><button class="kpl-export">Exportálás</button></div></aside>'}
 function mapHtml(){return '<div class="kpl-map-wrap"><div id="kpl-map"></div><input class="kpl-map-search" placeholder="Keresés ezen a területen"><div class="kpl-map-ctrl"><button data-map="zin">+</button><button data-map="zout">−</button><button data-map="gps">⌖</button></div></div>'}
 
@@ -108,7 +107,7 @@ function render(){
   if(!page||!page.classList.contains('active'))return;
   addCss();
   var all=places(),list=filtered(all);
-  var sig=JSON.stringify([state,all.map(function(p){return [p._key,p.name,p.lat,p.lon,p.catchCount,p.favorite,p.updatedAt,p.createdAt]}).slice(0,100)]);
+  var sig=JSON.stringify([state.q,state.type,state.quick,state.selected,all.map(function(p){return [p._key,p.name,p.lat,p.lon,p.catchCount,p.favorite,p.updatedAt,p.createdAt]}).slice(0,100)]);
   if(sig===lastSignature&&page.querySelector('.kpl'))return;
   lastSignature=sig;
   if(!state.selected&&list[0])state.selected=list[0]._key;
@@ -140,14 +139,15 @@ function wire(page){
   var q=document.getElementById('kpl-q');
   if(q)q.oninput=function(){state.q=q.value;lastSignature='';render()};
   page.querySelectorAll('.kpl-type').forEach(function(b){b.onclick=function(){state.type=b.dataset.type||'all';lastSignature='';render()}});
-  page.querySelectorAll('[data-quick]').forEach(function(b){b.onclick=function(){state.quick=state.quick===b.dataset.quick?'all':b.dataset.quick;lastSignature='';render()}});
+  page.querySelectorAll('[data-quick]').forEach(function(b){b.onclick=function(ev){ev.preventDefault();state.quick=state.quick===b.dataset.quick?'all':b.dataset.quick;state.selected=null;lastSignature='';render()}});
   var reset=page.querySelector('.kpl-reset');
   if(reset)reset.onclick=function(){state.q='';state.type='all';state.quick='all';state.selected=null;lastSignature='';render()};
   page.querySelectorAll('.kpl-place').forEach(function(el){el.onclick=function(){state.selected=el.dataset.key;lastSignature='';render()}});
   page.querySelectorAll('.kpl-more').forEach(function(el){el.onclick=function(ev){ev.stopPropagation();state.selected=el.dataset.key;lastSignature='';render()}});
   var close=page.querySelector('.kpl-detail-close');
   if(close)close.onclick=function(){state.selected=null;lastSignature='';render()};
-  page.querySelectorAll('[data-delete-place]').forEach(function(b){b.onclick=function(){deletePlace(b.dataset.deletePlace)}});
+  page.querySelectorAll('[data-delete-place]').forEach(function(b){b.onclick=function(ev){ev.preventDefault();ev.stopPropagation();deletePlace(b.dataset.deletePlace)}});
+  page.querySelectorAll('[data-edit-place]').forEach(function(b){b.onclick=function(ev){ev.preventDefault();ev.stopPropagation();var p=places().find(function(x){return x._key===b.dataset.editPlace});if(p&&p._source==='spot'&&window.spotFinderEdit)spotFinderEdit(p.id);else toast('Ezt a helyet a mentett helyek adatlapján lehet szerkeszteni.')}});
   page.querySelectorAll('[data-map="zin"]').forEach(function(b){b.onclick=function(){if(map)map.zoomIn()}});
   page.querySelectorAll('[data-map="zout"]').forEach(function(b){b.onclick=function(){if(map)map.zoomOut()}});
   page.querySelectorAll('[data-map="gps"]').forEach(function(b){b.onclick=function(){if(map&&Number.isFinite(num(window.lat))&&Number.isFinite(num(window.lon)))map.setView([num(window.lat),num(window.lon)],13)}});
@@ -155,6 +155,6 @@ function wire(page){
 
 window.KP_RENDER_PLACES=render;
 var oldShow=window.showPage;
-if(typeof oldShow==='function'&&!oldShow.__kpPlacesModernV2){window.showPage=function(){var r=oldShow.apply(this,arguments);setTimeout(render,100);return r};window.showPage.__kpPlacesModernV2=true}
+if(typeof oldShow==='function'&&!oldShow.__kpPlacesModernV3){window.showPage=function(){var r=oldShow.apply(this,arguments);setTimeout(render,100);return r};window.showPage.__kpPlacesModernV3=true}
 setTimeout(render,400);setTimeout(render,1200);setInterval(render,1800);
 })();
