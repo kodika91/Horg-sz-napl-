@@ -3,7 +3,7 @@
 // KILL-SWITCH: ha valami elromlik, állítsd KILL=true-ra és commitold -> a SW
 // minden eszközön törli a cache-t és leszereli önmagát a következő megnyitáskor.
 const KILL = false;
-const VERSION = 'kp-sw-v2';
+const VERSION = 'kp-sw-v3';
 const RUNTIME = 'kp-runtime-' + VERSION;
 const SHELL   = 'kp-shell-'   + VERSION;
 const PRECACHE = ['./', './index.html'];
