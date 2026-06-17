@@ -149,6 +149,52 @@ function openNavigation(point){
   try{opened=window.open(url,'_blank','noopener,noreferrer');}catch(e){}
   if(!opened){try{window.location.href=url;}catch(e){toast('Nem sikerült megnyitni a térképes navigációt.');}}
 }
+function restoreLegacySavedPlace(){
+  if(typeof window.getDB!=='function')return false;
+  var data;
+  try{data=window.getDB();}catch(e){return false;}
+  if(!data||typeof data!=='object')return false;
+  var locations=Array.isArray(data.locations)?data.locations:[];
+  var wantedName=normalizeName('Tiszavasvári környéke');
+  var exists=locations.some(function(item){
+    if(!item)return false;
+    if(String(item.id||'')==='loc_1779049870787')return true;
+    if(normalizeName(placeName(item))===wantedName)return true;
+    var point=coords(item);
+    return point&&distanceKm(point,{lat:47.95611,lon:21.35856})<=0.05;
+  });
+  if(exists)return true;
+  locations.push({
+    id:'loc_1779049870787',
+    name:'Tiszavasvári környéke',
+    type:'Folyó',
+    county:'Szabolcs-Szatmár-Bereg vármegye',
+    settlement:'Tiszavasvári',
+    water:'',
+    gps:'47.95611°N, 21.35856°E',
+    lat:47.95611,
+    lon:21.35856,
+    last:'',
+    sessions:0,
+    catchCount:0,
+    totalWeight:0,
+    favorite:false,
+    note:'',
+    photo:null,
+    feedingPoint:'',
+    castDirection:'',
+    distance:null,
+    bottomNote:'',
+    restoredFromBackup:true,
+    restoredAt:new Date().toISOString()
+  });
+  data.locations=locations;
+  try{
+    if(typeof window.saveDB==='function')window.saveDB(data);
+    else localStorage.setItem(window.DB_KEY||'horgaszpro_v0230',JSON.stringify(data));
+    return true;
+  }catch(e){return false;}
+}
 document.addEventListener('click',function(event){
   var button=event.target.closest&&event.target.closest('#kpmap-nav');
   if(!button)return;
@@ -159,8 +205,10 @@ document.addEventListener('click',function(event){
 var guardTries=0;
 var guardTimer=setInterval(function(){
   installMapDataGuard();
+  restoreLegacySavedPlace();
   guardTries++;
-  if((window.getDB&&window.getDB.__kpMapDataGuard)||guardTries>80)clearInterval(guardTimer);
+  if((window.getDB&&window.getDB.__kpMapDataGuard&&restoreLegacySavedPlace())||guardTries>80)clearInterval(guardTimer);
 },100);
 installMapDataGuard();
+restoreLegacySavedPlace();
 })();
