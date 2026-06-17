@@ -1,4 +1,4 @@
-// kp-mod-map-navigation-fix.js — megbízható mentett helyek és valódi útvonaltervezés
+// kp-mod-map-navigation-fix.js — valódi útvonaltervezés a kiválasztott helyhez
 (function(){
 'use strict';
 if(window.KP_MOD_MAP_NAVIGATION_FIX)return;
@@ -29,78 +29,6 @@ function coords(item){
   if(lat!=null&&lon!=null&&lat>=14&&lat<=25&&lon>=44&&lon<=51){var tmp=lat;lat=lon;lon=tmp;}
   return lat!=null&&lon!=null?{lat:lat,lon:lon}:null;
 }
-function distanceKm(a,b){
-  if(!a||!b)return null;
-  var r=Math.PI/180;
-  var x=Math.sin((b.lat-a.lat)*r/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin((b.lon-a.lon)*r/2)**2;
-  return 12742*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
-}
-function isHungaryLike(point){
-  return !!point&&point.lat>=45.5&&point.lat<=48.7&&point.lon>=16&&point.lon<=23;
-}
-function mapSavedPlaces(data){
-  var locations=Array.isArray(data&&data.locations)?data.locations:[];
-  var spots=Array.isArray(data&&data.scoutSpots)?data.scoutSpots:[];
-  return locations.concat(spots).filter(function(item){return item&&!item.kpMapHiddenV1&&coords(item);}).map(function(item){
-    return {item:item,name:normalizeName(placeName(item)),point:coords(item)};
-  });
-}
-function findSavedPlace(savedPlaces,session){
-  var key=normalizeName(placeName(session));
-  if(!key)return null;
-  return savedPlaces.find(function(place){return place.name===key;})||null;
-}
-function plausibleOwnSessionPoint(point,savedPlaces){
-  if(!point)return false;
-  if(isHungaryLike(point))return true;
-  if(!savedPlaces.length)return true;
-  var nearest=Infinity;
-  savedPlaces.forEach(function(place){
-    var distance=distanceKm(point,place.point);
-    if(distance!=null&&distance<nearest)nearest=distance;
-  });
-  return nearest<=300;
-}
-function sanitizeMapDB(data){
-  if(!data||typeof data!=='object')return data;
-  var savedPlaces=mapSavedPlaces(data);
-  var sessions=Array.isArray(data.sessions)?data.sessions:[];
-  var safeSessions=[];
-  sessions.forEach(function(session){
-    if(!session)return;
-    var matched=findSavedPlace(savedPlaces,session);
-    if(matched){
-      safeSessions.push(Object.assign({},session,{
-        lat:matched.point.lat,
-        lon:matched.point.lon,
-        gps:matched.point.lat.toFixed(6)+', '+matched.point.lon.toFixed(6)
-      }));
-      return;
-    }
-    var own=coords(session);
-    if(!plausibleOwnSessionPoint(own,savedPlaces))return;
-    safeSessions.push(Object.assign({},session,{
-      lat:own.lat,
-      lon:own.lon,
-      gps:own.lat.toFixed(6)+', '+own.lon.toFixed(6)
-    }));
-  });
-  var copy=Object.assign({},data);
-  copy.sessions=safeSessions;
-  return copy;
-}
-function installMapDataGuard(){
-  if(typeof window.getDB!=='function'||window.getDB.__kpMapDataGuard)return;
-  var original=window.getDB;
-  function guardedGetDB(){
-    var data=original.apply(this,arguments);
-    var page=document.getElementById('page-map');
-    return page&&page.classList.contains('active')?sanitizeMapDB(data):data;
-  }
-  guardedGetDB.__kpMapDataGuard=true;
-  guardedGetDB.__original=original;
-  window.getDB=guardedGetDB;
-}
 function selectedPoint(){
   var active=document.querySelector('#page-map .kpmap-item.active');
   if(!active)return null;
@@ -112,6 +40,7 @@ function selectedPoint(){
   var sessions=Array.isArray(db.sessions)?db.sessions:[];
   var savedPlaces=locations.concat(spots).filter(function(x){return x&&!x.kpMapHiddenV1;});
   var item=null;
+
   if(id.indexOf('loc-')===0||id.indexOf('catch-loc-')===0){
     var locId=id.replace(/^catch-loc-/,'').replace(/^loc-/,'');
     item=locations.find(function(x){return String(x&&(x.id||x.name))===locId;})||null;
@@ -119,11 +48,13 @@ function selectedPoint(){
     var spotId=id.replace(/^catch-spot-/,'').replace(/^spot-/,'');
     item=spots.find(function(x){return String(x&&(x.id||x.name))===spotId;})||null;
   }
+
   var title=(active.querySelector('b')||{}).textContent||'';
   var titleKey=normalizeName(title);
   if(!item&&titleKey){
     item=savedPlaces.find(function(x){return normalizeName(placeName(x))===titleKey;})||null;
   }
+
   if(!item&&titleKey){
     var session=sessions.find(function(x){return normalizeName(placeName(x))===titleKey;})||null;
     if(session){
@@ -131,9 +62,11 @@ function selectedPoint(){
       item=savedPlaces.find(function(x){return normalizeName(placeName(x))===sessionKey&&coords(x);})||session;
     }
   }
+
   if(!item)return null;
   var point=coords(item);
   if(point)return point;
+
   var fallbackKey=normalizeName(placeName(item)||title);
   if(fallbackKey){
     var saved=savedPlaces.find(function(x){return normalizeName(placeName(x))===fallbackKey&&coords(x);});
@@ -149,52 +82,6 @@ function openNavigation(point){
   try{opened=window.open(url,'_blank','noopener,noreferrer');}catch(e){}
   if(!opened){try{window.location.href=url;}catch(e){toast('Nem sikerült megnyitni a térképes navigációt.');}}
 }
-function restoreLegacySavedPlace(){
-  if(typeof window.getDB!=='function')return false;
-  var data;
-  try{data=window.getDB();}catch(e){return false;}
-  if(!data||typeof data!=='object')return false;
-  var locations=Array.isArray(data.locations)?data.locations:[];
-  var wantedName=normalizeName('Tiszavasvári környéke');
-  var exists=locations.some(function(item){
-    if(!item)return false;
-    if(String(item.id||'')==='loc_1779049870787')return true;
-    if(normalizeName(placeName(item))===wantedName)return true;
-    var point=coords(item);
-    return point&&distanceKm(point,{lat:47.95611,lon:21.35856})<=0.05;
-  });
-  if(exists)return true;
-  locations.push({
-    id:'loc_1779049870787',
-    name:'Tiszavasvári környéke',
-    type:'Folyó',
-    county:'Szabolcs-Szatmár-Bereg vármegye',
-    settlement:'Tiszavasvári',
-    water:'',
-    gps:'47.95611°N, 21.35856°E',
-    lat:47.95611,
-    lon:21.35856,
-    last:'',
-    sessions:0,
-    catchCount:0,
-    totalWeight:0,
-    favorite:false,
-    note:'',
-    photo:null,
-    feedingPoint:'',
-    castDirection:'',
-    distance:null,
-    bottomNote:'',
-    restoredFromBackup:true,
-    restoredAt:new Date().toISOString()
-  });
-  data.locations=locations;
-  try{
-    if(typeof window.saveDB==='function')window.saveDB(data);
-    else localStorage.setItem(window.DB_KEY||'horgaszpro_v0230',JSON.stringify(data));
-    return true;
-  }catch(e){return false;}
-}
 document.addEventListener('click',function(event){
   var button=event.target.closest&&event.target.closest('#kpmap-nav');
   if(!button)return;
@@ -202,13 +89,4 @@ document.addEventListener('click',function(event){
   event.stopImmediatePropagation();
   openNavigation(selectedPoint());
 },true);
-var guardTries=0;
-var guardTimer=setInterval(function(){
-  installMapDataGuard();
-  restoreLegacySavedPlace();
-  guardTries++;
-  if((window.getDB&&window.getDB.__kpMapDataGuard&&restoreLegacySavedPlace())||guardTries>80)clearInterval(guardTimer);
-},100);
-installMapDataGuard();
-restoreLegacySavedPlace();
 })();
