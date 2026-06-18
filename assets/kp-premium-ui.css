@@ -104,3 +104,27 @@ input:focus,textarea:focus,select:focus{
   *{ transition:none !important; }
   .fish-card:hover .img-wrap img{ transform:none; }
 }
+
+/* ============ NAPLÓ · TÚRA RÉSZLETEZŐ KONTRASZT ============ */
+/* A session-detail oldal sötét konténereiben (detail-hero, detail-mode-panel,
+   timeline-card) több szövegosztály fix sötét --text/--text2/--text3 színt
+   használ, ami a sötét háttéren olvashatatlan. Itt világosra állítjuk.
+   #page-session-detail-re szűkítve, hogy a világos hátterű chipek
+   (.tag-muted, .closed) érintetlenek maradjanak. */
+#page-session-detail .detail-title-main,
+#page-session-detail .detail-mode-title,
+#page-session-detail .section-label,
+#page-session-detail .timeline-title,
+#page-session-detail .setting-name,
+#page-session-detail .stat-value,
+#page-session-detail .stat-value-sm,
+#page-session-detail .empty-title{ color:#f4fff9 !important; }
+#page-session-detail .detail-mode-sub,
+#page-session-detail .detail-closed-note,
+#page-session-detail .detail-closed-note > div,
+#page-session-detail .timeline-sub,
+#page-session-detail .timeline-note,
+#page-session-detail .setting-sub,
+#page-session-detail .stat-label,
+#page-session-detail .stat-sub,
+#page-session-detail .empty-sub{ color:rgba(230,255,248,.78) !important; }
