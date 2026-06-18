@@ -128,3 +128,14 @@ input:focus,textarea:focus,select:focus{
 #page-session-detail .stat-label,
 #page-session-detail .stat-sub,
 #page-session-detail .empty-sub{ color:rgba(230,255,248,.78) !important; }
+
+/* ---- Tura reszletezo: esemeny-sorok sotetitese + idojaras feliratok ---- */
+/* A .timeline-item alapbol var(--bg2) vilagos krem -> a sotet menuben
+   vilagos kartyakent latszott; a menuhoz igazitjuk. */
+#page-session-detail .timeline-item{
+  background:rgba(255,255,255,.05) !important;
+  border-color:rgba(174,255,230,.14) !important;
+}
+/* "Mentett idojaras" feliratok lathatova tetele */
+#page-session-detail .weather-saved-value{ color:#f4fff9 !important; }
+#page-session-detail .weather-saved-label{ color:rgba(230,255,248,.78) !important; }
