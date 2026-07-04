@@ -3,7 +3,7 @@
 // KILL-SWITCH: ha valami elromlik, állítsd KILL=true-ra és commitold -> a SW
 // minden eszközön törli a cache-t és leszereli önmagát a következő megnyitáskor.
 const KILL = false;
-const VERSION = 'kp-sw-v6';
+const VERSION = 'kp-sw-v7-safe';
 const RUNTIME = 'kp-runtime-' + VERSION;
 const SHELL   = 'kp-shell-'   + VERSION;
 const PRECACHE = ['./', './index.html'];
@@ -43,7 +43,7 @@ self.addEventListener('fetch', e => {
 
   e.respondWith((async () => {
     try {
-      const fresh = await fetch(req, { cache: 'reload' });
+      const fresh = await fetch(req);
       try {
         const url = new URL(req.url);
         const sameOrigin = url.origin === self.location.origin;
