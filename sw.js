@@ -1,11 +1,8 @@
 // sw.js — KapásPont offline Service Worker
-// Network-first: ONLINE mindig friss tartalom, a cache CSAK offline tartalék.
-// KILL-SWITCH: ha valami elromlik, állítsd KILL=true-ra és commitold -> a SW
-// minden eszközön törli a cache-t és leszereli önmagát a következő megnyitáskor.
 const KILL = false;
-const VERSION = 'kp-sw-v7-safe';
+const VERSION = 'kp-sw-v8-disable-journal-actions';
 const RUNTIME = 'kp-runtime-' + VERSION;
-const SHELL   = 'kp-shell-'   + VERSION;
+const SHELL = 'kp-shell-' + VERSION;
 const PRECACHE = ['./', './index.html'];
 
 self.addEventListener('install', e => {
@@ -41,11 +38,19 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
 
+  const url = new URL(req.url);
+  if (url.pathname.endsWith('/assets/kp-mod-journal-actions-fix.js')) {
+    e.respondWith(new Response("/* journal actions hotfix disabled */\nconsole.log('[journal-actions-fix] disabled by service worker');\n", {
+      status: 200,
+      headers: { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-store' }
+    }));
+    return;
+  }
+
   e.respondWith((async () => {
     try {
       const fresh = await fetch(req);
       try {
-        const url = new URL(req.url);
         const sameOrigin = url.origin === self.location.origin;
         const isRaw = url.hostname === 'raw.githubusercontent.com';
         if ((sameOrigin && fresh.ok) || isRaw) {
