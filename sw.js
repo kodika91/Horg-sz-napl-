@@ -1,6 +1,6 @@
 // sw.js — KapásPont offline Service Worker
 const KILL = false;
-const VERSION = 'kp-sw-v9-remove-journal-actions-stub';
+const VERSION = 'kp-sw-v10-cache-only-ok';
 const RUNTIME = 'kp-runtime-' + VERSION;
 const SHELL = 'kp-shell-' + VERSION;
 const PRECACHE = ['./', './index.html'];
@@ -46,7 +46,7 @@ self.addEventListener('fetch', e => {
       try {
         const sameOrigin = url.origin === self.location.origin;
         const isRaw = url.hostname === 'raw.githubusercontent.com';
-        if ((sameOrigin && fresh.ok) || isRaw) {
+        if ((sameOrigin || isRaw) && fresh.ok) {
           const copy = fresh.clone();
           const cache = await caches.open(RUNTIME);
           cache.put(req, copy);
