@@ -1,0 +1,63 @@
+/* kp-mod-labels-uniform.css — egységes, jól olvasható feliratok
+   Minden kis címke azonos: 12px / 800 / .08em ritkítás / 85% fehér.
+   Másodlagos szövegek legalább 80% fényerővel a sötét kártyákon.
+   A modulok futásidőben injektált stílusai miatt !important kell. */
+
+/* 1) Kis címke feliratok (szűrők, kártyacímkék, KPI feliratok) */
+.kpj-left label,
+.kpj-detail small,
+.kpj-info small,
+.kpj-result small,
+.kpj-stat small,
+.kpst-kpi small,
+.kpst-label,
+.kpl-label,
+.kpl-stat small,
+.kpl-info small,
+.kpl-section-title{
+  font-size:12px!important;
+  font-weight:800!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+  color:rgba(230,255,248,.85)!important;
+}
+
+/* 2) Szekciócímek — azonos szín, meglévő méret marad */
+.kph-card h3,
+.kph-head span,
+.kpj-detail h4{
+  color:rgba(230,255,248,.85)!important;
+}
+
+/* 3) Másodlagos (eddig túl halvány) szövegek — egységes árnyalat */
+.kpj-sub,
+.kpj-stat span,
+.kpj-date span,
+.kpj-date em,
+.kpj-time span,
+.kpj-time em,
+.kpj-main p,
+.kpj-weather,
+.kpj-catch-row span,
+.kpj-catch-row em,
+.kpj-place,
+.kpj-note,
+.kpj-lines span,
+.kpj-empty,
+.kpj-empty-small,
+.kpst-months,
+.kpst-empty,
+.kpst-kpi span,
+.kpl-stat span,
+.kpmap-item small,
+.kpmap-info span,
+.kpmap-counts em,
+.kph-hour span,
+.kph-hour em,
+.kph-day-row span,
+.kph-day-row li{
+  color:rgba(230,255,248,.80)!important;
+}
+
+/* 4) Főoldal "muted" színváltozója világosabbra */
+:root{--kph-muted:rgba(230,255,248,.80)!important;}
