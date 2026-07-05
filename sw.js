@@ -1,6 +1,6 @@
 // sw.js — KapásPont offline Service Worker
 const KILL = false;
-const VERSION = 'kp-sw-v8-disable-journal-actions';
+const VERSION = 'kp-sw-v9-remove-journal-actions-stub';
 const RUNTIME = 'kp-runtime-' + VERSION;
 const SHELL = 'kp-shell-' + VERSION;
 const PRECACHE = ['./', './index.html'];
@@ -39,13 +39,6 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
-  if (url.pathname.endsWith('/assets/kp-mod-journal-actions-fix.js')) {
-    e.respondWith(new Response("/* journal actions hotfix disabled */\nconsole.log('[journal-actions-fix] disabled by service worker');\n", {
-      status: 200,
-      headers: { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-store' }
-    }));
-    return;
-  }
 
   e.respondWith((async () => {
     try {
