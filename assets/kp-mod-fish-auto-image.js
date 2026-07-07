@@ -1,31 +1,38 @@
 // kp-mod-fish-auto-image.js — automatikus halfajkép a latin név alapján.
-// DOM-alapú: azokat a kártyákat kezeli, ahol TÉNYLEGESEN nincs vagy törött a kép
-// (hiányzó helyi asset VAGY img:'' HuV2 faj). A meglévő működő képet és a saját
-// feltöltött képet SOHA nem írja felül. Forrás: Wikipédia vezérkép, tartalék: Commons.
+// A napló háttérkép-logikájával azonos elv: a képet KÖZVETLENÜL a kártyára/részletre
+// tesszük megjelenítéskor, és csak az URL-t cache-eljük külön (localStorage 'kpfai_url').
+// NEM írjuk a nagy DB-be, így a tárhely-korlát sem dobja el. A meglévő működő képet és
+// a saját feltöltött képet SOHA nem írjuk felül (csak törött/hiányzó képnél lépünk be).
+// Forrás: Wikipédia vezérkép; tartalék: Wikimedia Commons keresés.
 (function(){
 'use strict';
 if(window.KP_MOD_FISH_AUTO_IMG)return;
 window.KP_MOD_FISH_AUTO_IMG=true;
 
-function db(){try{return typeof getDB==='function'?getDB():null;}catch(e){return null;}}
 // A FISH_DB az app.html-ben const -> nincs a window-on; globális scope-ból érjük el.
 function fishList(){try{var a=Function('return FISH_DB')();if(Array.isArray(a))return a;}catch(e){}return Array.isArray(window.FISH_DB)?window.FISH_DB:[];}
 function fishById(id){id=String(id);return fishList().find(function(f){return String(f.id)===id;});}
 
+var CACHE=(function(){try{return JSON.parse(localStorage.getItem('kpfai_url')||'{}');}catch(e){return {};}})();
+function saveCache(){try{localStorage.setItem('kpfai_url',JSON.stringify(CACHE));}catch(e){}}
 var busy=false, tried={};
+
+function css(){
+  if(document.getElementById('kpfai-css'))return;
+  var s=document.createElement('style');s.id='kpfai-css';
+  s.textContent='#page-fish .fish-img-wrap img.kpfai-img{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}.fish-detail-img img.kpfai-img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}';
+  document.head.appendChild(s);
+}
 
 function cardId(card){var on=card.getAttribute('onclick')||'';var m=on.match(/openFishDetail\(\s*['"]([^'"]+)['"]/);return m?m[1]:'';}
 function cardLatin(card,id){var f=fishById(id);if(f&&f.latin)return f.latin;var el=card.querySelector('.fish-name-lat');return el?(el.textContent||''):'';}
 
+function imgBroken(img){if(!img)return true;if(img.style.display==='none')return true;if(!img.getAttribute('src'))return true;if(img.complete&&img.naturalWidth===0)return true;return false;}
 function cardBroken(card){
   var wrap=card.querySelector('.fish-img-wrap');if(!wrap)return false;
   var ph=wrap.querySelector('.fish-img-placeholder');
   if(ph){try{if(getComputedStyle(ph).display!=='none')return true;}catch(e){}}
-  var img=wrap.querySelector('img');
-  if(!img)return true;
-  if(img.style.display==='none')return true;
-  if(img.complete&&img.naturalWidth===0)return true;
-  return false;
+  return imgBroken(wrap.querySelector('img:not(.kpfai-img)')||wrap.querySelector('img'));
 }
 
 // "Coregonus lavaretus csoport" -> "Coregonus lavaretus"; "Rutilus virgo / ..." -> "Rutilus virgo"
@@ -60,42 +67,74 @@ function fromCommons(latin){
   }).catch(function(){return null;});
 }
 
-function attach(id,src){
-  var d=db();if(!d)return;
-  if(!d.fishImages)d.fishImages={};
-  if(d.fishImages[id])return;         // közben feltöltöttek egyet -> nem írjuk felül
-  d.fishImages[id]={src:src,mode:'auto',source:'Automatikus (Wikipédia / Commons)',updatedAt:new Date().toISOString()};
-  try{if(typeof saveDB==='function')saveDB(d);}catch(e){}
-  try{if(typeof renderFishGrid==='function')renderFishGrid();}catch(e){}
-  try{
-    if(window._lastFishDetailId===id&&typeof openFishDetail==='function'){
-      var m=document.getElementById('data-modal');
-      if(m&&m.classList.contains('show'))openFishDetail(id);
-    }
-  }catch(e){}
+function injectCard(card,url){
+  var wrap=card.querySelector('.fish-img-wrap');if(!wrap)return;
+  var ph=wrap.querySelector('.fish-img-placeholder');
+  var img=wrap.querySelector('img.kpfai-img');
+  if(!img){img=document.createElement('img');img.loading='lazy';img.className='kpfai-img';wrap.insertBefore(img,wrap.firstChild);}
+  img.alt=card.querySelector('.fish-name-sci')?card.querySelector('.fish-name-sci').textContent:'';
+  img.onerror=function(){img.style.display='none';if(ph)ph.style.display='flex';};
+  img.onload=function(){img.style.display='';if(ph)ph.style.display='none';};
+  if(img.getAttribute('src')!==url)img.src=url;
+}
+function injectDetail(url){
+  var hero=document.querySelector('.fish-detail-img');if(!hero)return;
+  var img=hero.querySelector('img.kpfai-img');
+  if(!img){img=document.createElement('img');img.className='kpfai-img';hero.innerHTML='';hero.appendChild(img);}
+  if(img.getAttribute('src')!==url)img.src=url;
 }
 
-function scan(){
-  if(busy)return;
+function lookup(latin){return fromWiki(latin).then(function(s){return s||fromCommons(latin);});}
+
+// Rács: minden törött kártyára — cache-ből azonnal, különben egy lekérés throttle-lel.
+function applyGrid(){
   var cards=document.querySelectorAll('#page-fish .fish-card');
   if(!cards.length)return;
-  var d=db();var fi=(d&&d.fishImages)||{};
+  var pending=null;
   for(var i=0;i<cards.length;i++){
     var card=cards[i], id=cardId(card);
-    if(!id||tried[id]||fi[id])continue;
-    if(!cardBroken(card))continue;    // van működő kép -> nem nyúlunk hozzá
-    var latin=cleanLatin(cardLatin(card,id));
-    if(!latin){tried[id]=true;continue;}
-    tried[id]=true;busy=true;
-    (function(fid,lat){
-      fromWiki(lat).then(function(s){return s||fromCommons(lat);}).then(function(s){
-        busy=false;if(s)attach(fid,s);
-      }).catch(function(){busy=false;});
-    })(id,latin);
-    return;                            // egyszerre egy lekérés, a hálózat kímélése miatt
+    if(!id)continue;
+    if(CACHE[id]){ if(cardBroken(card))injectCard(card,CACHE[id]); continue; }
+    if(tried[id]||!cardBroken(card))continue;
+    if(!pending)pending={card:card,id:id};
+  }
+  if(pending&&!busy){
+    var latin=cleanLatin(cardLatin(pending.card,pending.id));
+    if(!latin){tried[pending.id]=true;return;}
+    tried[pending.id]=true;busy=true;
+    var pid=pending.id, pcard=pending.card;
+    lookup(latin).then(function(url){
+      busy=false;
+      if(!url)return;
+      CACHE[pid]=url;saveCache();
+      injectCard(pcard,url);
+    }).catch(function(){busy=false;});
   }
 }
 
-setTimeout(scan,2500);
-setInterval(scan,3000);
+// Részletnézet: cache-ből azonnal, különben lekérés a nyitott halfajra.
+function applyDetail(){
+  var id=window._lastFishDetailId;if(!id)return;
+  var hero=document.querySelector('.fish-detail-img');if(!hero)return;
+  if(!imgBroken(hero.querySelector('img')))return; // van működő kép
+  if(CACHE[id]){injectDetail(CACHE[id]);return;}
+  if(tried[id]||busy)return;
+  var f=fishById(id);var latin=cleanLatin((f&&f.latin)|| (hero.parentNode?(hero.parentNode.querySelector('.fish-detail-latin')||{}).textContent:'') );
+  if(!latin){tried[id]=true;return;}
+  tried[id]=true;busy=true;
+  lookup(latin).then(function(url){busy=false;if(!url)return;CACHE[id]=url;saveCache();injectDetail(url);}).catch(function(){busy=false;});
+}
+
+function run(){css();try{applyGrid();}catch(e){}try{applyDetail();}catch(e){}}
+
+// Bekötjük az app render-függvényeit, hogy újrarajzolás után is visszakerüljön a kép.
+var oR=window.renderFishGrid;
+if(typeof oR==='function'&&!oR.__kpfai){window.renderFishGrid=function(){var r=oR.apply(this,arguments);setTimeout(run,30);return r;};window.renderFishGrid.__kpfai=1;}
+var oD=window.openFishDetail;
+if(typeof oD==='function'&&!oD.__kpfai){window.openFishDetail=function(){var r=oD.apply(this,arguments);setTimeout(applyDetail,40);setTimeout(applyDetail,220);return r;};window.openFishDetail.__kpfai=1;}
+var oS=window.showPage;
+if(typeof oS==='function'&&!oS.__kpfai){window.showPage=function(id){var r=oS.apply(this,arguments);if(String(id||'').indexOf('fish')>=0)setTimeout(run,120);return r;};window.showPage.__kpfai=1;}
+
+setTimeout(run,1500);
+setInterval(run,2500);
 })();
