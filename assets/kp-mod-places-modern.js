@@ -21,7 +21,35 @@ function getDb(){try{return typeof getDB==='function'?getDB():JSON.parse(localSt
 function saveDb(d){try{if(typeof saveDB==='function')saveDB(d);else localStorage.setItem(window.DB_KEY||'horgaszpro_v0230',JSON.stringify(d));try{if(typeof renderSpotFinder==='function')renderSpotFinder()}catch(_){}}catch(e){console.warn('[places-modern]',e)}}
 function toast(m){try{typeof showToast==='function'?showToast(m):console.log('[places-modern]',m)}catch(e){}}
 function typeOf(p){return p.type||p.waterType||p.kind||'Hely'}
-function placePhoto(p,i){var ps=arr(p.photos);return (ps[0]&&(ps[0].data||ps[0].url))||p.coverImage||p.photo||p.image||fallbackPhotos[i%fallbackPhotos.length]}
+// Semleges vízparti csempe (nem tengerpart), ha nincs saját és nincs környékbeli kép.
+// Zárójel-mentes (a CSS url(...) miatt) semleges vízparti csempe.
+var NEUTRAL='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="260" height="184"><rect width="260" height="184" fill="#0e3a34"/><rect width="260" height="92" fill="#134b42"/><text x="130" y="104" font-family="sans-serif" font-size="42" fill="#3a8f7e" text-anchor="middle">🎣</text></svg>');
+// GPS-alapú környékbeli kép a hely saját koordinátája alapján (Wikimedia Commons), 7 nap cache.
+var geoCache=(function(){try{return JSON.parse(localStorage.getItem('kpl_geo_img')||'{}')}catch(e){return {}}})();
+var geoBusy=false;
+function geoImg(p){
+  var lat=num(p.lat),lon=num(p.lon);
+  if(!Number.isFinite(lat)||!Number.isFinite(lon)||(lat===0&&lon===0))return '';
+  var k=lat.toFixed(3)+','+lon.toFixed(3),hit=geoCache[k];
+  if(hit&&hit.url!=null&&(Date.now()-hit.ts)<7*864e5)return hit.url==='none'?'':hit.url;
+  if(!geoBusy){
+    geoBusy=true;
+    var u='https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggscoord='+encodeURIComponent(lat+'|'+lon)+'&ggsradius=8000&ggslimit=20&ggsnamespace=6&prop=imageinfo&iiprop=url%7Csize&iiurlwidth=900';
+    fetch(u).then(function(r){return r.json()}).then(function(j){
+      geoBusy=false;
+      var pages=(j&&j.query&&j.query.pages)||{};
+      var urls=Object.keys(pages).map(function(kk){var ii=pages[kk].imageinfo;return ii&&ii[0]}).filter(Boolean)
+        .filter(function(ii){var t=ii.thumburl||'';return /\.jpe?g$/i.test(t)&&ii.width>=800&&ii.width>ii.height&&!/[()\s'"]/.test(t);})
+        .map(function(ii){return ii.thumburl});
+      geoCache[k]={url:urls[0]||'none',ts:Date.now()};
+      try{localStorage.setItem('kpl_geo_img',JSON.stringify(geoCache))}catch(e){}
+      lastSignature='';render();
+    }).catch(function(){geoBusy=false});
+  }
+  return '';
+}
+// Saját feltöltött fotó elsődleges; ha nincs, környékbeli GPS-kép; végül semleges csempe.
+function placePhoto(p,i){var ps=arr(p.photos);var own=(ps[0]&&(ps[0].data||ps[0].url))||p.coverImage||p.photo||p.image;if(own)return own;var g=geoImg(p);return g||NEUTRAL;}
 function distanceKm(a,b,c,d){if(!Number.isFinite(a)||!Number.isFinite(b)||!Number.isFinite(c)||!Number.isFinite(d))return null;var R=6371,r=Math.PI/180,dLat=(c-a)*r,dLon=(d-b)*r,x=Math.sin(dLat/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
 function sessionsFor(name){var d=getDb();return arr(d.sessions).filter(function(s){var text=[s.location,s.locationName,s.spotName,s.water].join(' ').toLowerCase();return name&&text.indexOf(String(name).toLowerCase())>-1})}
 function newestDate(p){return p.last||p.updatedAt||p.createdAt||''}
