@@ -13,6 +13,52 @@ var BGS=['photo-1500530855697-b586d89ba3ee','photo-1693242285155-e8d3793e92b9','
 var bgIdx=(function(){try{var i=(parseInt(localStorage.getItem('kph_bg_idx'),10)||0)+1;localStorage.setItem('kph_bg_idx',String(i));return ((i%BGS.length)+BGS.length)%BGS.length;}catch(e){return Math.floor(Math.random()*BGS.length);}})();
 var bg=BGS[bgIdx];
 
+// GPS-alapú háttér: a Wikimedia Commons geosearch a koordináta 10 km-es
+// környékén készült valódi fotókat adja vissza; ha van elég, azok
+// váltják a beépített képlistát. 7 napig cache-elve, 5 km-en belül újrahasznosítva.
+var geoTried=false;
+function kphCoords(){
+  try{
+    var pc=(typeof placeCache!=='undefined'&&placeCache)||window.placeCache;
+    if(pc&&isFinite(pc.lat)&&isFinite(pc.lon)&&pc.lat!==null)return{lat:+pc.lat,lon:+pc.lon};
+    var la=(typeof lat!=='undefined')?lat:window.lat;
+    var lo=(typeof lon!=='undefined')?lon:window.lon;
+    if(la!=null&&lo!=null&&isFinite(la)&&isFinite(lo))return{lat:+la,lon:+lo};
+  }catch(e){}
+  return null;
+}
+function kphDistKm(a,b){var dx=(a.lon-b.lon)*Math.cos((a.lat+b.lat)*Math.PI/360)*111.32,dy=(a.lat-b.lat)*110.57;return Math.sqrt(dx*dx+dy*dy);}
+function applyGeoBgs(urls){
+  if(!urls||urls.length<3)return;
+  BGS=urls;bgIdx=bgIdx%BGS.length;bg=BGS[bgIdx];
+  var h=document.querySelector('.kph-hero');
+  if(h)h.style.setProperty('--kph-bg','url('+bg+')');
+}
+function maybeLoadGeoBgs(){
+  if(geoTried)return;
+  var c=kphCoords();if(!c)return;
+  geoTried=true;
+  try{
+    var cached=JSON.parse(localStorage.getItem('kph_bg_geo')||'null');
+    if(cached&&Array.isArray(cached.urls)&&cached.urls.length>=3&&(Date.now()-cached.ts)<7*864e5&&kphDistKm(c,cached)<5){applyGeoBgs(cached.urls);return;}
+  }catch(e){}
+  var u='https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*'+
+    '&generator=geosearch&ggscoord='+encodeURIComponent(c.lat+'|'+c.lon)+
+    '&ggsradius=10000&ggslimit=30&ggsnamespace=6&prop=imageinfo&iiprop=url%7Csize&iiurlwidth=1800';
+  fetch(u).then(function(r){return r.json();}).then(function(j){
+    var pages=(j&&j.query&&j.query.pages)||{};
+    var urls=Object.keys(pages).map(function(k){var ii=pages[k].imageinfo;return ii&&ii[0];}).filter(Boolean)
+      .filter(function(ii){return /\.jpe?g$/i.test(ii.thumburl||'')&&ii.width>=1200&&ii.width>ii.height;})
+      .map(function(ii){return ii.thumburl;}).slice(0,8);
+    if(urls.length>=3){
+      try{localStorage.setItem('kph_bg_geo',JSON.stringify({lat:c.lat,lon:c.lon,urls:urls,ts:Date.now()}));}catch(e){}
+      applyGeoBgs(urls);
+    }
+  }).catch(function(){geoTried=false;});
+}
+var geoAttempts=0;
+var geoPoll=setInterval(function(){maybeLoadGeoBgs();if(geoTried||++geoAttempts>40)clearInterval(geoPoll);},3000);
+
 function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function arr(v){return Array.isArray(v)?v:[];}
 function n(v){var x=Number(v);return Number.isFinite(x)?x:0;}
