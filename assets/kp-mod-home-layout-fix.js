@@ -63,7 +63,32 @@ function totalW(s){return n(s.totalWeight||s.weight||catches(s).reduce(function(
 function catchCount(s){return n(s.catchCount||s.fishCount||catches(s).length)}
 function success(s){if(s.success!=null)return !!s.success;return catchCount(s)>0||totalW(s)>0}
 function duration(s){if(s.durationLabel)return s.durationLabel;if(s.duration)return s.duration;var a=s.startTime||s.start||'',b=s.endTime||s.end||'';if(a&&b)return a+' - '+b;return a||'–'}
-function img(s,i){return s.coverImage||s.photo||s.image||arr(s.photos)[0]||photos[i%photos.length]}
+function sessCoords(s){try{var p=s.place;if(p&&p.lat!=null&&isFinite(p.lat)&&isFinite(p.lon))return{lat:+p.lat,lon:+p.lon};var g=String(s.gps||'');var m=g.match(/(-?\d+(?:\.\d+)?)\D+(-?\d+(?:\.\d+)?)/);if(m)return{lat:+m[1],lon:+m[2]}}catch(e){}return null}
+var geoImgCache=(function(){try{return JSON.parse(localStorage.getItem('kpj_geo_img')||'{}')}catch(e){return {}}})();
+var geoImgBusy=false;
+function geoImg(s){
+  var c=sessCoords(s);if(!c)return '';
+  var k=c.lat.toFixed(3)+','+c.lon.toFixed(3);
+  var hit=geoImgCache[k];
+  if(hit!=null)return hit==='none'?'':hit;
+  if(!geoImgBusy){
+    geoImgBusy=true;
+    var u='https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggscoord='+encodeURIComponent(c.lat+'|'+c.lon)+'&ggsradius=8000&ggslimit=20&ggsnamespace=6&prop=imageinfo&iiprop=url%7Csize&iiurlwidth=900';
+    fetch(u).then(function(r){return r.json();}).then(function(j){
+      geoImgBusy=false;
+      var pages=(j&&j.query&&j.query.pages)||{};
+      var urls=Object.keys(pages).map(function(kk){var ii=pages[kk].imageinfo;return ii&&ii[0];}).filter(Boolean)
+        .filter(function(ii){return /\.jpe?g$/i.test(ii.thumburl||'')&&ii.width>=900&&ii.width>ii.height;})
+        .map(function(ii){return ii.thumburl;});
+      geoImgCache[k]=urls[0]||'none';
+      try{localStorage.setItem('kpj_geo_img',JSON.stringify(geoImgCache));}catch(e){}
+      lastHash='';
+    }).catch(function(){geoImgBusy=false;});
+  }
+  return '';
+}
+// Feltöltött saját kép mindig elsődleges; ha nincs, GPS-alapú helyi fotó; végül a beépített stock.
+function img(s,i){var own=s.coverImage||s.photo||s.image||arr(s.photos)[0];if(own)return own;var g=geoImg(s);if(g)return g;return photos[i%photos.length]}
 function weatherText(s){return s.weatherDesc||s.weather||'Részben felhős'}
 function temp(s){return s.temp||s.temperature||s.weatherTemp||'24'}
 function wind(s){return s.wind||s.windSpeed||'12'}
