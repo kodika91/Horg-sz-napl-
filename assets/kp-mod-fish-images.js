@@ -22,6 +22,7 @@ function resolve(id,name){
   for(var i=0;i<c.length;i++){var p=fileFor(c[i]);if(p)return p}
   return ''
 }
+window.kpFishAssetResolve=resolve; // más modulok (pl. kp-mod-stability-v2 modern halfaj-oldala) is ezzel oldják fel a helyi képet
 function cardId(card){var on=card.getAttribute('onclick')||'';var m=on.match(/openFishDetail\(\s*['"]([^'"]+)['"]/);return m?m[1]:''}
 function txt(el){return el?(el.textContent||''):''}
 function imgBroken(img){if(!img)return true;if(img.style.display==='none')return true;if(!img.getAttribute('src'))return true;if(img.complete&&img.naturalWidth===0)return true;return false}
