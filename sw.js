@@ -1,6 +1,6 @@
 // sw.js — KapásPont offline Service Worker
 const KILL = false;
-const VERSION = 'kp-sw-v10-cache-only-ok';
+const VERSION = 'kp-sw-v11-fish-card-stats';
 const RUNTIME = 'kp-runtime-' + VERSION;
 const SHELL = 'kp-shell-' + VERSION;
 const PRECACHE = ['./', './index.html'];
@@ -30,6 +30,8 @@ self.addEventListener('activate', e => {
           .map(k => caches.delete(k))
     );
     await self.clients.claim();
+    const cs = await self.clients.matchAll();
+    cs.forEach(c => { try { c.navigate(c.url); } catch (_) {} });
   })());
 });
 
