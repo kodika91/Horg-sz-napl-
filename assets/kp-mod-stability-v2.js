@@ -1,8 +1,10 @@
 // kp-mod-stability-v2.js — stabilizáló réteg: időjárás, tilalom, halfajok, kontraszt
 // Halfaj kártyák: képek nélkül, általános adatokkal + felhasználónként számolt saját statisztikával.
+// v7: saját fogások deduplikálása, hogy backup/cache mentésekből ne számolja többször ugyanazt a fogást.
 (function(){
 'use strict';
-if(window.KP_MOD_STABILITY_SAFE_V6)return;
+if(window.KP_MOD_STABILITY_SAFE_V7)return;
+window.KP_MOD_STABILITY_SAFE_V7=true;
 window.KP_MOD_STABILITY_SAFE_V6=true;
 window.KP_MOD_STABILITY_SAFE_V5=true;
 
@@ -41,6 +43,7 @@ function parseDate(v){
 }
 function num(v){if(v==null||v==='')return 0;var n=parseFloat(String(v).replace(',','.').replace(/[^0-9.\-]/g,''));return isNaN(n)?0:n}
 function weightKg(o){var n=num(pick(o,['weightKg','weight_kg','kg','sulyKg','súlyKg','fishWeightKg']));if(n)return n;n=num(pick(o,['weight','fishWeight','catchWeight','suly','súly','mass']));if(!n)return 0;return n>80?n/1000:n}
+function lengthCm(o){return num(pick(o,['lengthCm','length','cm','hossz','meret','méret','fishLengthCm']))}
 function countOf(o){var n=num(pick(o,['count','db','quantity','qty','darab']));return n>0?Math.max(1,Math.round(n)):1}
 function dateOf(o,ctx){return parseDate(pick(o,['caughtAt','catchDate','date','datum','datetime','time','createdAt','timestamp','startTime','startedAt']))||parseDate(ctx&&ctx.date)}
 function idValue(v){if(v==null)return '';if(typeof v==='object')return pick(v,['id','fishId','speciesId','name','fishName','species','latin']);return v}
@@ -51,13 +54,25 @@ function looksLikeCatch(o,ctx){
   var fv=fishValue(o), nv=nameValue(o);
   if(!fv&&!nv)return false;
   if(fv)return true;
-  return !!(weightKg(o)||num(pick(o,['length','lengthCm','cm','hossz','meret','méret']))||num(pick(o,['count','db','quantity','qty','darab']))||dateOf(o,ctx));
+  return !!(weightKg(o)||lengthCm(o)||num(pick(o,['count','db','quantity','qty','darab']))||dateOf(o,ctx));
 }
 function matchFish(o,f){
   var wanted=[f.id,f.name,f.latin].map(norm).filter(Boolean);
   var vals=[fishValue(o),nameValue(o),pick(o,['latin','latinName','scientificName'])].map(norm).filter(Boolean);
   for(var i=0;i<vals.length;i++){for(var j=0;j<wanted.length;j++){if(vals[i]===wanted[j])return true}}
   return false;
+}
+function catchKey(o,ctx,f){
+  var explicit=pick(o,['id','catchId','catchID','uuid','uid','recordId','_id','key']);
+  if(explicit)return 'id:'+norm(explicit);
+  var fish=norm(fishValue(o)||nameValue(o)||f.id||f.name||f.latin);
+  var d=dateOf(o,ctx)||0;
+  var w=Math.round((weightKg(o)||0)*1000);
+  var l=Math.round((lengthCm(o)||0)*10);
+  var c=countOf(o);
+  var place=norm(ctx&&ctx.place||pick(o,['place','hely','location','water','waterName','spotName']));
+  var bait=norm(pick(o,['bait','csali','method','modszer','módszer']));
+  return 'sig:'+[fish,d,w,l,c,place,bait].join('|');
 }
 function scanNode(node,ctx,f,stat,seen,depth){
   if(depth>7||node==null)return;
@@ -66,18 +81,23 @@ function scanNode(node,ctx,f,stat,seen,depth){
   if(Array.isArray(node)){for(var i=0;i<node.length;i++)scanNode(node[i],ctx,f,stat,seen,depth+1);return;}
   var next={date:pick(node,['date','datum','startedAt','startTime','createdAt','timestamp'])||ctx.date,place:pick(node,['place','hely','location','water','waterName','spotName'])||ctx.place};
   if(looksLikeCatch(node,next)&&matchFish(node,f)){
-    var c=countOf(node), w=weightKg(node), d=dateOf(node,next);
-    stat.count+=c;
-    if(w>stat.biggest)stat.biggest=w;
-    if(d>stat.last)stat.last=d;
+    var key=catchKey(node,next,f);
+    if(!stat._seen[key]){
+      stat._seen[key]=1;
+      var c=countOf(node), w=weightKg(node), d=dateOf(node,next);
+      stat.count+=c;
+      if(w>stat.biggest)stat.biggest=w;
+      if(d>stat.last)stat.last=d;
+    }
   }
   for(var k in node){if(Object.prototype.hasOwnProperty.call(node,k))scanNode(node[k],next,f,stat,seen,depth+1)}
 }
 function parseStored(v){if(!v||typeof v!=='string')return null;v=v.trim();if(!v||!/^[[{]/.test(v))return null;try{return JSON.parse(v)}catch(e){return null}}
 function personalStats(f){
-  var stat={count:0,biggest:0,last:0};
+  var stat={count:0,biggest:0,last:0,_seen:{}};
   try{for(var i=0;i<localStorage.length;i++){var key=localStorage.key(i), data=parseStored(localStorage.getItem(key));if(data)scanNode(data,{date:0,place:''},f,stat,[],0)}}catch(e){}
   try{for(var j=0;j<sessionStorage.length;j++){var skey=sessionStorage.key(j), sdata=parseStored(sessionStorage.getItem(skey));if(sdata)scanNode(sdata,{date:0,place:''},f,stat,[],0)}}catch(e){}
+  delete stat._seen;
   return stat;
 }
 function kgText(v){if(!v)return '–';return (v>=1?(Math.round(v*100)/100).toString().replace('.',',')+' kg':Math.round(v*1000)+' g')}
