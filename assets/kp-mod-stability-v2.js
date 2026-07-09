@@ -1,9 +1,10 @@
 // kp-mod-stability-v2.js — stabilizáló réteg: időjárás, tilalom, halfajok, kontraszt
 // Halfaj kártyák: képek nélkül, általános adatokkal + felhasználónként számolt saját statisztikával.
-// v7: saját fogások deduplikálása, hogy backup/cache mentésekből ne számolja többször ugyanazt a fogást.
+// v8: lazább saját fogás deduplikálás: azonos halfaj + dátum + súly/méret csak egyszer számolódik.
 (function(){
 'use strict';
-if(window.KP_MOD_STABILITY_SAFE_V7)return;
+if(window.KP_MOD_STABILITY_SAFE_V8)return;
+window.KP_MOD_STABILITY_SAFE_V8=true;
 window.KP_MOD_STABILITY_SAFE_V7=true;
 window.KP_MOD_STABILITY_SAFE_V6=true;
 window.KP_MOD_STABILITY_SAFE_V5=true;
@@ -63,16 +64,17 @@ function matchFish(o,f){
   return false;
 }
 function catchKey(o,ctx,f){
-  var explicit=pick(o,['id','catchId','catchID','uuid','uid','recordId','_id','key']);
-  if(explicit)return 'id:'+norm(explicit);
   var fish=norm(fishValue(o)||nameValue(o)||f.id||f.name||f.latin);
   var d=dateOf(o,ctx)||0;
   var w=Math.round((weightKg(o)||0)*1000);
   var l=Math.round((lengthCm(o)||0)*10);
+  if(d||w||l)return 'loose:'+[fish,d,w,l].join('|');
+  var explicit=pick(o,['id','catchId','catchID','uuid','uid','recordId','_id','key']);
+  if(explicit)return 'id:'+norm(explicit);
   var c=countOf(o);
   var place=norm(ctx&&ctx.place||pick(o,['place','hely','location','water','waterName','spotName']));
   var bait=norm(pick(o,['bait','csali','method','modszer','módszer']));
-  return 'sig:'+[fish,d,w,l,c,place,bait].join('|');
+  return 'sig:'+[fish,c,place,bait].join('|');
 }
 function scanNode(node,ctx,f,stat,seen,depth){
   if(depth>7||node==null)return;
