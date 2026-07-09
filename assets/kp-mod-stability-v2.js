@@ -1,9 +1,10 @@
 // kp-mod-stability-v2.js — stabilizáló réteg: időjárás, tilalom, halfajok, kontraszt
 // Halfaj kártyák: képek nélkül, általános adatokkal + felhasználónként számolt saját statisztikával.
-// v8: lazább saját fogás deduplikálás: azonos halfaj + dátum + súly/méret csak egyszer számolódik.
+// v9: saját fogások kizárólag a fő adatbázisból: horgaszpro_v0230 -> sessions[] -> catches[].
 (function(){
 'use strict';
-if(window.KP_MOD_STABILITY_SAFE_V8)return;
+if(window.KP_MOD_STABILITY_SAFE_V9)return;
+window.KP_MOD_STABILITY_SAFE_V9=true;
 window.KP_MOD_STABILITY_SAFE_V8=true;
 window.KP_MOD_STABILITY_SAFE_V7=true;
 window.KP_MOD_STABILITY_SAFE_V6=true;
@@ -50,55 +51,45 @@ function dateOf(o,ctx){return parseDate(pick(o,['caughtAt','catchDate','date','d
 function idValue(v){if(v==null)return '';if(typeof v==='object')return pick(v,['id','fishId','speciesId','name','fishName','species','latin']);return v}
 function fishValue(o){return idValue(pick(o,['fishId','fish_id','fishID','speciesId','species_id','species','fish','fishName','halfaj','faj','halfajNev','speciesName']))}
 function nameValue(o){return idValue(pick(o,['name','nev','név']))}
-function looksLikeCatch(o,ctx){
-  if(!o||typeof o!=='object'||Array.isArray(o))return false;
-  var fv=fishValue(o), nv=nameValue(o);
-  if(!fv&&!nv)return false;
-  if(fv)return true;
-  return !!(weightKg(o)||lengthCm(o)||num(pick(o,['count','db','quantity','qty','darab']))||dateOf(o,ctx));
-}
 function matchFish(o,f){
   var wanted=[f.id,f.name,f.latin].map(norm).filter(Boolean);
   var vals=[fishValue(o),nameValue(o),pick(o,['latin','latinName','scientificName'])].map(norm).filter(Boolean);
   for(var i=0;i<vals.length;i++){for(var j=0;j<wanted.length;j++){if(vals[i]===wanted[j])return true}}
   return false;
 }
-function catchKey(o,ctx,f){
-  var fish=norm(fishValue(o)||nameValue(o)||f.id||f.name||f.latin);
-  var d=dateOf(o,ctx)||0;
-  var w=Math.round((weightKg(o)||0)*1000);
-  var l=Math.round((lengthCm(o)||0)*10);
-  if(d||w||l)return 'loose:'+[fish,d,w,l].join('|');
-  var explicit=pick(o,['id','catchId','catchID','uuid','uid','recordId','_id','key']);
+function catchKey(c,ctx,f){
+  var fish=norm(fishValue(c)||nameValue(c)||f.id||f.name||f.latin);
+  var d=dateOf(c,ctx)||0;
+  var w=Math.round((weightKg(c)||0)*1000);
+  var l=Math.round((lengthCm(c)||0)*10);
+  if(d||w||l)return [fish,d,w,l].join('|');
+  var explicit=pick(c,['id','catchId','catchID','uuid','uid','recordId','_id','key']);
   if(explicit)return 'id:'+norm(explicit);
-  var c=countOf(o);
-  var place=norm(ctx&&ctx.place||pick(o,['place','hely','location','water','waterName','spotName']));
-  var bait=norm(pick(o,['bait','csali','method','modszer','módszer']));
-  return 'sig:'+[fish,c,place,bait].join('|');
+  return [fish,ctx.sessionId||'',countOf(c),norm(pick(c,['bait','csali','method','modszer','módszer']))].join('|');
 }
-function scanNode(node,ctx,f,stat,seen,depth){
-  if(depth>7||node==null)return;
-  if(typeof node!=='object')return;
-  if(seen.indexOf(node)>=0)return;seen.push(node);
-  if(Array.isArray(node)){for(var i=0;i<node.length;i++)scanNode(node[i],ctx,f,stat,seen,depth+1);return;}
-  var next={date:pick(node,['date','datum','startedAt','startTime','createdAt','timestamp'])||ctx.date,place:pick(node,['place','hely','location','water','waterName','spotName'])||ctx.place};
-  if(looksLikeCatch(node,next)&&matchFish(node,f)){
-    var key=catchKey(node,next,f);
-    if(!stat._seen[key]){
-      stat._seen[key]=1;
-      var c=countOf(node), w=weightKg(node), d=dateOf(node,next);
-      stat.count+=c;
-      if(w>stat.biggest)stat.biggest=w;
-      if(d>stat.last)stat.last=d;
-    }
-  }
-  for(var k in node){if(Object.prototype.hasOwnProperty.call(node,k))scanNode(node[k],next,f,stat,seen,depth+1)}
+function loadPrimaryDB(){
+  try{var fn=Function('return (typeof getDB==="function")?getDB:null')();if(typeof fn==='function'){var db=fn();if(db&&typeof db==='object')return db;}}catch(e){}
+  try{return JSON.parse(localStorage.getItem('horgaszpro_v0230')||'{}')||{}}catch(e){return {}}
 }
-function parseStored(v){if(!v||typeof v!=='string')return null;v=v.trim();if(!v||!/^[[{]/.test(v))return null;try{return JSON.parse(v)}catch(e){return null}}
 function personalStats(f){
   var stat={count:0,biggest:0,last:0,_seen:{}};
-  try{for(var i=0;i<localStorage.length;i++){var key=localStorage.key(i), data=parseStored(localStorage.getItem(key));if(data)scanNode(data,{date:0,place:''},f,stat,[],0)}}catch(e){}
-  try{for(var j=0;j<sessionStorage.length;j++){var skey=sessionStorage.key(j), sdata=parseStored(sessionStorage.getItem(skey));if(sdata)scanNode(sdata,{date:0,place:''},f,stat,[],0)}}catch(e){}
+  var db=loadPrimaryDB();
+  var sessions=Array.isArray(db.sessions)?db.sessions:[];
+  sessions.forEach(function(s){
+    var catches=Array.isArray(s.catches)?s.catches:[];
+    var ctx={date:s.date||s.startedAt||s.startTime||s.createdAt||'',place:s.location||s.hely||s.water||'',sessionId:s.id||''};
+    catches.forEach(function(c){
+      if(!c||typeof c!=='object')return;
+      if(!matchFish(c,f))return;
+      var key=catchKey(c,ctx,f);
+      if(stat._seen[key])return;
+      stat._seen[key]=1;
+      var n=countOf(c), w=weightKg(c), d=dateOf(c,ctx);
+      stat.count+=n;
+      if(w>stat.biggest)stat.biggest=w;
+      if(d>stat.last)stat.last=d;
+    });
+  });
   delete stat._seen;
   return stat;
 }
