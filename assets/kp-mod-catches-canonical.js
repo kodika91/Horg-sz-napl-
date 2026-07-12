@@ -16,6 +16,7 @@ var busy=false;
 function arr(v){return Array.isArray(v)?v:[]}
 function text(v){return String(v==null?'':v).trim()}
 function num(v){if(v==null||v==='')return null;var n=Number(String(v).replace(',','.'));return Number.isFinite(n)?n:null}
+function clone(v){try{return JSON.parse(JSON.stringify(v))}catch(e){return null}}
 function stamp(o){return text(o&&(o.updatedAt||o.modifiedAt||o.createdAt||o.time||o.ido))}
 function catchId(c){return text(c&&(c.id||c.uuid||c.catchId))}
 function fish(c){return text(c&&(c.fish||c.hal))}
@@ -81,8 +82,9 @@ function rawRead(){
   try{if(originalGetDB)return originalGetDB()}catch(e){}
   try{return JSON.parse(localStorage.getItem(DB_KEY)||'{}')}catch(e){return {}}
 }
-function backupOnce(db){
-  try{if(!localStorage.getItem(BACKUP_KEY))localStorage.setItem(BACKUP_KEY,JSON.stringify({createdAt:new Date().toISOString(),reason:'before catches canonical migration',data:db}))}catch(e){console.warn('[canonical-catches] backup hiba',e)}
+function backupOnce(snapshot){
+  if(!snapshot)return;
+  try{if(!localStorage.getItem(BACKUP_KEY))localStorage.setItem(BACKUP_KEY,JSON.stringify({createdAt:new Date().toISOString(),reason:'before catches canonical migration',data:snapshot}))}catch(e){console.warn('[canonical-catches] backup hiba',e)}
 }
 function rawSave(db){
   if(originalSaveDB)return originalSaveDB(db);
@@ -91,16 +93,23 @@ function rawSave(db){
 function saveCanonical(db){
   if(busy)return rawSave(db);
   busy=true;
-  try{var r=canonicalizeDb(db);if(r.changed)backupOnce(db);return rawSave(r.db)}finally{busy=false}
+  try{
+    var before=clone(db);
+    var r=canonicalizeDb(db);
+    if(r.changed)backupOnce(before);
+    return rawSave(r.db);
+  }finally{busy=false}
 }
 window.getDB=function(){var r=canonicalizeDb(rawRead());return r.db};
 window.saveDB=function(db){return saveCanonical(db)};
 
 function migratePersisted(){
   if(busy)return;
-  var db=rawRead(),r=canonicalizeDb(db);
+  var db=rawRead();
+  var before=clone(db);
+  var r=canonicalizeDb(db);
   if(!r.changed)return;
-  backupOnce(db);
+  backupOnce(before);
   busy=true;
   try{rawSave(r.db);console.log('[canonical-catches] migrálva, összevont bejegyzések:',r.merged)}
   catch(e){console.error('[canonical-catches] migrációs mentési hiba',e)}
