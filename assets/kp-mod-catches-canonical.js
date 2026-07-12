@@ -1,18 +1,19 @@
 /* kp-mod-catches-canonical.js — tartós napló- és fogásazonosítók
- * v4: minden túra és fogás egyszer kap azonosítót, amely szerkesztéskor megmarad.
- * A régi párhuzamos fogástömbök migrálása és a korábbi technikai másolatok javítása
- * biztonsági mentés után történik.
+ * v5: minden túra és fogás egyszer kap azonosítót, amely szerkesztéskor megmarad.
+ * A régi párhuzamos fogástömbök migrálása, valamint a 2026-07-11-i ismert
+ * technikai duplikációk javítása biztonsági mentés után történik.
  */
 (function(){
 'use strict';
-if(window.KP_CATCHES_CANONICAL_V4)return;
+if(window.KP_CATCHES_CANONICAL_V5)return;
+window.KP_CATCHES_CANONICAL_V5=true;
 window.KP_CATCHES_CANONICAL_V4=true;
 window.KP_CATCHES_CANONICAL_V3=true;
 window.KP_CATCHES_CANONICAL_V2=true;
 window.KP_CATCHES_CANONICAL_V1=true;
 
 var DB_KEY=(function(){try{return window.DB_KEY||'horgaszpro_v0230'}catch(e){return 'horgaszpro_v0230'}})();
-var BACKUP_KEY=DB_KEY+'_before_stable_record_identity_v4';
+var BACKUP_KEY=DB_KEY+'_before_stable_record_identity_v5';
 var originalGetDB=typeof window.getDB==='function'?window.getDB:null;
 var originalSaveDB=typeof window.saveDB==='function'?window.saveDB:null;
 var busy=false;
@@ -63,18 +64,37 @@ function likelyTechnicalClone(a,b){
   var pa=photo(a),pb=photo(b);if(pa&&pb&&pa===pb)return true;
   return false;
 }
-function migrateKnownCorruption(session,list){
+
+/* Egyszeri helyreállítás a már bizonyított 2026-07-11-i hibához.
+ * Két 1,5 kg-os valódi fogás (süllő/Csalihal és a Promix csalis fogás)
+ * technikai másolata maradt az adatbázisban. A javítás kizárólag ezt a napot,
+ * ezt a két canonical csalit és az 1,5 kg-os rekordokat érinti. */
+function repairKnownWeightDuplicates(session,list){
   if(dateKey(session)!=='2026-07-11')return list;
-  var out=[];
+  var targets={'csalihal':true,'promixpopuppellet':true};
+  var groups={},out=[];
   list.forEach(function(c){
-    var pos=-1;
-    for(var i=0;i<out.length;i++){
-      if(norm(fish(out[i]))===norm(fish(c))&&norm(bait(out[i]))===norm(bait(c))&&count(out[i])===count(c)&&sameNum(weight(out[i]),weight(c))&&sameNum(length(out[i]),length(c))){pos=i;break}
-    }
-    if(pos<0)out.push(c);else out[pos]=mergeSameId(out[pos],c);
+    var key=norm(bait(c));
+    if(targets[key]&&sameNum(weight(c),1.5)){
+      var g=[norm(fish(c)),key,'1.5'].join('|');
+      (groups[g]||(groups[g]=[])).push(c);
+    }else out.push(c);
+  });
+  Object.keys(groups).forEach(function(g){
+    var rows=groups[g];
+    if(rows.length===1){out.push(rows[0]);return}
+    var stable=rows.slice().sort(function(a,b){return stamp(a)-stamp(b)})[0];
+    var merged=rows[0];
+    for(var i=1;i<rows.length;i++)merged=mergeSameId(merged,rows[i]);
+    var id=catchId(stable)||catchId(merged)||uid('catch');
+    merged.id=id;merged.catchId=id;merged.recordId=id;
+    merged.count=1;merged.weight=1.5;merged.weightKg=1.5;
+    merged._repairedDuplicateAt=new Date().toISOString();
+    out.push(normalizeCatch(merged));
   });
   return out;
 }
+
 function canonicalCatches(session){
   var sources=[arr(session&&session.catches),arr(session&&session['fogások']),arr(session&&session.fogasok)],out=[],byId={};
   sources.forEach(function(list){list.forEach(function(raw){
@@ -84,7 +104,7 @@ function canonicalCatches(session){
     pos=-1;for(var i=0;i<out.length;i++){if(likelyTechnicalClone(out[i],c)){pos=i;break}}
     if(pos<0){byId[id]=out.length;out.push(c)}else{var keep=newer(out[pos],c),stableId=catchId(out[pos])||catchId(c);out[pos]=mergeSameId(out[pos],c);out[pos].id=stableId;out[pos].catchId=stableId;out[pos].recordId=stableId;byId[id]=pos;byId[catchId(keep)]=pos}
   })});
-  return migrateKnownCorruption(session,out);
+  return repairKnownWeightDuplicates(session,out);
 }
 function recalc(session){var totalCount=0,totalWeight=0;arr(session.catches).forEach(function(c){var n=count(c),w=weight(c)||0;totalCount+=n;totalWeight+=w*n});session.catchCount=totalCount;session.totalWeight=Math.round(totalWeight*1000)/1000}
 function canonicalizeDb(db){
@@ -99,16 +119,16 @@ function canonicalizeDb(db){
     s.catches=canonical;if(Object.prototype.hasOwnProperty.call(s,'fogások'))delete s['fogások'];if(Object.prototype.hasOwnProperty.call(s,'fogasok'))delete s.fogasok;recalc(s);
     if(hadAliases||oldJson!==newJson){changed=true;merged+=Math.max(0,before-canonical.length);s.updatedAt=new Date().toISOString();s.modifiedAt=s.updatedAt}
   });
-  if(changed)db._meta=Object.assign({},db._meta||{},{stableRecordIdentityAt:new Date().toISOString(),stableRecordIdentityVersion:4,canonicalMergedEntries:merged,assignedStableIds:assigned});
+  if(changed)db._meta=Object.assign({},db._meta||{},{stableRecordIdentityAt:new Date().toISOString(),stableRecordIdentityVersion:5,canonicalMergedEntries:merged,assignedStableIds:assigned});
   return {db:db,changed:changed,merged:merged,assigned:assigned};
 }
 function rawRead(){try{if(originalGetDB)return originalGetDB()}catch(e){}try{return JSON.parse(localStorage.getItem(DB_KEY)||'{}')}catch(e){return {}}}
-function backupOnce(snapshot){if(!snapshot)return;try{if(!localStorage.getItem(BACKUP_KEY))localStorage.setItem(BACKUP_KEY,JSON.stringify({createdAt:new Date().toISOString(),reason:'before stable session/catch identity v4 migration',data:snapshot}))}catch(e){console.warn('[stable-identity] backup hiba',e)}}
+function backupOnce(snapshot){if(!snapshot)return;try{if(!localStorage.getItem(BACKUP_KEY))localStorage.setItem(BACKUP_KEY,JSON.stringify({createdAt:new Date().toISOString(),reason:'before stable session/catch identity v5 migration',data:snapshot}))}catch(e){console.warn('[stable-identity] backup hiba',e)}}
 function rawSave(db){if(originalSaveDB)return originalSaveDB(db);localStorage.setItem(DB_KEY,JSON.stringify(db||{}))}
 function saveCanonical(db){if(busy)return rawSave(db);busy=true;try{var before=clone(db),r=canonicalizeDb(db);if(r.changed)backupOnce(before);return rawSave(r.db)}finally{busy=false}}
 window.getDB=function(){return canonicalizeDb(rawRead()).db};window.saveDB=function(db){return saveCanonical(db)};
 function refresh(){['renderSessionsList','renderActiveSessionHome','updateHome','renderSessionDetail','renderSessions','renderStatistics','renderStats','KP_RENDER_STATS'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]()}catch(e){}})}
-function migratePersisted(force){if(busy)return;var db=rawRead(),before=clone(db),r=canonicalizeDb(db);if(!r.changed&&!force)return;if(r.changed)backupOnce(before);busy=true;try{rawSave(r.db);if(r.changed)console.log('[stable-identity-v4] összevonva:',r.merged,'azonosító kiosztva:',r.assigned)}catch(e){console.error('[stable-identity-v4] migrációs hiba',e)}finally{busy=false}refresh()}
+function migratePersisted(force){if(busy)return;var db=rawRead(),before=clone(db),r=canonicalizeDb(db);if(!r.changed&&!force)return;if(r.changed)backupOnce(before);busy=true;try{rawSave(r.db);if(r.changed)console.log('[stable-identity-v5] összevonva:',r.merged,'azonosító kiosztva:',r.assigned)}catch(e){console.error('[stable-identity-v5] migrációs hiba',e)}finally{busy=false}refresh()}
 window.kpCanonicalizeCatches=function(){migratePersisted(true)};
 migratePersisted();setTimeout(migratePersisted,500);setTimeout(migratePersisted,1600);setInterval(migratePersisted,5000);
 })();
