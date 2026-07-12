@@ -1,6 +1,6 @@
 // sw.js — KapásPont offline Service Worker
 const KILL = false;
-const VERSION = 'kp-sw-v11-fish-card-stats';
+const VERSION = 'kp-sw-v12-canonical-catch-edit';
 const RUNTIME = 'kp-runtime-' + VERSION;
 const SHELL = 'kp-shell-' + VERSION;
 const PRECACHE = ['./', './index.html'];
@@ -44,7 +44,7 @@ self.addEventListener('fetch', e => {
 
   e.respondWith((async () => {
     try {
-      const fresh = await fetch(req);
+      const fresh = await fetch(req, { cache: 'no-store' });
       try {
         const sameOrigin = url.origin === self.location.origin;
         const isRaw = url.hostname === 'raw.githubusercontent.com';
