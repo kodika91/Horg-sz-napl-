@@ -1,13 +1,12 @@
 /* Egyszeri adatjavítás: csali nélküli, duplikált süllőfogás eltávolítása.
- * v3: a törlés után újraszámolja a túra darabszámát és összsúlyát,
- * de nem hívja meg a régi statisztikai renderelőket.
+ * v4: betölti az adatvesztésmentes canonical fogásmigrációt is.
  */
 (function(){
 'use strict';
-if(window.KP_REMOVE_BAITLESS_ZANDER_DUPLICATE_V3)return;
-window.KP_REMOVE_BAITLESS_ZANDER_DUPLICATE_V3=true;
+if(window.KP_REMOVE_BAITLESS_ZANDER_DUPLICATE_V4)return;
+window.KP_REMOVE_BAITLESS_ZANDER_DUPLICATE_V4=true;
 
-var MARKER='kp_cleanup_baitless_zander_duplicate_v3';
+var MARKER='kp_cleanup_baitless_zander_duplicate_v4';
 var DB_KEY=(function(){try{return window.DB_KEY||'horgaszpro_v0230'}catch(e){return 'horgaszpro_v0230'}})();
 
 function text(v){return String(v==null?'':v).trim()}
@@ -40,6 +39,13 @@ function refreshNonStats(){
     try{if(typeof window[fn]==='function')window[fn]()}catch(e){}
   });
 }
+function loadCanonical(){
+  if(window.KP_CATCHES_CANONICAL_V1||document.getElementById('kp-catches-canonical'))return;
+  var s=document.createElement('script');
+  s.id='kp-catches-canonical';
+  s.src='assets/kp-mod-catches-canonical.js?v=20260712-1';
+  document.body.appendChild(s);
+}
 function run(){
   try{if(localStorage.getItem(MARKER)==='done')return}catch(e){}
   var db=getDB();
@@ -58,8 +64,6 @@ function run(){
       });
       if(kept.length!==catches.length){
         session.catches=kept;
-        session.fogasok=kept;
-        session['fogások']=kept;
         catches=kept;
         changed=true;
       }
@@ -76,10 +80,11 @@ function run(){
   if(changed){
     saveDB(db);
     refreshNonStats();
-    console.log('[zander-cleanup-v3] süllő duplikáció és túraösszesítők javítva',removed);
-    try{if(typeof window.showToast==='function')window.showToast('A süllőfogás és a Sneci csali súlya javítva.')}catch(e){}
+    console.log('[zander-cleanup-v4] süllő duplikáció és túraösszesítők javítva',removed);
   }
   try{localStorage.setItem(MARKER,'done')}catch(e){}
 }
-setTimeout(run,1200);
+loadCanonical();
+setTimeout(loadCanonical,500);
+setTimeout(run,1400);
 })();
