@@ -1,6 +1,6 @@
 // sw.js — KapásPont offline Service Worker
 const KILL = false;
-const VERSION = 'kp-sw-v16-weight-repair-bait-icons';
+const VERSION = 'kp-sw-v17-weight-repair-date-normalization';
 const RUNTIME = 'kp-runtime-' + VERSION;
 const SHELL = 'kp-shell-' + VERSION;
 const PRECACHE = ['./', './index.html'];
